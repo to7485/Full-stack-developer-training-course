@@ -57,11 +57,18 @@ win + r -> 실행창에 cmd -> java -verion 입력
 
 ![image](https://user-images.githubusercontent.com/54658614/211975334-e2287139-5269-4218-8dd0-1167fd62eea4.png)
 
-```diff
-- ※ jdk를 먼저 설치하지 않으면 이클립스가 실행되지 않습니다!!
-```
-
 ### 인텔리제이 실행하기
+![image](img/인텔리제이%20실행하기.png)
+
+### 프로젝트 생성하기
+
+![image](img/인텔리제이%20실행하기2.png)
+
+![image](img/인텔리제이_프로젝트생성하기.png)
+- Name : 프로젝트의 이름
+- Location : 생성한 프로젝트가 저장될 경로
+- JDK : 설치된 JDK의 버전
+- Add sample code : 샘플코드 추가하기
 
 
 ### 클래스 내용 작성하기
@@ -90,7 +97,7 @@ public class Test {
 
 - 저장을 하고 실행을 하면 콘솔이라는 공간에 System.out.println() 소괄호 사이에 적은 문장이 출력되어 나오는 모습을 볼 수 있습니다.
 
-![image](https://user-images.githubusercontent.com/54658614/212241733-b89dbf5a-ae42-4ebd-b28c-53d89afbc2af.png)
+![image](img/인텔리제이_helloworld.png)
 
 # 자바 프로그램의 구조
 - 자바 언어로 만들어진 파일을 컴파일 하면서 기계어 파일인 바이트코드(.class)파일이 생성된다.
