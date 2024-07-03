@@ -650,46 +650,137 @@ public class Casting01{
 	}
 }
 ```
+- 형 변환은 숫자를 담을 수 있는 기본 자료형간에만 가능하다.
+- 즉, 정수인 byte,short,int,long,float,double형 간에만 가능하며, 문자형인 char역시 문자형인 동시에 정수이기도 하므로 형 변환을 할 수 있다.
 
 ## Promotion(자동형변환)
-- 작은 자료형에서 큰 자료형으로 변환할 때
+- 서로 다른 자료형간의 대입이나 연산을 할 때 형 변환으로 자료형을 일치시켜야 하지만 다음과 같은 경우 자바의 컴파일러가 자동으로 형 변환을 해주기 때문에 생략할 수 있다.
+### 작은 자료형에서 큰 자료형으로 변환할 때
+  - ### 정수형
     - byte -> short -> int -> long
-- 정수형이 실수형으로 변환 될 때
+  - ### 실수형
+    - float(4바이트) -> double(8바이트)
+### 정수형이 실수형으로 변환 될 때
 
+### Casting02클래스 생성하기
 ```java
-   double d = 100.5; //8byte
-   int n = 200; //4byte
-   d = n;
-   System.out.println("d = " + d); //결과 : 200.0
+package test2;
 
-   char c = 'A'; //2byte
-   long l = 100;//8byte
-   l = c;
-   System.out.println("l = " + l); //결과 65
+public class Casting02 {
+	public static void main(String[] args) {
+		int num1 = 14;
+		double num2 = 3.14;
+		
+		double num4 = num1;//num1을 자동으로 double로 형 변환 해줌
+		
+		//int num3 = (double)num2;//자동 형 변환을 할 수 없는 역방향! 컴파일에러 발생
+		int num3 = (int)num2;
+		
+		System.out.println(num4);
+	}
+}
+```
+### Casting03클래스 생성하기
+```java
+
+package test2;
+
+public class Casting03 {
+	public static void main(String[] args) {
+		int i = 100;
+		char c = 'a';
+		int j = c; //char형에서 int형으로 자동 변환
+		double d = i; //int형에서 double형으로 자동 변환
+		
+		System.out.println("int형 변수 j의 값 : " + j);
+		System.out.println("double형 변수 d의 값 : " + d);
+	}
+}
 ```
 
 ## Demotion(강제형변환)
 - 큰 컵의 물을 작은 컵에 옮겨 담는것과 같다.
 - 물의 양에 따라서 보존될 수도 있지만 넘칠수도 있다.
 - 큰 자료형에서 작은 자료형으로 옮길 때 데이터의 손실이 발생할 수도 있고 아닐 수도 있다.
+- 데이터의 손실이 일어난다면 정확한 연산을 수행할 수 없기 때문에 예상하지 못한 결과를 얻을 수 있으므로 강제 형변환은 항상 주의할 필요가 있다.
 
 ### 형변환 방법
 ```java
 (원하는 자료형) 데이터or 변수;
 ```
 
+### Casting04클래스 생성하기
 ```java
-   char c = 'B'; //2byte
-   int n = c + 1; //여기까지는 프로모션 캐스팅
-   c = n; //c는 2byte, n은 4byte이므로 오류 발생   
-   c = (char)n; //이렇게 수정
-   System.out.println("c = " + c);
+package test2;
 
-   float f = 5.5f;
-   int n = 0;
-   n = (int)f; //같은 4byte여도 자료형이 일치하지 않으면 대입되지 않음. 고로 캐스팅
-   System.out.println("n = " + n);
-   //결과는 5 인데, float에서 int로 캐스팅되면서 소수점 이하 자리를 상실함
+public class Casting04 {
+	public static void main(String[] args) {
+		//int -> byte형 강제 형변환(값이 작을 경우)
+		int i = 10;
+		byte b = (byte)i;
+		System.out.println("[int -> byte] i의 값 : " + i + " b의 값 : " + b);
+		
+		//int -> byte형 강제 형변환(값이 큰 경우)
+		int j = 1000;
+		byte c = (byte)j;
+		System.out.println("[int -> byte] j의 값 : " + j + " c의 값 : " + c);
+	}
+}
+
+```
+
+### Casting05클래스 생성하기
+```java
+package test2;
+
+public class Casting05 {
+	public static void main(String[] args) {
+		
+		//double -> float형 강제 형변환(float형 범위 내 값)
+		double d1 = 1.1234;
+		float f1 = (float)d1;
+		System.out.println("[double -> float] d1의 값 : " + d1 + ", f1의 값 : " + f1);
+		//범위 값 내에서 강제 형 변환을 실행하면 데이터의 손실 없이 변환된다.
+		
+		//double -> float형 강제 형변환(float형 최소값보다 작은 값)
+		double d2 = 1.0e-50;
+		float f2 = (float)d2;
+		System.out.println("[double -> float] d2의 값 : " + d2 + ", f2의 값 : " + f2);
+		//float형이 가질 수 있는 최소값보다 작은 경우 0.0이 된다.
+		
+		//double -> float형 강제 형변환(float형 최대값보다 큰 경우)
+		double d3 = 1.0e100;
+		float f3 = (float)d3;
+		System.out.println("[double -> float] d3의 값 : " + d3 + ", f3의 값 : " + f3);
+		//float형이 가질 수 있는 최대값보다 큰 경우 Infinity가 된다.
+		
+		//double과 float형의 정밀도 차이
+		double d4 = 9.123456789;
+		float f4 = (float)d4;
+		System.out.println("[정밀도차이] d4의 값 : " + d4 + ", f4의 값 : " + f4);
+		//float형 범위 내 값이지만 소수점 아래 값에서는 정밀도에서 차이가 난다.
+	}
+}
+```
+
+### Casting06클래스 생성하기
+```java
+package test2;
+
+public class Casting06 {
+	public static void main(String[] args) {
+		//float -> int 강제 형변환
+		float f1 = 12345.67f;
+		int i1 = (int)f1;
+		System.out.println("[float -> int] f1의 값 : " + f1+", i1의 값 : " + i1);
+		
+		//float -> int 강제 형변환
+		double d1 = 12345.67;
+		int i2 = (int)d1;
+		System.out.println("[double -> int] d1의 값 : " + d1+", i2의 값 : " + i2);	
+	}
+}
+
 ```
 
 ## 자바의 특징
@@ -708,8 +799,9 @@ int b3 = b1 + b2; //이렇게 수정
 - 키보드를 통해 다양한 데이터를 자유롭게 입력하는 방법이 있다.
 - 키보드를 통해 입력하는 데이터를 문자열로 얻기 위해서는 'java.util'패키지에 있는 Scanner클래스를 이용해야 한다.
 ```java
-import java.util.Scanner;
-Scanner 객체명 = new Scanner(System.in);
+import java.util.Scanner; //Scanner클래스 호출
+Scanner 객체명 = new Scanner(System.in); //Scanner 객체 선언
+int 변수명 = 객체명.nextInt(); //정수 입력받기
 ```
 <table>
 <tr>
@@ -812,6 +904,61 @@ System.out.printf("당신의 체중은 %.1fkg입니다.\n",weight);
 |비트연산자|&,\|,~,^ |비트단위의 논리연산|
 |대입연산자|=, +=,-=,/=,*=,%=|우변의 값을 좌변에 대입|
 |삼항연산자|조건식? A : B| 조건식의 결과에 따라 A와 B선택|
+
+## 연산의 방향과 우선순위
+- 산술연산에서 덧셈과 뺄셈보다는 곱셈과 나눗셈이 우선 처리된다는것을 이미 알고 있다.
+- 사칙연산 외에도 자바에서 사용하는 다양한 연산자들은 연산 방향과 우선순위가 정해져있다.
+- 하나의 연산식에 여러 종류의 연산자가 있을 경우 우선순위가 높은 연산자를 먼저 처리한다.
+
+<table border="1">
+	<tr>
+		<td>우선순위</td>
+		<td>종류</td>
+		<td>연산자</td>
+		<td>항</td>
+		<td>연산 방향</td>
+	</tr>
+		<td rowspan="8">높음<br>↓<br>↓<br>↓<br>↓<br>↓<br>↓<br>↓<br>낮음</td>
+		<td>최우선연산자</td>
+		<td>괄호((),{})</td>
+		<td>다양</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>단항 연산자</td>
+		<td>증감(++,--),부호(+,-),비트(~),논리(!)</td>
+		<td>단항</td>
+		<td>←</td>
+	</tr>
+	<tr>
+		<td rowspan="3">산술 연산자</td>
+		<td>산술(*,/,%)</td>
+		<td rowspan="3">이항</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>산술(+,-)</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>쉬프트(>>,<<,>>>)</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td rowspan="2">비교 연산자</td>
+		<td>비교(<,>,<=,>=,instanceof)</td>
+		<td rowspan="2">이항</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>비교(==,!=)</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>단항 연산자</td>
+	</tr>
+
+</table>
 
 ## 산술연산자
 - 산술연산자는 4칙연산(+,-,*,/)과 나머지 값을 구하는 연산자로 나뉜다.
@@ -1028,8 +1175,6 @@ System.out.println("b++ : " + b); //결과 11
 ```
 
 ### 오버플로우와 언더플로우
-- 오버플로우(overflow)란 타입이 허용하는 최대값을 벗어나는것을 말한다.
-- 언더플로으(underflow)는 타입이 허용하는 최소값을 벗어나는것을 말한다.
 - 정수 타입 연산에서 오버플로우 또는 언더플로우가 발생하면 실행에러가 발생할 것 같지만 해당 정수 타입의 최소값 또는 최대값으로 되돌아간다.
 
 ```java
@@ -1064,8 +1209,7 @@ System.out.println("result2 : " + result2);
 //삼항연산의 값을 받을 변수의 자료형과 ?뒤의 결과값의 타입이 같아야 한다.
 ```
 
-## 연산의 방향과 우선순위
-- 산술연산에서 덧셈과 뺄셈보다는 곱셈과 나눗셈이 우선 처리된다는것을 이미 알고 있다.
+
 
 ## 연산자 문제
 ```java
