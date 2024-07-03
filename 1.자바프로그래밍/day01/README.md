@@ -905,80 +905,130 @@ System.out.printf("당신의 체중은 %.1fkg입니다.\n",weight);
 |대입연산자|=, +=,-=,/=,*=,%=|우변의 값을 좌변에 대입|
 |삼항연산자|조건식? A : B| 조건식의 결과에 따라 A와 B선택|
 
-## 연산의 방향과 우선순위
-- 산술연산에서 덧셈과 뺄셈보다는 곱셈과 나눗셈이 우선 처리된다는것을 이미 알고 있다.
-- 사칙연산 외에도 자바에서 사용하는 다양한 연산자들은 연산 방향과 우선순위가 정해져있다.
-- 하나의 연산식에 여러 종류의 연산자가 있을 경우 우선순위가 높은 연산자를 먼저 처리한다.
+# 단항연산자
+- 단항연산자는 피연산자가 한 개인 연산자를 말하며, 부호연산자(+,-), 증감 연산자(++,--),논리 부정 연산자(!)가 있다.
 
-<table border="1">
-	<tr>
-		<td>우선순위</td>
-		<td>종류</td>
-		<td>연산자</td>
-		<td>항</td>
-		<td>연산 방향</td>
-	</tr>
-		<td rowspan="8">높음<br>↓<br>↓<br>↓<br>↓<br>↓<br>↓<br>↓<br>낮음</td>
-		<td>최우선연산자</td>
-		<td>괄호((),{})</td>
-		<td>다양</td>
-		<td>→</td>
-	</tr>
-	<tr>
-		<td>단항 연산자</td>
-		<td>증감(++,--),부호(+,-),비트(~),논리(!)</td>
-		<td>단항</td>
-		<td>←</td>
-	</tr>
-	<tr>
-		<td rowspan="3">산술 연산자</td>
-		<td>산술(*,/,%)</td>
-		<td rowspan="3">이항</td>
-		<td>→</td>
-	</tr>
-	<tr>
-		<td>산술(+,-)</td>
-		<td>→</td>
-	</tr>
-	<tr>
-		<td>쉬프트(>>,<<,>>>)</td>
-		<td>→</td>
-	</tr>
-	<tr>
-		<td rowspan="2">비교 연산자</td>
-		<td>비교(<,>,<=,>=,instanceof)</td>
-		<td rowspan="2">이항</td>
-		<td>→</td>
-	</tr>
-	<tr>
-		<td>비교(==,!=)</td>
-		<td>→</td>
-	</tr>
-	<tr>
-		<td>단항 연산자</td>
-	</tr>
+## 1. 부호연산자
+### Operator01클래스 생성하기
+```java
+package test2;
 
-</table>
+public class Operator01 {
+	public static void main(String[] args) {
+		int x = 100;
+		int resultPlus = +x; //+부호
+		int resultMinus = -x; //-부호
+	
+		System.out.println(resultPlus);
+		System.out.println(resultMinus);
 
-## 산술연산자
+		double d = 1.11; //기본값이 +이기 때문에 생략 가능하다.
+		double result = -d;
+		
+		System.out.println(-d);
+		System.out.println(result);
+	}	
+}
+```
+
+## 2. 증감연산자.
+- 1씩 증가시키거나 1씩 감소시키는 연산자.
+- ++
+  - 1을 증가시키는 연산자로 피연산자의 값을 1 증가시키는, 피연산자+1과 같은 연산이다.
+- \--
+  - 1을 감소시키는 연산자로, 피연산자-1과 같은 연산이다.
+
+### Operator02클래스 생성하기
+```java
+package test2;
+
+public class Operator02 {
+	public static void main(String[] args) {
+		
+		//선행증감
+		//1이 먼저 증감되고 코드에 즉시 반영되어 실행
+		int a = 10;
+		System.out.println("a : " + ++a); //결과 11
+		
+		
+		//후행증감
+		//코드가 먼저 실행되고 1이 증감
+		//다음에 다시 사용될 때 증감값을 반영한다.
+		int b = 10;
+		System.out.println("b : " + b++); //결과 10
+		System.out.println("b++ : " + b); //결과 11
+
+		char alphabetA = 'A'; //아스키 정수 65가 저장되어 'A'와 매핑
+		System.out.println(alphabetA++);//코드가 실행된후 65+1이 됨
+		System.out.println(alphabetA);//66값인 B가 출력이 된다.
+
+		//오버플로우와 언더플로우
+		//정수 타입 연산에서 오버플로우 또는 언더플로우가 발생하면
+		//실행에러가 발생할 것 같지만 해당 정수 타입의 최소값 또는
+		//최대값으로 되돌아간다.
+		byte value = 127;
+		value++;
+		System.out.println(value);
+
+		byte value2 = -128;
+		value2--;
+		System.out.println(value2);
+
+	}
+}
+```
+
+## 3. 논리 부정 연산자
+- boolean값을 가지는 피연산자 앞에 !를 붙여서 값을 반대로 바꾸는 역할을 한다.
+- true를 false로, false를 true로 바꿔준다.
+
+### Operator03클래스 생성하기
+```java
+package test2;
+
+public class Operator3 {
+	public static void main(String[] args) {
+		
+		boolean isHuman = false;
+		System.out.println(!isHuman);//true
+		System.out.println(isHuman);//false
+		
+	}
+}
+```
+- 주의할 점은 논리 부정 연산자를 사용하더라도 그 사용한 곳에서만 적용될 뿐 진짜 변수의 값이 바뀌어 저장되는 것은 아니다.
+
+# 이항연산자
+- 피연산자가 2개인 연산자를 말한다.
+- 일반적으로 연산자를 가운데 두고 피연산자가 왼쪽, 오른쪽에 위치한다.
+
+## 1. 산술연산자
 - 산술연산자는 4칙연산(+,-,*,/)과 나머지 값을 구하는 연산자로 나뉜다.
 - 프로그래밍에서 곱셈은 x가 아닌 *, 나눗셈은 / 기호를 사용한다.
 
+### Operator04클래스 생성하기
 ```java
-int n1, n2, n3;
-n1 = 20; //n1에20을대입
-n2 = 7; //n2에7을대입
-n3 = n1 + n2; //n1 + n2의값을n3에대입
-System.out.println("n3 = " + n3); //결과27
+package test2;
 
-n3 = n1 - n2;
-System.out.println("n3 = " + n3); //결과 13
+public class Operator04 {
+	public static void main(String[] args) {
+		
+		int x = 100;
+		int y = 200;
+		
+		System.out.println(x + y);// 100 + 200
+		System.out.println(x - y);// 100 - 200
+		System.out.println(x * y);// 100 * 200
+		System.out.println(x / y);// 100 / 200 정수형의 계산으로 0.5가 아닌 0을 반환
+		System.out.println(x % y);// 100 % 200
 
-n3 = n1 / n2;
-System.out.println("n3 = " + n3); //결과 2 - 몫 출력
+		//계산 결과가 표현범위를 벗어나면 오버플로우가 발생하거나 쓰레기 값이 입력된다.
+		int result = 1000000 * 100000;
+		System.out.println(result);
+		
+	}
+}
 
-n3 = n1 % n2;
-System.out.println("n3 = " + n3) //결과 6 - 나머지 출력
 ```
 
 ### 산술변환
@@ -989,12 +1039,14 @@ System.out.println("n3 = " + n3) //결과 6 - 나머지 출력
 long + int -> long + long -> long
 float + int -> float + float -> float
 double + float -> double + double -> double
-
 ```
 
-## 대입연산자
+
+
+## 2. 대입연산자
 - 우변의 값을 좌변에 대입을 한다 라고 생각하자!
 
+### Operator05클래스 생성하기
 ```java
 int n1 = 10; //n1이라는 int형 변수에 10이라는 정수를 대입함.
 int n2 = 7;
@@ -1023,25 +1075,28 @@ public class Test{
 }
 ```
 
-## 관계(비교)연산자
+## 3. 관계(비교)연산자
 - 변수나 상수의 값을 비교하여 참과 거짓을 판단하는 연산자.
 - 결과가 항상 true나 false로 반환된다. (반환을 받는다는건 연산식 자체가 반환값 데이터로 바뀌게 된다)
-
+### Operator06클래스 생성
 ```java
-int x = 10;
-int y = 20;
-boolean result;
-result = x < y;
-//한줄로하면boolean result = x < y;
-System.out.println("x < y : " + result);
+package test2;
 
-result = x == y;
-System.out.println("x == y : " + result);
-
-result = x != y;
-System.out.println("x != y : " + result);
+public class TestMain {
+	public static void main(String[] args) {
+		
+		int a = 10;
+		int b = 20;
+		
+		System.out.println(a > b);
+		System.out.println(a <= b);
+		System.out.println(a == b);
+		System.out.println(a != b);
+		
+	}
+}
 ```
-## 논리연산자
+## 3. 논리연산자
 - 피연산자를 두개 필요로 하는 연산자이다.
 - 피연산자로 boolean형 데이터만 사용가능하다.
 
@@ -1104,6 +1159,24 @@ System.out.println("입력한 정수가 양수인가? " + (num > 0));
 System.out.println("입력한 정수가 양수인가? " + !(num <= 0));
 ```
 
+## 4. 삼항연산자.
+- 하나의 조건을 정의하여 조건식이 참일 때 반환할 명령, 거짓일때 반환할 명령을 얻어내기 위한 연산자.
+
+```java
+int a = 10;
+int b = 15;
+boolean result;		
+result = ++a >= b ? true : false;
+System.out.println("result :" + result);
+		
+int n1 = 10;
+int n2 = 20;
+char result2;
+result2 = (n1 += n1) == n2 ? 'O' : 'X';
+System.out.println("result2 : " + result2);
+//삼항연산의 값을 받을 변수의 자료형과 ?뒤의 결과값의 타입이 같아야 한다.
+```
+
 ## 비트연산자.
 - 논리 연산자와 유사하지만 bit단위(2진수)의 연산만 가능하다.
 - 일반적으로 다음에 배울 시프트 연산자와 더불어 암호화, 복호화 작업에 사용된다.
@@ -1148,68 +1221,74 @@ System.out.println("~x : " + ~x); //-8
 
 편하게 그냥 -(x+1) 를 하자.
 ```
+## 연산의 방향과 우선순위
+- 산술연산에서 덧셈과 뺄셈보다는 곱셈과 나눗셈이 우선 처리된다는것을 이미 알고 있다.
+- 사칙연산 외에도 자바에서 사용하는 다양한 연산자들은 연산 방향과 우선순위가 정해져있다.
+- 하나의 연산식에 여러 종류의 연산자가 있을 경우 우선순위가 높은 연산자를 먼저 처리한다.
 
-## 증감연산자.
-- 1씩 증가시키거나 1씩 감소시키는 연산자.
-- ++, --
-### 선행증감
-- 변수의 앞에서 사용된다.
-```java
-int a = 10;
-System.out.println("a : " + ++a); //결과 11
-```
-
-### 후행증감
-- 변수의 뒤에서 사용된다.
-```java
-int b = 10;
-System.out.println("b : " + b++); //결과 10
-//여기까지 일단 결과 보여주고 아래쪽 System.out.println()써서 확인시켜주자.
-		
-//여기서는 값이 증가되어 있다.
-//b++연산을 수행 한뒤 대기하다가 다시 b를 만났을때 증가된 값을 출력했기 때문.
-System.out.println("b++ : " + b); //결과 11
-
-//이렇게 보면 쓸모 없어보이는 것 같아도 정말 많이 쓰이는 연산자 중 하나.
-//반복문 들어가면 쓸 일 많아진다.
-```
-
-### 오버플로우와 언더플로우
-- 정수 타입 연산에서 오버플로우 또는 언더플로우가 발생하면 실행에러가 발생할 것 같지만 해당 정수 타입의 최소값 또는 최대값으로 되돌아간다.
-
-```java
-byte value = 127;
-value++;
-System.out.println(value);
-
-byte value2 = -128;
-value2--;
-System.out.println(value2);
-```
-
-- 연산 과정 중 발생하는 오버플로우와 언더플로우는 우리가 기대하는 값이 아니므로
-- 항상 해당 타입의 범위 내에서 연산이 수행되도록 코딩에 신경써야 한다.
-- 만약 연산 과정에서 int타입에서 오버플로우 또는 언더플로우가 발생할 가능성이 있다면 long타입으로 연산을 하도록 해야한다.
-
-## 삼항연산자.
-- 하나의 조건을 정의하여 조건식이 참일 때 반환할 명령, 거짓일때 반환할 명령을 얻어내기 위한 연산자.
-
-```java
-int a = 10;
-int b = 15;
-boolean result;		
-result = ++a >= b ? true : false;
-System.out.println("result :" + result);
-		
-int n1 = 10;
-int n2 = 20;
-char result2;
-result2 = (n1 += n1) == n2 ? 'O' : 'X';
-System.out.println("result2 : " + result2);
-//삼항연산의 값을 받을 변수의 자료형과 ?뒤의 결과값의 타입이 같아야 한다.
-```
-
-
+<table border="1">
+	<tr>
+		<td>우선순위</td>
+		<td>종류</td>
+		<td>연산자</td>
+		<td>항</td>
+		<td>연산 방향</td>
+	</tr>
+		<td rowspan="10">높음<br>↓<br>↓<br>↓<br>↓<br>↓<br>↓<br>↓<br>낮음</td>
+		<td>최우선연산자</td>
+		<td>괄호((),{})</td>
+		<td>다양</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>단항 연산자</td>
+		<td>증감(++,--),부호(+,-),비트(~),논리(!)</td>
+		<td>단항</td>
+		<td>←</td>
+	</tr>
+	<tr>
+		<td rowspan="3">산술 연산자</td>
+		<td>산술(*,/,%)</td>
+		<td rowspan="3">이항</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>산술(+,-)</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>쉬프트(>>,<<,>>>)</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td rowspan="2">비교 연산자</td>
+		<td>비교(<,>,<=,>=,instanceof)</td>
+		<td rowspan="2">이항</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>비교(==,!=)</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>논리 연산자</td>
+		<td>비트 논리(&,^,|),논리(&&,||)</td>
+		<td>단항/이항</td>
+		<td>←</td>
+	</tr>
+	<tr>
+		<td>삼항 연산자</td>
+		<td>조건(?,:)</td>
+		<td>삼항</td>
+		<td>→</td>
+	</tr>
+	<tr>
+		<td>대입연산자</td>
+		<td>대입(=,+=,-=,*-,/=,%=,&=,^=,|=,<<=,>>=,>>>=)</td>
+		<td>이항</td>
+		<td>←</td>
+	</tr>
+</table>
 
 ## 연산자 문제
 ```java
