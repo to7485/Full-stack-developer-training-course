@@ -36,6 +36,7 @@ if(조건식)조건식이 참일 때 실행할 문장;
 - 수행문이 하나일경우 생략할 수 있지만 중괄호를 사용하면 가독성이 좋을 뿐 아니라 코드의 해석이 용이하고 버그를 찾아 수정하는데 도움이 되므로 중괄호를 사용하는 습관을 길러두는것이 좋다.
 - 중괄호를 사용할 때는 들여쓰기를 하는 것이 좋다. 들여쓰기는 공백이나 탭을 이용하는데 혼용하여 사용하지 않고 한가지 방법으로 일관되게 사용하는 것이 좋다.
 
+## ex01_if패키지 생성하기
 
 ### if01클래스 생성하기
 ```java
@@ -106,7 +107,7 @@ if(x > y) {
 System.out.printf("%d 와 %d 중에 큰 수는 %d 입니다.",x,y,max);
 ```
 
-### 문제
+### 예제
 - 키보드에서 나이를 입력받아 age라는 변수에 저장한다.
 - 나이가 20살 이상이면 성인입니다.
 - 나이가 20살 보다 어리면 미성년자 입니다. 출력하기.
@@ -120,25 +121,6 @@ if(age > 19) {
 	System.out.println("성인입니다.");
 }else {
 	System.out.println("미성년자입니다.");
-}
-```
-
-### 문제2
-- 삼항연산자로 만들었던 X개의 농구공을 담기 위한 박스의 개수 구하기
-- 키보드에서 값을 입력받아 ball 변수에 저장하기
-- 입력받은 공의 개수에 따라 보관에 필요한 박스의 개수를 구하기
-
-```java
-Scanner sc = new Scanner(System.in);
-System.out.print("공의 개수를 입력하세요 : ");
-int ball = sc.nextInt();
-int box = 0;
-if(ball % 5 == 0) {
-	box = ball /5;
-	System.out.printf("필요한 박스의 개수는 %d개 입니다.",box);
-}else {
-	box = ball /5+1;
-	System.out.printf("필요한 박스의 개수는 %d개 입니다.",box);
 }
 ```
 
@@ -161,18 +143,21 @@ if(조건식1){
 - else - if문의 개수에는 제한이 없습니다.
 - 하지만 너무 많은 else - if문을 사용한다면 프로그램의 실행 속도가 현저히 느려질 수 있기 때문에 다른 방법을 함께 고려해야 한다.
 - if - else if문의 가장 마지막에 작성하는 else블록은 필요없다면 생략이 가능하다.
-
+### if_elseif01클래스 생성하기
 ```java
 int favorite = 7;
 
-if(favorite < 5) {
+if(favorite < 5) {//1번 조건문
 	System.out.println("좋아하는 숫자가 5보다 작습니다.");
-}else if(favorite > 5) {
+}else if(favorite > 5) {//2번 조건문
 	System.out.println("좋아하는 숫자는 5보다 큽니다.");
 }else {
 	System.out.println("좋아하는 숫자는 5입니다.");
 }
 ```
+- 1번 조건식이 true라면 2번 조건식이 아무리 true여도, 실행되지 않고 프로그램은 바로 if-else if문을 빠져나간다.
+- 코드를 아래와 같이 수정하고 실행을 해보겠습니다.
+### if_elseif02클래스 생성하기
 ```java
 int favorite = 7;
 
@@ -184,8 +169,11 @@ if(favorite > 5) {
 ```
 - elseif에 있는 조건문이 더 정확함에도 불구하고 if문에 있는 조건식이 true가 되버리기 때문에
 - elseif에 있는 조건식은 실행되지 못하고 if-else if문을 빠져나간다.
-- 보다 효율적인 흐름으로 제어하기 위해 if문과 elseif문의 조건문의 위치를 바꿔야 한다.
+- 효율적인 흐름으로 제어하기 위해 if문과 elseif문의 조건문의 위치를 바꿔야 한다.
+- 이러한 구조적 흐름때문에 if-else if문을 작성할 때 조건식의 순서를 어떻게 결정하느냐에 따라서 프로그램의 흐름이 완전히 달라질 수 있도, 오류가 발생할수도 있다.
+- 개발자들은 흐름을 정확히 판단해 조건식의 구문과 위치를 결정해야 한다.
 
+### if_elseif03클래스 생성하기
 ```java
 Scanner sc = new Scanner(System.in);
 System.out.print("나이를 입력하세요 : ");
@@ -200,7 +188,7 @@ if(age > 19) {
 	System.out.println("유아입니다.");
 }
 ```
-
+### if_elseif04클래스 생성하기
 ```java
 int num = 75;
 	
@@ -231,7 +219,7 @@ if(조건식1){
   }
 }
 ```
-
+### multi_if01클래스 생성하기
 ```java
 int num = 5;
 if(num <=10){
@@ -243,80 +231,61 @@ if(num <=10){
 
 ## switch문
 - if문과 비슷하지만 if문은 괄호안에 인자값이 true, 혹은 false로 결정되는 조건식이 들어가야 한다.
-- Switch문은 인자값으로 조건이 아닌 비교할 값이 들어가야 한다.
-- 특정 값을 바로 찾아 들어가기 때문에 if문에 비해 처리속도가 빠르다.
+- switch문에 조건으로 사용될 수 있는 연산자는 '==' 밖에 없다.
+- 즉, 두 개의 피연산자 값이 같을때만 조건으로 활용할 수 있다.
+- 따라서 하나의 변수 안에 저장되어 있는 값을 다수의 값과 비교해야 할때 주로 사용한다.
 
 ```java
 기본형
 switch(비교값){
-case 조건값 :
+case 조건값1 :
     비교값과 조건값이 일치할 때 실행할 문장.
     break;
-case 조건값 :
+case 조건값2 :
     비교값과 조건값이 일치할 때 실행할 문장.
     break;
-case 조건값 :
+case 조건값3 :
     비교값과 조건값이 일치할 때 실행할 문장.
     break;
+default ://비교값과 일치하는 조건값이 없을 때 실행된다. 
+	코드;
 }
 ```
+## ex02_switch 패키지 만들기
+
+### Switch01클래스 만들기
 ```java
 //1) 비교값과 조건값의 타입은 반드시 일치해야 한다.
 //2) 중복되는 조건값을 가질 수 없다.
 int n = 1;
 	
-switch (n) {//인자로 비교할 값이 들어와야 한다.
-case 1://인자와 비교할 조건값이 들어온다.
-	System.out.println("1. 게임하기");	
-	break;//현재 switch문을 빠져나오는 키워드.
+package test2;
 
-case 2:	
-	System.out.println("2. 게임소개");	
-	break;	
-case 3:	
-	System.out.println("3. 종료");	
-	break;
-	
-default://비교값과 조건값이 일치하는 것이 하나도 없는 경우 반드시 실행되는 영역			
-    System.out.println("메뉴선택이 올바르지 않습니다.");	
-	break;
+public class Test {
+	public static void main(String[] args) {
+		int num = 7;
+		
+		switch(num) {
+		case 1:
+			System.out.println("num은 1입니다.");
+			break;
+		case 7:
+			System.out.println("num은 7입니다.");
+			break;
+		default:
+			System.out.println("num은 1도 7도 아닙니다.");
+		}
+	}
+}
+
 }
 ```
 ## if vs switch
-둘 다 조건에 따라서 명령을 실행하는 것은 맞지만<br>
-if문은 범위에 따라서 조건을 비교하는데 효과적이고<br>
-switch문은 하나의 값에 따라서 조건을 비교하는데 효과적이다.<br>
+- 둘 다 조건에 따라서 명령을 실행을 하는 문법이다.
+- if문은 범위에 따라서 조건을 비교하는데 효과적이고
+- switch문은 하나의 값에 따라서 조건을 비교하는데 효과적이다.
 
-```java
-char c = 'A';
-
-switch (c) { //인자로 비교할 값이 들어와야 한다.
-
-case A://인자와 비교할 조건값이 들어온다.	
-	result = "90 ~ 100점";	
-	break;
-	
-case B://콜론이다. 세미콜론 아니다.	
-	result = "80 ~ 89점";	
-	break;
-	
-case C:	
-	result = "70 ~ 79점";	
-	break;
-	
-case D:	
-	result = "60 ~ 69점";	
-	break;
-	
-case F:	
-	result = "59점 이하";	
-	break;
-	
-default:	
-	result = "제대로 입력하시지";	
-	break;
-}
-```
+### Switch02클래스 생성하기
 ```java
 //switch문의 비교값으로 사용 가능한 자료형
 //1) 정수(byte,short,int)
@@ -328,7 +297,7 @@ String result;
 	
 switch (str) { //인자로 비교할 값이 들어와야 한다.
 
-case "박“://인자와 비교할 조건값이 들어온다.	
+case "박"://인자와 비교할 조건값이 들어온다.	
 result = "박길동";	
 break;
 	
@@ -336,11 +305,11 @@ case "이"://콜론이다. 세미콜론 아니다.
 result = "이길동";	
 break;
 	
-case ”독고":	
+case "독고":	
 result = "독고길동";	
 break;
 	
-case “홍":	
+case "홍":	
 result = "홍길동";	
 break;
 	
@@ -351,7 +320,11 @@ break;
 	
 System.out.println(result);
 ```
-## 만약 switch문에 break가 없다면 어떻게 될까?
+## switch문에 break가 없다면 어떻게 될까?
+- break키워드는 뒤에오는 모든 조건이 실행되지 않도록 switch문을 빠져나가는 역할을 한다.
+- break키워드가 없으면 어떻게 될까?
+
+### Switch03클래스 생성하기
 ```java
 int num = 1;
 
@@ -364,61 +337,8 @@ default:
 	System.out.println("num은 1도 7도 아닙니다.");	
 }
 ```
-- 조건에 맞는 case를 시작으로 뒤따라오는 모든 case구문이 실행됩니다.
+- 조건에 맞는 case를 시작으로 뒤따라오는 모든 case구문이 실행된다.
 - 따라서 개발자는 break; 키워드를 적절하게 이용할 수 있어야 합니다.
 
-### 문제1
-- 정수형 변수를 하나 만들고 해당 달이 몇일까지 있는지 switch문을 이용해서 작성하시오.
-```java
-int month = 4
-switch(month) {
-case1: case3: case5:
-case7: case8: case10:
-case12:
-  System.out.println( month + “월은 31일 까지 있습니다.”);
-  break;
-case4: case6:
-case9: case11:
-  System.out.println( month + “월은 30일 까지 있습니다.”);
-  break;
-case2:
-  System.out.println( month + “월은 28일 까지 있습니다.”);
-}
-```
-### 문제2
-- 두개의 정수형 변수를 초기화 한다 (값은 자유)
-- 그리고 연산자를 담아줄 문자열 변수를 만든다.
-- switch문을 이용하여 정수의 연산을 수행하는 코드를 작성해보자.
-```java
 
-실행결과 :
-10 * 7 = 70
-풀이 :
-int su1 = 10;
-int su2; = 7;
-String op = "*";
-	
-switch (op) {
 
-case "+":
-	System.out.println(num1 + " + " + num2 + " = " + (num1 + num2));
-//(num1 + num2)괄호로 안묶으면 결과값이 더해지지 않고 문자열로 붙어서 나온다.	
-    break;
-
-case "-":
-	System.out.println(num1 + " - " + num2 + " = " + (num1 – num2));	
-    break;
-	
-case "*":
-	System.out.println(num1 + " * " + num2 + " = " + (num1 * num2));	
-    break;
-	
-case "/":
-	System.out.println(num1 + " / " + num2 + " = " + (num1 / num2));	
-    break;
-	
-default:
-	System.out.println("올바른 연산자가 아닙니다.");
-    break;
-}	
-```
