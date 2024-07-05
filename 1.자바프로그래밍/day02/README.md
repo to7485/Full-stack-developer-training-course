@@ -452,7 +452,8 @@ for(int i = 0; i <= 3; i++){
 ![image](https://user-images.githubusercontent.com/54658614/215010183-dceb4e66-811e-46ba-a8b6-e3e902446b3d.png)
 
 ## 다중 for문
-- for문 안에 for문이 있는 경우
+- for문안에 또 다른 for문을 사용하는 경우를 말한다.
+- for문을 중첩하여 사용하기 때문에 코드가 어려워 보일 수 있으나 반복문의 원리는 같다.
 ```java
 for(초기식;조건식;증감식){
 	for(초기식;조건식;증감식){
