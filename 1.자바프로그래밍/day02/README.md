@@ -340,5 +340,87 @@ default:
 - 조건에 맞는 case를 시작으로 뒤따라오는 모든 case구문이 실행된다.
 - 따라서 개발자는 break; 키워드를 적절하게 이용할 수 있어야 합니다.
 
+# java 12 이상의 switch문
+- 조건절에 복수개의 값을 사용하는것이 가능해졌다.
+- 화살표 표현식을 이용하는게 가능하다.
+- 기존 switch문과 달리 case에 해당하는 절만 실행되고, 그 이후 case들은 실행되지 않는다.
 
+### Switch04클래스 생성하기
+```java
+package test2;
 
+public class Test {
+	public static void main(String[] args) {
+		String day = "SUNDAY";
+		
+		//기존의 switch문
+		//불필요하게 장황하다
+		//에러 발생시 디버깅이 어렵다
+		
+		switch(day) {
+		case "MONDAY":
+		case "TUESDAY":
+		case "WENDSDAY":
+		case "THURSDAY":
+		case "FRIDAY":
+			System.out.println("평일");
+			break;
+		case "SATURDAY":
+		case "SUNDAY":
+			System.out.println("주말");
+			break;
+		default:
+			System.out.println("잘못된 입력입니다.");
+		}
+		//자바 12이상에서의 switch문
+		switch(day) {
+		case "MONDAY", "TUESDAY", "WENDSDAY", "THURSDAY", "FRIDAY" -> System.out.println("평일");
+		case "SATURDAY","SUNDAY" ->System.out.println("주말");
+		default -> System.out.println("잘못된 입력입니다.");
+		}
+	}
+}
+```
+
+### Switch05클래스 생성하기
+- 기존의 방식에서는 다음과 같이 변수에 값을 대입할 수 있다.
+- 하지만 중복되는 코드가 많이 만들어지게 된다.
+```java
+package test2;
+
+public class Test {
+	public static void main(String[] args) {
+		int number = 3;
+		
+		String result = "";
+		
+		switch(number) {
+		case 1:
+		case 3:
+		case 5:
+			result = "홀수";
+			break;
+		case 2:
+		case 4:
+		case 6:
+			result = "홀수";
+			break;
+		default:
+			result = "6이하의 정수만 입력하세요";
+			break;
+		}
+		System.out.println(result);
+			
+	}
+
+	//자바 12이상
+	String result2 = switch(number) {
+		case 1,3,5 -> "홀수";
+		case 2,4,6 -> "짝수";
+		default -> "6이하의 정수만 입력하세요"; // 값을 리턴할 경우 default 문장이 반드시 있어야 한다.
+		};
+		
+		System.out.println(result2);
+}
+
+```
