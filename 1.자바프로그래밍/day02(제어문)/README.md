@@ -544,3 +544,58 @@ System.out.println("합  : " + sum);
 - for문의 증감식으로 이동하며, while문과 do-while의 경우 조건식으로 이동한다.
 
 ### Continue01클래스 생성하기
+```java
+package test2;
+
+public class Continue01 {
+	public static void main(String[] args) {
+		int sum = 0;
+		for(int i = 1; i <= 100; i++) {
+			if(i % 2 == 0) {
+				continue;
+			}
+			sum += i;
+		}
+		System.out.println("짝수 합 : " + sum);
+	}
+}
+```
+
+## 2. break
+- break문은 이전에 switch문을 학습할 때 나왔던 구문으로 case문을 종료할 때 사용되었다.
+- break라는 단어의 의미와 동일하게 반복문을 미리 종료할 때 사용한다.
+- 반복문이 진행되는 도중, 특정 조건을 만족해 더이상 반복문을 실행할 필요 없이 종료하려고 할 때 사용한다.
+
+### Break01클래스 생성하기
+```java
+package control_stat;
+
+import java.util.Scanner;
+
+public class Break01 {
+	public static void main(String[] args) {
+		int magicNumber = (int)(Math.random() * 50) + 1;
+		Scanner scan = new Scanner(System.in);
+		boolean isMatched = false;
+		
+		for(int i = 0 ; i < 10; i++) {
+			System.out.print("찾는 숫자를 입력 >>  ");
+			int guess = scan.nextInt();
+			
+			if(guess == magicNumber) {
+				System.out.println((i+1) + "번째에 맞췄습니다!");
+				isMatched = true;
+				break;
+			} else if(guess > magicNumber) {
+				System.out.println("맞춰야할 숫자가 더 작습니다.");
+			} else if(guess < magicNumber) {
+				System.out.println("맞춰야할 숫자가 더 큽니다.");
+			}
+		}
+		
+		if(!isMatched) {
+			System.out.println("정답을 맞추지 못했습니다.");
+		}
+	}
+}
+```
