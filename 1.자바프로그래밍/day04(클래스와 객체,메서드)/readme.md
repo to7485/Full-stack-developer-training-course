@@ -1,6 +1,6 @@
 # 클래스
 
-## 객체지향 프로그래밍
+## 객체지향 프로그래밍(OOP : Object-Oriented Programming)
 - 객체 지향 프로그래밍이란, 말 그대로 객체를 지향하는 프로그래밍 방법을 말한다.
 - 객체란 우리 실생활에 존재하는 모든것으로 생각할 수 있다.
 - 객체는 일반적으로 상태를 표현할 수 있고, 우리가 행동으로 실행할 수 있는 모든것들을 의미한다.
@@ -12,29 +12,41 @@
 - 클래스를 기반으로 객체를 생성해야 한다.
 - 하나의 설명서로 여러개의 물건을 만들 수 있듯이, 자바에서는 하나의 클래스로 여러 개의 객체를 생성할 수 있다.
 
-## 클래스의 종류
-- 실행용 클래스 
-  - 프로그램 전체에서 단 하나의 클래스로, 프로그램의 실행을 맡고 있다.
-  - main메서드를 갖고 있으며, 다른 클래스에서 사용하지 않는다.
-- 객체 생성용 클래스
-  - 다른 클래스에서 사용할 목적으로 선언되는 클래스 입니다.
-- 하나의 클래스가 위 두 가지 용도의 역할을 모두 수행할 수 도 있다.
-- 하지만 유지 보수와 객체 지향 프로그래밍의 특징인 모듈화를 고려해 별도로 분리하여 작성하는 것이 좋다.
-- 일반적으로 하나의 프로그램에서 실행용 클래스 1개를 제외한 나머지 클래스는 모두 참조용 클래스이다.
-
 ## 클래스의 선언
+- 첫날부터 클래스를 만들어서 사용해왔다.
+- 자바 프로그래밍의 기반이 클래스이기 때문이다.
+- 우리가 사용해온 클래스의 기본 구조는 다음과 같다.
 ```java
 접근제한자 class 클래스명{
 
 }
+
+접근제한자 : 클래스의 접근 범위를 제한한다.
+class : class를 선언함을 뜻한다.
+클래스명 : 변수처럼 이름을 가지고, 객체를 생성할 때 사용한다.
 ```
+- 그동한 사용해왔던 클래스는 "실행용"클래스로, 프로그램의 실행을 전적으로 맡고 있다.
+
+## 클래스의 종류
+### 실행용 클래스 
+- 프로그램 전체에서 단 하나의 클래스로, 프로그램의 실행을 맡고 있다.
+- main메서드를 갖고 있으며, 다른 클래스에서 사용하지 않는다.
+### 객체 생성용 클래스
+- 다른 클래스에서 사용할 목적으로 선언되는 클래스 입니다.
+
+```
+하나의 클래스가 위 두 가지 용도의 역할을 모두 수행할 수 도 있다.
+하지만 유지 보수와 객체 지향 프로그래밍의 특징인 모듈화를 고려해 별도로 분리하여 작성하는 것이 좋다.
+일반적으로 하나의 프로그램에서 실행용 클래스 1개를 제외한 나머지 클래스는 모두 참조용 클래스이다.
+```
+
 ### 클래스 이름을 작성하는 규칙
 - 영어 대소문자를 사용할 수 있으며 보통 첫 글자는 대문자를 사용한다.
 - 숫자를 사용할 수 있으나 첫 글자로는 사용할 수 없습니다.
 - 특수문자는 $,_만 가능합니다.
 - 자바 예약어(키워드)는 사용할 수 없습니다.
 
-## Cat 클래스 만들기
+### Cat 클래스 만들기
 ```java
 public class Cat {
 
@@ -56,7 +68,7 @@ Cat c
 - 객체를 생성하는 키워드는 new이다.
 - 클래스를 이용해 객체를 생성할 수 있도록 도와준다.
 
-## CatMain클래스 만들기
+### CatMain클래스 만들기
 ```java
 public class CatMain {
 	public static void main(String[] args) {
@@ -68,7 +80,7 @@ public class CatMain {
 - 클래스는 일반적으로 하나의 소스 파일에 하나의 클래스를 선언합니다.
 - 하나의 파일에서 여러개의 클래스를 선언한다면 파일이름과 같은 클래스에만 public을 사용해야 한다.
 
-## Ex1_Class 클래스 작성
+### Main01 클래스 작성
 ```java
 package test;
 
@@ -88,7 +100,7 @@ public class Test{
 - 그러나 추후 유지보수의 편리성과 클래스 재사용을 고려해 하나의 파일에 한 개의 클래스를 작성하는 것을 추천합니다.
 
 # 클래스의 구성
-- 클래스를 구성하는 요소는 3가지가 있다.
+- 클래스를 구성하는 요소는 필드,메서드, 생성자 3가지가 있다.
 
 ## 필드(field)
 - 객체가 가져야할 데이터의 상태를 저장하는 변수를 말한다.
@@ -105,10 +117,13 @@ public class Car {
 	wheel = 5; //필드에 새로운 값을 넣는것도 가능하다.
 }
 ```
-- 필드는 클래스에 포함된 요소이자, 객체를 생성한 후 객체가 가지는 데이터이기도 합니다.
+- 필드는 클래스에 포함된 요소이자, 객체를 생성한 후 객체가 가지는 데이터이기도 하다.
 - 따라서 객체를 생성한 후 그 객체의 필드를 사용할 수 있다.
 ```java
 객체명.필드명
+
+객체명 : 클래스를 이용해 만든 객체의 이름
+필드명 : 만든 객체가 가지고 있는 필드의 이름
 ```
 ```java
 package test3;
@@ -126,10 +141,11 @@ public class CarMain {
 ```
 
 ## 메서드
-- 메서드란 클래스 안에서 특정 기능을 수행하기 위해 코드들을 따로 하나의 블록으로 묶어놓은 집합이다.
+- 클래스 안에서 특정 기능을 수행하기 위해 코드들을 따로 하나의 블록으로 묶어놓은 집합이다.
 - 필요에 따라 이 집합을 호출해 사용할 수 있다.
 - 우리는 메서드를 구현함으로써, 같은 내용의 코드를 반복적으로 작성해야 하는 상황을 피할 수 있다.
 - 반복되는 문장들을 묶어서 메서드로 작성해 놓으면 필요할 때마다 재사용이 가능하며 중복된 코드를 제거할 수 있다.
+- 1개의 메서드는 일반적으로 1개의 기능을 수행한다.
 
 #### 메서드의 선언
 - 메서드는 크게 머리(header)와 몸체(body)로 구성되어 있다.
@@ -139,6 +155,46 @@ public class CarMain {
 	return 반환값;
 }
 ```
+
+### 메서드 구현하기
+```java
+public class Car{
+	int wheel;
+
+	void ride(){
+		System.out.println("달립니다");
+	}
+}
+```
+
+### 메서드의 사용
+- 구현한 메서드를 사용하는 방법은 필드의 사용법과 동일하다.
+- 메서드를 선언한 클래스 안에서 메서드를 사용할 때는 단순히 메서드명만 호출하면 되지만, 다른 클래스에서 메서드를 사용하려면 객체를 먼저 생성한 후 참조 변수를 이용해 그 객체의 메서드를 사용해야 한다.
+- 개체가 존재해야 메서드도 존재하기 때문이다.
+
+```java
+클래스명 객체명 = new 클래스명(); //객체의 생성
+객체명.메서드명();//생성한 객체의 메서드 호출(사용)
+```
+
+```java
+public class Main{
+	public static void main(String[] args){
+		Car c = new Car();
+		//메서드의 호출
+		c.ride();
+		c.ride();
+		c.ride();
+	}
+}
+```
+- 메서드를 한 번 선언해 두면 필요할 때마다 여러 번 호출하여 사용할 수 있다.
+- 즉, 메서드를 사용하면 반복적인 프로그래밍을 보다 쉽고 간단하게 해결할 수 있다.
+
+### 메서드 이름 짓기
+- 메서드의 이름은 그 기능을 명확하게 설명해줄 수 있게 작성하는 것이 좋다.
+- 메서드명을 작성하는 규칙 역시 변수를 작성하는 규칙과 동일하다.
+
 ### 접근제한자
 - 접근제한자는 클래스/메서드/필드에 대한 접근을 어디범위까지 제한하느냐에 대한 지시어이다.
 1. public : 모든 접근을 허용. 같은 프로젝트 내의 모든 객체들이 사용할 수 있도록 허용.
@@ -147,6 +203,9 @@ public class CarMain {
 4. default : 같은 패키지(폴더)내의 객체에만 사용을 허가(아무것도 쓰지 않으면 default)
 
 ### 반환형
+- 메서드를 호출하면 블록 안에 있는 코드들이 위에서 순차적으로 모두 실행되고 경우에 따라 실행한 결과를 호출한 곳으로 돌려준다. 
+- 이를 '반환한다'라고 표현하고, 반환하는 결과값을 '반환값(리턴값)'이라고 한다.
+- 리턴값이 있을 경우에는 리턴할 데이터의 타입이 무엇인지 메서드명()앞에 반환 타입을 기재해줘야 한다.
 - 반환형은 메서드가 처음부터 끝까지 수행을 마친 후에 반환해야 할 값이 있을 경우에 기입.
 - int, String, boolean등 기본자료형을 포함하여 사용자가 만든 객체로도 반환이 가능.
 - 아무것도 반환하지 않을때는 void
@@ -157,6 +216,9 @@ public class CarMain {
 ### 파라미터(매개변수,인자,아규먼츠)
 - 파라미터는 외부에서 해당 메서드를 통해 특정 값을 전달하고자 할 때, 그 특정 값을 받아서 처리할 수 있도록 하는 역할을 하는 변수
 - 소괄호 안에 어떤 형태로 값을 받을것인지 선언하면 된다.
+
+
+
 
 ```java
 package test3;
@@ -334,131 +396,6 @@ public class ValueTest {
 	// 반환형이 없는 void라면 빈손으로 돌아간다. 그리고 
 	// 지역변수 n은 소멸된다.
 }
-```
-
-# 메서드 실습
-- Ex3_methodTest 패키지 작성
-
-## MethodTest클래스작성하기
-```java
-
-public class MethodTest {
-
-//배열의 최대값을 찾는 maxFinder메서드
-public void maxFinder(int[] arr) {
-	//탐색 알고리즘
-	int max = arr[0];
-	for(int x : arr) {
-		if(x > max) max = x;
-	}
-	
-	System.out.println("최대값 : " + max);
-}
-
-//main 함수에서 반지름을 받은 후 원의 넓이를 구하는 메소드 circleArea을 만들고
-//원의 둘레를 구하는 메소드 circleRound를 만들어라
-//단, circleArea 메소드는 함수 안에서 출력문을 출력하고
-//circircleRound 메소드는 round 값을 리턴받아서 main함수에 출력하라
-//(원의 넓이 구하는 공식 : 3.14 * 반지름 * 반지름, 원의 둘레 구하는 공식 : 2 * 3.14 * 반지름)
-	public void circleArea(int radius) {
-		double area = radius*radius*3.14;
-		System.out.println("원의 넓이 : " + area);
-	}
-	
-	public double circleRound(int radius) {
-		double round = 2*3.14*radius;
-		return round;	
-	}
-
-//arithmetic 함수를 만든 후 두 숫자를 입력받고 두 숫자의 덧셈,뺄셈,곱셈,나눗셈,나머지를
-//출력한 후 main함수에서 호출하세요
-	public void arithmetic(int su1, int su2) {
-		System.out.println("덧셈결과 ->" + (su1+su2));
-		System.out.println("뺄셈결과 ->" + (su1-su2));
-		System.out.println("곱셈결과 ->" + (su1*su2));
-		System.out.println("나눗셈몫 ->" + (su1/su2));
-		System.out.println("나눗셈 나머지 ->" + (su1%su2));
-	}
-
-//main 함수에서 섭씨로 변화하고 싶으면 1, 화씨로 변화하고 싶으면 2를 입력받고 
-//fahrenheitToCelsius함수를 통해서 화씨를 섭씨로 celsiusToFahrenheit 함수를 통해서 섭씨를 화씨로 바꿔
-//출력하는 프로그램을 만드시오
-//(화씨 = 1.8 * 섭씨 + 32, 섭씨 = (화씨 - 32) / 1.8)
-
-public void celsiusToFahrenheit() {
-		Scanner scan = new Scanner(System.in);
-		
-		double cel;
-		double faher;
-		
-		System.out.printf("섭씨를 입력하세요 : ");
-		
-		cel = scan.nextInt();
-		
-		faher = 1.8 * cel + 32;
-		
-		System.out.println("화씨로 변화된 온도는 " + faher +"입니다." );
-	}
-	
-	public void fahrenheitToCelsius() {
-		Scanner scan = new Scanner(System.in);
-		
-		double cel;
-		double faher;
-		
-		System.out.printf("화씨를 입력하세요 : ");
-		faher = scan.nextInt();
-		
-		cel = (faher - 32) / 1.8;
-		
-		System.out.println("섭씨로 변화된 온도는 " + cel + "입니다.");
-		
-	}
-}
-```
-## MethodTestMain클래스작성하기
-```java
-package test3;
-
-import java.util.Scanner;
-
-public class MethodTestMain {
-
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		System.out.print("반지름을 입력하세요 : ");
-		int radius = sc.nextInt();
-		MethodTest mt = new MethodTest();
-		
-		mt.circleArea(radius);
-		double round = mt.circleRound(radius);
-		
-		System.out.printf("원의 둘레 : %.2f\n",round);
-	----------------------------------------------------------------
-	
-		System.out.print("첫번째 숫자를 입력하세요 : ");
-		int su1 = sc.nextInt();
-		System.out.print("두번째 숫자를 입력하세요 : ");
-		int su2 = sc.nextInt();
-		
-		mt.arithmetic(su1, su2);
-	}
-
-	----------------------------------------------------------------
-	
-		System.out.print("1을 누르면 섭씨, 2를 누르면 화씨로 변경합니다.");
-		int select = sc.nextInt();
-		
-		switch(select) {
-		case 1:
-			fahrenheitToCelsius();
-			break;
-		case 2:
-			celsiusToFahrenheit();
-			break;
-		}
-}
-
 ```
 
 # setter&getter

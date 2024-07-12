@@ -398,24 +398,11 @@ public class Test{
 int [][] arr = new int [크기][크기];
 ```
 
-```java
-int test[][] = new int[2][3];
-test[0][0] = 100;
-test[0][1] = 200;
-test[0][2] = 300;
-		
-test[1][0] = 400;
-test[1][1] = 500;
-test[1][2] = 600;
-System.out.println(test[0][1]);//숫자 바꿔가며 확인
-```
-
-
-- 2차원 배열은 다양한 방식으로 선언할 수 있는데, 다음과 같이 열을 지정하지 않고 선언할 수 있다.
+### 2차원 배열은 다양한 방식으로 선언할 수 있는데, 다음과 같이 열을 지정하지 않고 선언할 수 있다.
 ```java
 int[][] arr = new int[크기][];
 ```
-- 열의 크기를 지정하지 않고 선언한 뒤, 각 행의 열을 각각 선언하여 사용할 수 있다.
+### 열의 크기를 지정하지 않고 선언한 뒤, 각 행의 열을 각각 선언하여 사용할 수 있다.
 ```java
 int[][] arr = new int[3][];
 arr[0] = new int[2];
@@ -423,7 +410,6 @@ arr[1] = new int[3];
 arr[2] = new int[1];
 ```
 ```java
-↓↓↓이렇게 각 방 사이즈 지정해줘도 됨
 int num[][] = new int[2][];
 num[0] = new int[3];
 num[1] = new int[2];
@@ -573,112 +559,24 @@ public class Multi_Array03 {
 		scan.close();
 	}
 }
-```
-
-
-
-## 실습문제
-```java
-public class FileEx {
-	public static void main(String[] args) throws Exception{
-
-		int arr[][] = {{1, 2, 3, 4, 5},
-				{6, 7, 8, 9, 10},
-				{11, 12, 13, 14, 15},
-				{16, 17, 18, 19, 20}};
-		
-		//int arr[][] = new int[4][5];
-		//int count = 0;
-		int total = 0;
-		float average = 0;
-		int count = 0;
-
-		for(int i = 0; i < arr.length; i++){
-
-			for(int j = 0; j < arr[i].length; j++){
-				//arr[i][j] = ++count;
-				total += arr[i][j];
-				count++;
-			}
-		}
-		System.out.println("total : " + total);
-		average = (float)total / count;
-		System.out.println("평균 : " + average);
-	
-	}
-}
 //결과
 당첨 숫자를 6개 연속으로 입력해주세요 >>> 
 2611334244
 2611334244번호 당첨
-```
-- 문제2
-```java
-학생들의 수학과 영어성적을 등록하는 프로그램이 있다.
-프로그램을 실행하면 몇 명의 정보를 저장 할 것인지를 입력받은 후,
-입력받은 수 만큼 학생들의 이름과 수학성적, 영어성적을 입력받는 프로그램 작성 
-
-결과 :
-등록할 인원수 : 2
-이름 : 홍길동
-수학 : 90
-영어 : 87
--------------------------
-이름 : 독고길동
-수학 : 70
-영어 : 100
--------------------------
-2명 등록 완료!!
-홍길동 90 87
-독고길동 70 100
-
-
-풀이 : 
-public class Work_Ex2 {
-	public static void main(String[] args) {
-
-		System.out.print("등록할 인원수 : ");
-		Scanner scan = new Scanner(System.in);
-		int n = scan.nextInt();
-
-		String str[][] = new String[n][3];
-
-		for(int i = 0; i < str.length; i++){
-
-			System.out.print("이름 : ");
-			str[i][0] = scan.next();
-
-			System.out.print("수학 : ");
-			str[i][1] = "수학 : " + scan.next();
-
-			System.out.print("영어 : ");
-			str[i][2] = "영어 : " + scan.next();
-			System.out.println("-------------------------");
-		}		
-		
-		System.out.println(str.length + "명 등록 완료!!");
-		for(int i = 0; i < str.length; i++){
-			
-			for(int j = 0; j < str[i].length; j++){
-				System.out.print(str[i][j] + “ ”);
-			}
-			System.out.println();
-		}
-	}
-}
 ```
 
 ## 향상된 for문
 - 향상된 for문은 JDK 1.5부터 새롭게 추가된 기능으로 배열과 컬렉션의 모든 요소를 참조하기 위한 반복문이다.
 
 ```java
-for(변수 : 배열){
+for(자료형 변수 : 배열){
     실행코드
 }
 ```
 - for문을 실행할 반복 대상이 있으면 변수는 반복대상이 지닌 자료형과 같은 타입으로 지정해야 한다.
 - 반복 대상의 요소를 하나씩 꺼내서 변수에 대입하면서 진행하고, 반복 대상의 길이만큼 꺼내어 반복한다.
 
+### For01클래스 생성하기
 ```java
 public class Test{
 	public static void main(String[] args) {
