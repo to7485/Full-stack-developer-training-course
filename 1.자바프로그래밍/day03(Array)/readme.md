@@ -102,11 +102,16 @@ public class Test{
 - 지정된 자료형의 값만 저장할 수 있다.
 
 ## 배열의 구조
-1. 인덱스(index)
-    - 배열을 만든 후에는 값을 넣거나 꺼내야 한다.
-    - 배열은 각 공간마다 위치를 알려주는 위치 값이 존재한다.
-    - 우리는 배열이 지니는 값들의 위치를 인덱스(index)라고 부른다.
-    - 인덱스(index)는 배열의 공간마다 붙여진 번호로 0부터 시작하여 순차적으로 증가한다.
+### 1. 인덱스(index)
+- 배열을 만든 후에는 값을 넣거나 꺼내야 한다.
+- 배열은 각 공간마다 위치를 알려주는 위치 값이 존재한다.
+- 우리는 배열이 지니는 값들의 위치를 인덱스(index)라고 부른다.
+- 인덱스(index)는 배열의 공간마다 붙여진 번호로 0부터 시작하여 순차적으로 증가한다.
+
+![image](img/인덱스.png)
+
+- 배열의 값을 저장하고 가져오는 방법은 변수와 같다.
+- 단지 변수명 대신 인덱스(index)를 사용한다는점이 다르다.
 
 ### Array02클래스 생성하기
 ```java
@@ -135,12 +140,12 @@ System.out.println(arr[1]);
 System.out.println(arr[2]);
 System.out.println(arr[3]);
 ```
-2. 배열의 길이
-    - 배열을 생성할 때 대괄호[]안에 배열의 길이를 작성했다.
-    - 배열을 사용하면서 종종 배열의 길이가 필요할 때가 있다.
-    - 배열은 내부적으로 length라는 변수를 지니는데, 해당 변수는 배열의 길이 값을 가지고 있다.
-    - 배열의 길이를 알고싶을 때는 '배열명.length'를 하면 된다.
-    - 이 변수의 값은 배열이 생성될 때 지정되며 변경할 수 없다.
+### 2. 배열의 길이
+- 배열을 생성할 때 대괄호[]안에 배열의 길이를 작성했다.
+- 배열을 사용하면서 종종 배열의 길이가 필요할 때가 있다.
+- 배열은 내부적으로 length라는 변수를 지니는데, 해당 변수는 배열의 길이 값을 가지고 있다.
+- 배열의 길이를 알고싶을 때는 '배열명.length'를 하면 된다.
+- 이 변수의 값은 배열이 생성될 때 지정되며 변경할 수 없다.
 
 ```java
 //배열의 출력2
@@ -149,9 +154,9 @@ for(int I = 0; I < ar.length; I++){
 	System.out.println(ar[i]);
 }
 ```
-3. 배열의 초기값
-    - 배열은 생성과 동시에 데이터 자료형 별로 기본값이 주어진다.
-    - 배열을 선언했을 때 저장되는 초기값을 자료형 별로 정리하면 다음과 같다.
+### 3. 배열의 초기값
+- 배열은 생성과 동시에 데이터 자료형 별로 기본값이 주어진다.
+- 배열을 선언했을 때 저장되는 초기값을 자료형 별로 정리하면 다음과 같다.
 
 |자료형|초기값|
 |------|------|
@@ -191,7 +196,7 @@ public class Test{
 ```
 
 ## 배열 사용하기
-### Array03 클래스 생성하기
+### Array04 클래스 생성하기
 ```java
 package array;
 
@@ -228,7 +233,7 @@ public class Array03 {
 - 배열의 값이 순서 없이 저장되는 경우, 배열의 값을 오름차순, 내림차순으로 정렬해야 할 때가 있다.
 - 정렬 방법에는 다양한 알고리즘이 있다.
 
-### Array04클래스 생성하기
+### Array05클래스 생성하기
 ```java
 package array;
 
@@ -264,6 +269,8 @@ public class Array04 {
 - 지금 당장은 배열의 도우미 기능을 지닌것으로만 생각하자.
 - Arrays클래스를 이용하면 배열의 기능을 더욱 쉽게 사용할 수 있다.
 - Arrays에 속해있는 기능을 사용할 때는 'Arrays.함수명()'로 작성하여 기능을 호출한다.
+
+### Arrays01클래스 생성하기
 
 ### 배열의 출력
 - toString()은 반복문의 도움 없이 배열을 출력할 수 있도록 도와준다.
@@ -320,6 +327,8 @@ public class Test{
 - 배열을 복사하는 방법에는 얕은 복사와 깊은 복사 두가지가 있다.
     - 얕은 복사(Shallow Copy) : 복사된 배열이나 원본 배열이 변경될 때 서로 간의 값이 함께 변경된다.
     - 깊은 복사(Deep Copy) : 복사된 배열이나 원본 배열이 변경될 때 서로 간의 값은 바뀌지 않는다.
+
+### Arrays02클래스 생성
  
 ```java
 //얕은복사
@@ -385,8 +394,9 @@ public class Test{
 ## 2차원 배열의 선언
 - 2차원 배열을 선언하는 방법은 1차원방법과 근본적으로는 동일합니다.
 - 다만 대괄호[]가 하나 더 추가됩니다.
-
-![image](https://user-images.githubusercontent.com/54658614/215390509-ba91a4f5-ca52-41e0-bd32-04be2d2e08d8.png)
+```
+int [][] arr = new int [크기][크기];
+```
 
 ```java
 int test[][] = new int[2][3];
@@ -399,7 +409,7 @@ test[1][1] = 500;
 test[1][2] = 600;
 System.out.println(test[0][1]);//숫자 바꿔가며 확인
 ```
-![image](https://user-images.githubusercontent.com/54658614/215390509-ba91a4f5-ca52-41e0-bd32-04be2d2e08d8.png)
+
 
 - 2차원 배열은 다양한 방식으로 선언할 수 있는데, 다음과 같이 열을 지정하지 않고 선언할 수 있다.
 ```java
@@ -429,6 +439,144 @@ for(int i = 0; i < num.length; i++){
 	System.out.println();		
 }
 ```
+### 이차원 배열의 초기값 지정
+```
+int [][] arr = { {1,2},{3,4},{5,6}};
+```
+- 이와 같은 방법은 배열을 최초 선언할 때만 가능하다.
+
+## 2차원 배열의 구조
+- 2차원 배열의 행은 독립된 공간으로 분리되어 있고, 그 행들이 각각 독립된 열을 가지고 있다.
+
+![image](https://user-images.githubusercontent.com/54658614/215390509-ba91a4f5-ca52-41e0-bd32-04be2d2e08d8.png)
+
+### multi_Array01클래스 생성
+```java
+package array;
+
+public class Multi_Array01 {
+	public static void main(String[] args) {
+		
+		int[][]arr = new int[2][3];
+		
+		arr[0][0] = 1;
+		arr[0][1] = 2;
+		arr[0][2] = 3;
+		
+		arr[1][0] = 11;
+		arr[1][1] = 12;
+		arr[1][2] = 13;
+		
+		//행의 주소 출력
+		System.out.println("2차원 배열 : " + arr);
+		
+		//1행이 가진 열에 대한 주소 출력
+		System.out.println("2차원 배열 1행 : " + arr[0]);
+		
+		//행의 크기 출력
+		System.out.println("행의 크기 : " + arr.length);
+		
+		//각 행의 열 크기 출력
+		System.out.println("1 행의 열 크기 : " + arr[0].length);
+		System.out.println("2 행의 열 크기 : " + arr[1].length);
+		
+		//1행 1열의 값 출력
+		System.out.println("arr[0][0] : " + arr[0][0]);
+		
+		
+		
+	}
+}
+
+//결과
+2차원 배열 : [[I@58ceff1
+2차원 배열 1행 : [I@7c30a502
+행의 크기 : 2
+1 행의 열 크기 : 3
+2 행의 열 크기 : 3
+arr[0][0] : 1
+```
+## 2차원 배열의 활용
+### Multi_Array02클래스 생성
+```java
+package array;
+
+public class Multi_Array02 {
+	public static void main(String[] args) {
+		
+		int[][]arr = new int[5][5];
+		
+		int count = 1;
+		
+		//1부터 25까지 차례로 배열에 넣는다.
+		for(int i = 0; i < 5; i++) {
+			for(int j = 0; j < 5; j++) {
+				arr[i][j] = count++;
+			}
+		}
+		
+		for(int i = 0 ; i < 5; i++) {
+			for(int j = 0 ; j < 5; j++) {
+				System.out.print(arr[i][j]+" ");
+			}
+			System.out.println();
+		}
+	}
+}
+//결과
+1 2 3 4 5 
+6 7 8 9 10 
+11 12 13 14 15 
+16 17 18 19 20 
+21 22 23 24 25 
+```
+
+### Multi_Array03클래스 생성
+- 2차원 배열을 활용한 로또
+```java
+package array;
+
+import java.util.Scanner;
+
+public class Multi_Array03 {
+	public static void main(String[] args) {
+		
+		//당첨번호 리스트
+		int[][] lotto = {{2,6,11,33,42,44},{1,6,17,22,24,33},{7,16,24,33,42,44},{11,27,32,34,43,46},{6,17,22,24,33,41}};
+		
+		Scanner scan = new Scanner(System.in);
+		
+		String myNum = "";
+		
+		boolean isWin = false;
+		
+		System.out.println("당첨 숫자를 6개 연속으로 입력해주세요 >>> ");
+		myNum = scan.next();
+		
+		for(int i = 0 ; i< lotto.length; i++) {
+			String lottoNumber = "";
+			//한 행의 번호를 더해서 하나의 숫자로 만든다.
+			for(int j = 0 ; j < lotto[i].length; j++) {
+				lottoNumber += lotto[i][j];
+			}
+			if(myNum.equals(lottoNumber)) {
+				isWin = true;
+				break;
+			}
+		}
+		
+		if(isWin) {
+			System.out.println(myNum+"번호 당첨");
+		} else {
+			System.out.println(myNum + "번호는 당점되지 못했습니다.");
+		}
+		scan.close();
+	}
+}
+```
+
+
+
 ## 실습문제
 ```java
 public class FileEx {
@@ -459,6 +607,10 @@ public class FileEx {
 	
 	}
 }
+//결과
+당첨 숫자를 6개 연속으로 입력해주세요 >>> 
+2611334244
+2611334244번호 당첨
 ```
 - 문제2
 ```java
