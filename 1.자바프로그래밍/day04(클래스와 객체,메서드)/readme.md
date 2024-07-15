@@ -328,7 +328,18 @@ public class Student {
 }
 ```
 
-### StudentMain
+### StudentMain클래스 생성하기
+```java
+package member;
+
+public class Student {
+	static String schoolName = "코리아 고등학교"; //정적 멤버 선언
+	
+	static void goToSchool() {
+		System.out.println("학교에 갑니다");
+	}
+}
+```
 
 
 ### 접근제한자
