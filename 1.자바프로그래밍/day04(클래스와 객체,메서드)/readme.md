@@ -185,10 +185,10 @@ public class CarMain {
 - 객체의 기능을 담당하는 중괄호({})블록을 말한다.
 - 특정 기능을 수행하는 코드를 따로 빼서 중괄호 안에 작성하며, 1개의 메서드는 일반적으로 1개의 기능을 수행한다.
 
-#### 메서드의 선언
-- 메서드는 크게 머리(header)와 몸체(body)로 구성되어 있다.
+### 메서드의 선언
+- 메서드는 다음과 같이 선언한다.
 ```java
-접근제한자 반환형 메서드명(파라미터){ //머리
+반환형 메서드명(파라미터){ //머리
 	작업할 내용
 	return 반환값;
 }
@@ -209,6 +209,14 @@ public class Car{
 - 구현한 메서드를 사용하는 방법은 필드의 사용법과 동일하다.
 - 메서드를 선언한 클래스 안에서 메서드를 사용할 때는 단순히 메서드명만 호출하면 되지만, 다른 클래스에서 메서드를 사용하려면 객체를 먼저 생성한 후 참조 변수를 이용해 그 객체의 메서드를 사용해야 한다.
 - 개체가 존재해야 메서드도 존재하기 때문이다.
+
+### 함수의 작동 원리
+- 메서드를 호출하면 블록 안에 있는 코드들이 위에서 순차적으로 모두 실행되고 경우에 따라 실행한 결과를 호출한 곳으로 돌려준다. 
+- 이를 '반환한다'라고 표현하고, 반환하는 결과값을 '반환값(리턴값)'이라고 한다.
+- 리턴값이 있을 경우에는 리턴할 데이터의 타입이 무엇인지 메서드명()앞에 반환 타입을 기재해줘야 한다.
+- 반환형은 메서드가 처음부터 끝까지 수행을 마친 후에 반환해야 할 값이 있을 경우에 기입.
+- int, String, boolean등 기본자료형을 포함하여 사용자가 만든 객체로도 반환이 가능.
+- 아무것도 반환하지 않을때는 void
 
 ```java
 클래스명 객체명 = new 클래스명(); //객체의 생성
@@ -330,17 +338,90 @@ public class Student {
 
 ### StudentMain클래스 생성하기
 ```java
-package member;
+package test2;
 
-public class Student {
-	static String schoolName = "코리아 고등학교"; //정적 멤버 선언
+public class StudentMain {
+	public static void main(String[] args) {
+		System.out.println(Student.schoolName);
+		Student.goToSchool();
+	}
+}
+결과
+코리아 고등학교
+학교에 갑니다.
+```
+- 정적 멤버의 경우, 객체마다 가지는 데이터 기능이 아니기 때문에 모든 객체가 같은 값을 가져야 할 경우에 사용하는 것이 효율적이다.
+- 따라서 각 클래스의 멤버를 선언할 때는 충분히 고려한 후 정적 멤버로 선언할지에 대한 결정을 내리는 것이 좋다.
+
+### Student클래스에 코드 추가하기
+```java
+package test2;
+
+public class Student {//클래스 선언
+	static String schoolName = "코리아 고등학교";//정적 필드 선
+	String studentName; //인스턴스 필드 선
 	
-	static void goToSchool() {
-		System.out.println("학교에 갑니다");
+	static void goToSchool() { //정적 메서드 선언
+		System.out.println("학교에 갑니다.");
+	}
+	
+	void hello() { //인스턴스 메서드 선언
+		System.out.println("안녕하세요, 제 이름은 " + studentName + "입니다.");
 	}
 }
 ```
 
+### StudentMain클래스에 코드 추가하기
+```java
+package test2;
+
+public class StudentMain {
+	public static void main(String[] args) {
+		Student stu1 = new Student();
+		stu1.studentName = "김고이";
+		stu1.hello();
+		System.out.println("학교는 " + Student.schoolName + "입니다.");
+		Student.goToSchool();
+		System.out.println("----------------------");
+		Student stu2 = new Student();
+		stu2.studentName = "김고";
+		stu2.hello();
+		System.out.println("학교는 " + Student.schoolName + "입니다.");
+		Student.goToSchool();
+	}
+}
+결과
+안녕하세요, 제 이름은 김고이입니다.
+학교는 코리아 고등학교입니다.
+학교에 갑니다.
+----------------------
+안녕하세요, 제 이름은 김고입니다.
+학교는 코리아 고등학교입니다.
+학교에 갑니다.
+```
+- 정적 멤버를 호출할 때, 객체 변수를 통해 호출할수도 있습니다.
+```
+Student stu1 = new Student();
+System.out.println(stu1.schoolName);
+```
+
+# 메서드
+- 클래스 안에서 특정 기능을 수행하기 위해 코드들을 따로 하나의 블록으로 묶어놓은 집합을 말한다.
+- 필요에 따라 이 집합을 호출해 사용할 수 있다.
+
+## 메서드 사용의 이점
+- 메서드를 구현함으로써, 같은 내용의 코드를 반복적으로 사용하는 것을 피할 수 있다. 
+- 반복되는 문장들을 묶어서 메서드로 작성해놓으면 필요할 때마다 재사용이 가능하기 때문이다.
+- 코드의 집합을 따로 분리하는것을 "모듈화"라고 한다.
+- 모듈화를 하면 코드를 읽을 때 가독성이 좋아지며, 프로그램을 수정할 때 더욱 빠르고 쉽게 할 수 있다.
+
+## 메서드 선언
+- 메서드는 크게 선언부(signature)와 실제 영역(body)로 구성되어 있다.
+```java
+접근 제한자 반환타입 메서드명(){
+	//기능을 수행하는 코드
+}
+```
 
 ### 접근제한자
 - 접근제한자는 클래스/메서드/필드에 대한 접근을 어디범위까지 제한하느냐에 대한 지시어이다.
@@ -349,16 +430,29 @@ public class Student {
 3. protected : 상속관계의 객체들에만 사용을 허가.
 4. default : 같은 패키지(폴더)내의 객체에만 사용을 허가(아무것도 쓰지 않으면 default)
 
-### 반환형
-- 메서드를 호출하면 블록 안에 있는 코드들이 위에서 순차적으로 모두 실행되고 경우에 따라 실행한 결과를 호출한 곳으로 돌려준다. 
-- 이를 '반환한다'라고 표현하고, 반환하는 결과값을 '반환값(리턴값)'이라고 한다.
-- 리턴값이 있을 경우에는 리턴할 데이터의 타입이 무엇인지 메서드명()앞에 반환 타입을 기재해줘야 한다.
-- 반환형은 메서드가 처음부터 끝까지 수행을 마친 후에 반환해야 할 값이 있을 경우에 기입.
-- int, String, boolean등 기본자료형을 포함하여 사용자가 만든 객체로도 반환이 가능.
-- 아무것도 반환하지 않을때는 void
+### 반환타입(return Type)
+- 메서드를 호출하면 메서드는 블록 안에 있는 코드들을 실행한 후 결과값을 반환한다.
+- 이때 결과값을 어떤타입으로 반환할것인지 미리 정해주는것이다.
+- 반환값이 없는 경우 타입으로 'void'를 쓰면 된다.
 
 ### 메서드명(함수명)
 - 메서드명은 말그대로 메서드의 이름(첫글자는 소문자로 시작한다.)
+- 메서드를 호출할 때 사용한다.
+### Method01클래스 생성
+```java
+package method;
+
+public class Method01 {
+	public static void main(String[] args) {
+		printHello(); //main메서드 안에서 printHello()메서드 호
+	}
+	
+	static void printHello() {
+		System.out.println("안녕하세요");
+		System.out.println("만나서 반갑습니다.");
+	}
+}
+```
 
 ### 파라미터(매개변수,인자,아규먼츠)
 - 파라미터는 외부에서 해당 메서드를 통해 특정 값을 전달하고자 할 때, 그 특정 값을 받아서 처리할 수 있도록 하는 역할을 하는 변수
