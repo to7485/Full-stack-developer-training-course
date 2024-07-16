@@ -453,14 +453,104 @@ public class Method01 {
 	}
 }
 ```
+- main메서드도 static으로 프로그램 시작과 함께 메모리에 올라가 있다.
+- 따라서 main안에서 메서드를 호출하기 위해서는 호출하는 메서드가 메모리에 올라가 있어야 한다.
 
-### 파라미터(매개변수,인자,아규먼츠)
-- 파라미터는 외부에서 해당 메서드를 통해 특정 값을 전달하고자 할 때, 그 특정 값을 받아서 처리할 수 있도록 하는 역할을 하는 변수
-- 소괄호 안에 어떤 형태로 값을 받을것인지 선언하면 된다.
+### 메서드를 메모리에 올리는 두 가지 방법
+- 객체 생성용 클래스에 있는 경우
+  - 인스턴스 메서드 : 객체를 생성함과 동시에 객체의 멤버들이 메모리에 올라간다. 따라서 객체를 생성한 후 사용할 수 있다.
+  - 정적 메서드 : 프로그램 시작과 동시에 메모리에 자동으로 올라가기 때문에 바로 사용할 수 있다.
+- 실행용 클래스에 있는 경우
+  - 객체를 생성할 방법이 없기 때문에, 메서드가 무조건 static으로 선언되어야 한다.
+
+## 메서드의 호출
+- 메서드는 다른 메서드에서 호출되어 사용된다.
+```
+클래스명 변수명 = new 클래스명(); -> 객체를 생성하여 변수에 담기
+변수명.메서드명();
+```
+
+- 메서드는 클래스 안에서 선언되므로 메서드를 사용하기 위해서는 해당 클래스의 객체부터 생성해야 한다.
+
+### Jogger클래스 생성하기
+```java
+package method;
+
+public class Jogger {
+
+	void run() {
+		System.out.println("run run run!!");
+	}
+}
+```
+
+### JoggerMain클래스 생성하기
+```java
+package method;
+
+public class JoggerMain {
+	public static void main(String[] args) {
+		Jogger jogger = new Jogger(); //객체 생성
+		jogger.run(); //jogger인스턴스의 run()메서드 호출
+	}
+}
+결과
+run run run!!
+```
+### 2개 이상의 메서드 선언하기
+- 메서드는 같은 클래스에 있는 필드를 사용할 수 있다.
+- 하나의 클래스에 2개 이상의 메서드를 사용하는 것 역시 가능하다.
+### Jogger클래스에 코드 추가힉
+```java
+package method;
+
+public class Jogger {
+
+	String name; //조거의 이름
+	
+	void run() {
+		System.out.println("run run run!!");
+	}
+	
+	void sayName() {
+		System.out.println("제 이름은 : " + name + "입니다.");
+	}
+}
+```
+### JoggerMain에 코드 추가하기
+```java
+package method;
+
+public class JoggerMain {
+	public static void main(String[] args) {
+		Jogger jogger = new Jogger(); //객체 생성
+		jogger.name = "김나비";
+		jogger.sayName();
+		jogger.run(); //jogger인스턴스의 run()메서드 호출
+	}
+}
+결과
+제 이름은 : 김나비입니다.
+run run run!!
+```
 
 
+### 매개변수
+- 특정 기능을 수행하기 위한 메서드는 기능을 수행할 때 사용할 값(인수)를 전달받을 수 있다.
+- 매개변수는 사용할 값을 받는 변수이다.
 
+```java
+접근제한자 반환타입 메서드명(자료형 변수명){
+	//기능을 수행할 코드
+}
+```
+- 매개변수는 '매개변수의 자료형'과'매개 변수명'으로 선언할 수 있다.
+```java
+				  int number;
+전달받을 값의 자료형 ┘ 	  └ 메서드 안에서 사용할 이름
 
+```
+### Book클래스 생성하기
 ```java
 package test3;
 
@@ -470,7 +560,7 @@ public class Book {
 	}
 }
 ```
-
+### BookMain클래스 생성하기
 ```java
 package test3;
 
@@ -488,6 +578,99 @@ public class BookMain {
 
 }
 ```
+### Calc클래스 생성하기
+```java
+package method;
+
+public class Calc {
+
+	void sum(int num1, int num2) {
+		System.out.println("두 수의 합은 : " + (num1 + num2) + "입니다.");
+	}
+}
+```
+
+### CalcMain클래스 생성하기
+```java
+package method;
+
+public class CalcMain {
+	public static void main(String[] args) {
+		Calc calc = new Calc();
+		calc.sum(5, 3);
+		calc.sum(10, 7);
+	}
+}
+```
+- 다른 자료형 2개를 매개변수로 받는 메서드
+
+### Person클래스 생성하기
+```java
+package method;
+
+public class Person {
+	void introduce(String name, int age) {
+		System.out.println("제 이름은 " + name+"이고, 나이는" + age+"세입니다.");
+	}
+	
+	void hello() {
+		System.out.println("안녕하세요");
+	}
+}
+```
+
+### PersonMain클래스 생성하기
+```java
+package method;
+
+public class PersonMain {
+	public static void main(String[] args) {
+		Person hong = new Person();
+		hong.introduce("홍길동", 20);
+		hong.hello();
+	}
+}
+결과
+제 이름은 홍길동이고, 나이는20세입니다.
+안녕하세요
+```
+- 배열을 매개변수로 받는 메서드
+
+### Calc클래스에 코드 추가하기
+```java
+package method;
+
+public class Calc {
+
+	void sum(int num1, int num2) {
+		System.out.println("두 수의 합은 : " + (num1 + num2) + "입니다.");
+	}
+	
+	void sum(int[] nums) {
+		int result = 0;
+		for(int i = 0; i < nums.length; i++) {
+			result += nums[i];
+		}
+		System.out.println("숫자들의 합은 : " + result + "입니다.");
+	}
+}
+```
+
+### CalcMain클래스에 코드 추가하기
+```java
+package method;
+
+public class CalcMain {
+	public static void main(String[] args) {
+		Calc calc = new Calc();
+		calc.sum(5, 3);
+		calc.sum(10, 7);
+		
+		int []nums = {100,200};
+		calc.sum(nums);
+	}
+}
+```
 
 ### return
 - 함수에서 모든 작업을 마치고 경우에 따라 실행한 결과를 호출한곳으로 다시 돌려주기도 한다.
@@ -495,6 +678,98 @@ public class BookMain {
 - 반환하는 결과값을 '반환값'이라고 부르기도 한다.
 - 리턴값이 있을 경우에는 리턴할 데이터의 타입이 무엇인지 반환형에 기재해줘야 한다.
 - 리턴값이 없는 경우 메서드를 종료하기 위해 return을 사용할 수 있다.
+```
+접근제한자 반환타입 메서드명(){
+	//기능을 수행할 코드들
+	...
+	return 결과값;
+}
+```
+- 매개변수와 마찬가지로 리턴값의 자료형은 제한이 없다.
+- 자바에서 사용하는 모든 자료형을 반환타입으로 사용할 수 있다.
+
+### Calc클래스 수정하기
+```java
+package method;
+
+public class Calc {
+
+	void sum(int num1, int num2) {
+		System.out.println("두 수의 합은 : " + (num1 + num2) + "입니다.");
+	}
+	
+	//반환값의 타입과 일치시켜준다.
+	int sum(int[] nums) {
+		int result = 0;
+		for(int i = 0; i < nums.length; i++) {
+			result += nums[i];
+		}
+		//System.out.println("숫자들의 합은 : " + result + "입니다.");
+
+		return result; //모든 기능을 수행한 값을 반환한다.
+	}
+}
+```
+
+### CalcMain클래스 수정하기
+```java
+package method;
+
+public class CalcMain {
+	public static void main(String[] args) {
+		Calc calc = new Calc();
+		calc.sum(5, 3);
+		calc.sum(10, 7);
+		
+		int []nums = {100,200};
+		//calc.sum(nums);
+		System.out.println("숫자들의 합은 " + calc.sum(nums)+"입니다.");
+	}
+}
+```
+- 메서드를 호출한 위치가 메서드를 실행하고 반환된 결과값으로 치환되었다.
+- 변수에 저장하지 않고 바로 치환하여 사용할 수도 있으며, 필요에 따라 저장하여 결과값을 활용할 수도 있다.
+
+### 반환받은 값을 변수에 저장하는 메서드
+### MidTerm클래스 생성하기
+```java
+package method;
+
+public class MidTerm {
+	public int score(int[] scores) {
+		int result = 0;
+		for(int i = 0; i < scores.length; i++) {
+			result += scores[i];
+		}
+		return result;
+	}
+}
+```
+
+### MidTermMain클래스 생성하기
+```java
+package method;
+
+public class MidTermMain {
+	public static void main(String[] args) {
+		int [] studentA = {97,53};
+		int [] studentB = {97,66};
+		
+		MidTerm mid = new MidTerm(); //MidTerm 객체 생성
+		int sumA = mid.score(studentA); //메서드를 호출한 결과값을 sumA에 저장
+		int sumB = mid.score(studentB); //메서드를 호출한 결과값을 sumB에 저장
+		
+		if(sumA > sumB) {
+			System.out.println("A학생의 중간고사 총점이 더 높습니다.");
+		} else if(sumA < sumB) {
+			System.out.println("B학생의 중간고사 총점이 더 높습니다.");
+		} else {
+			System.out.println("두 학생의 중간고사 총점이 같습니다.");
+		}
+	}
+}
+```
+### 메서드를 빠져나가기 위한 return
 #### Bus클래스
 ```java
 package test3;
@@ -504,7 +779,7 @@ public class Buss {
 	public void take(int m) {
 		while(true) {
 			if(m < 3000) {
-				System.out.println("교통카드를 충전하러 값니다.");
+				System.out.println("교통카드를 충전하러 갑니다.");
 				return;
 			}
 			System.out.println("버스를 탑니다.");
@@ -526,64 +801,6 @@ public class BusMain {
 	}
 }
 ```
-## 메서드 사용
-- 구현한 메서드를 사용하는 방법은 필드의 사용법과 동일하다
-- 메서드를 선언한 클래스안에서 메서드를 사용할 때는 단순히 메서드명만 호출하면되지만
-- 다른 클래스에서 메서드를 사용하려면 객체를 ㅁ너저 생성한 후 참조 변수를 이용해 그 객체의 메서드를 이용해야 한다.
-- 객체가 존재해야 메서드도 존재하기 때문이다.
-
-```java
-클래스명 객체명 = new 클래스명();
-객체명.메서드명();
-```
-- Car 클래스에 코드 추가하기
-```java
-package test3;
-
-public class Car {
-	int wheel = 4; //필드 선언
-	
-	public void ride() {
-		System.out.println("달립니다.");
-		System.out.println("씽씽");
-	}
-}
-```
-- CarMain클래스에서 메서드 호출하기
-```java
-package test3;
-
-public class CarMain {
-	public static void main(String[] args) {
-		Car c = new Car();
-		System.out.println("wheel의 개수는 " + c.wheel + "개입니다."); //필드의 값 출력
-		
-		c.wheel = 5;
-		System.out.println("wheel의 개수는 " + c.wheel + "개입니다.");
-		
-		c.ride();
-		c.ride();
-		c.ride();
-	}
-}
-```
-# 자바의 변수와 생명주기
-- 자바에는 4가지 종류의 변수가 있다.
-
-## 변수의 종류
-1. 지역변수(local variable) : 중괄호 지역 내에서 선언된 변수
-2. 매개변수(parameters) : 메서드에 넘겨주는 변수
-3. 인스턴스(객체)변수(instance variable) : 참조용 클래스 안에서 만들어진 변수
-    - 객체가 생성될 때 객체별로 다른 값을 가질 수 있다.
-5. 클래스변수(class variable) :참조용 클래스 안에서 만들어지지만 타입 앞에 static이 있는 변수
-    - 인스턴스 변수는 객체마다 다른 값을 가지지만 클래스 변수는 모든 객체가 고유한 값을 갖는다. 
-
-## 변수의 생명주기
-1. 지역변수 : 지역변수를 선언한 중괄호 내에서만 유효하다.
-2. 매개변수 : 메서드가 호출될 때 만들어지고, 메서드가 끝나면 소멸한다.
-3. 인스턴스(객체)변수 : 객체가 생성될 때 만들어지고, 그 객체를 참조하고 있는 변수가 없으면 소멸된다.
-    - 가비지 콜렉터(Garbage Collector)가 알아서 메모리를 청소
-4. 클래스변수 : 클래스가 처음 호출될 때 생명이 시작되고, 자바 프로그램이 끝날 때 소멸된다.
 
 ## 클래스의 로딩
 - 자바의 클래스들이 언제 어디서 메모리에 올라가고 클래스 멤버들이 초기화 되는 방법
@@ -599,45 +816,7 @@ public class CarMain {
 - 곰곰히 생각해보면 언제 어디서 사용될지 모르는 static 멤버들을 처음에 전부 메모리에 올린다는건 비효율적이다.
 - JVM은 실행될때 모든 클래스를 메모리에 올려놓지 않고, 그때 마다 필요한 클래스를 메모리에 올려 효율적으로 관리하는 것이다.
 
-### 메모리에 올라가는 시점
-1. 객체를 생성했을 때
-2. static 변수의 호출 : 클래스 내부의 static멤버를 호출하면, 객체화 하지 않아도 클래스가 로드된다.
-3. static 메서드 호출 : static변수를 호출한것과 같이 클래스가 로드된다.
-4. 내부클래스 호출 : 내부클래스의 객체를 생성하기 위해선 외부클래스의 객첼르 먼저 생성해야 한다.
 
-- Ex2_valueTest 패키지 생성
-
-## ValueTestMain클래스 작성하기
-```java
-public class ValueTestMain {
-	public static void main(String[] args) {
-		// 변수 선언과 값대입
-		int su = 100;
-
-		// test라는 메서드를 호출하기 위해 test메서드를 가지고 있는
-		// 클래스를 생성한다.
-		ValueTest vt = new ValueTest();//명시적 객체 생성
-		vt.test(su);// su에 있는 값이 복사되어 전달된다.
-
-		System.out.println("su: " + su);
-		
-	}
-}
-```
-
-## ValueTest클래스 작성하기
-```java
-public class ValueTest {
-	
-	public void test(int n){
-		n++;
-		System.out.println("n : " + n);
-	}// 메서드의 기능이 모두 끝났으면 호출한 곳으로 돌아간다.
-	// 이때 반환형이 있으면 반환값을 가지고 돌아가지만
-	// 반환형이 없는 void라면 빈손으로 돌아간다. 그리고 
-	// 지역변수 n은 소멸된다.
-}
-```
 
 # setter&getter
 - 객체 지향 프로그래밍에서 객체의 데이터는 객체 외부에서 직접적으로 접근하는것을 막는다.
