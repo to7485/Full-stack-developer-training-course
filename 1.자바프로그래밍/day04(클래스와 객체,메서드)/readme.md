@@ -816,37 +816,100 @@ public class BusMain {
 - 곰곰히 생각해보면 언제 어디서 사용될지 모르는 static 멤버들을 처음에 전부 메모리에 올린다는건 비효율적이다.
 - JVM은 실행될때 모든 클래스를 메모리에 올려놓지 않고, 그때 마다 필요한 클래스를 메모리에 올려 효율적으로 관리하는 것이다.
 
-
-
 # setter&getter
-- 객체 지향 프로그래밍에서 객체의 데이터는 객체 외부에서 직접적으로 접근하는것을 막는다.
-- 객체 데이터를 외부에서 읽고 변경 시 객체의 무결성이 깨질 수 있기 때문이다.
-- 예를들어 자동차의 속도는 음수가 될 수 없는데, 외부에서 음수로 설정하면 무결성이 깨진다.
-- 따라서 객체 지향 프로그래밍에서는 메서드를 통해 데이터를 변경하는방법을 선호한다.
-- 데이터는 외부에서 접근하지 않도록 막고, 메서드는 공개를 해서 외부에서 메서드를 통해 데이터에 접근하도록 유도한다.
-
-## setter
-- 외부에서 메서드를 통해 데이터에 접근하고 검증할 수 있도록 유도하는 것
+- 지금까지 객체의 필드를 객체의 내부뿐만 아니라 객체 밖에서도 마음껏 사용할 수 있었고, 마음대로 값을 바꿀수도 있었다.
+## 필드에 직접 접근했을 때의 문제점
+### Person클래스 수정하기
 ```java
-public void setSpeed(int speed) {
-	if(speed < 0) {
-		this.speed = 0;
-		return;
-	} else {
-		this.speed = speed;
-	}
+package method;
+
+public class Person {
+//	void introduce(String name, int age) {
+//		System.out.println("제 이름은 " + name+"이고, 나이는" + age+"세입니다.");
+//	}
+//	
+//	void hello() {
+//		System.out.println("안녕하세요");
+//	}
 	
+	int age;
 }
 ```
+
+### PersonMain클래스 수정하기
+```java
+package method;
+
+public class PersonMain {
+	public static void main(String[] args) {
+		Person hong = new Person();
+//		hong.introduce("홍길동", 20);
+//		hong.hello();
+		hong.age = -30;
+		
+		System.out.println("hong의 나이는 " + hong.age+"세입니다.");
+	}
+}
+```
+- 사람의 나이는 음수가 될 수 없음에도 age값을 음수로 바꿀 수 있었다.
+- 이처럼 객체 밖에서 필드에 마음대로 접근할 수 있고 값을 변경할 수 있다면, 문제가 생길 가능성이 있다.
+- 이런 문제를 예방하기 위해 객체 지향 프로그래밍에서는 메서드를 통해서 필드의 값을 불러오고, 필드의 값을 변경하는 방법을 이용한다.
+
+### 메서드를 통해 필드에 접근할 때 장점
+- 필드를 보호할 수 있다.
+- 메서드에서 필드에 들어갈 값을 검증한 후 필드에 대입할 수 있다.
+- 외부에서 사용할 필드의 값을 정제한 후 값을 제공할 수 있다.
+
+## setter
+- 외부에서 메서드를 통해 데이터에 접근하고 검증할 수 있도록 유도하는 메서드의 개념
+
+### Person클래스에 코드 추가하기
+```java
+public void setAge(int num) {
+	if(num <= 0) {// 만약, age에 넣으려는 값이 0보다 작거나 같다면
+		System.out.println("잘못된 수를 입력하셨습니다. 1 이상의 값으로 설정하세요");
+		return; //메서드 종료
+	} else {
+		age = num; //age필드에 num을 저장
+	}
+}
+```
+- 일반적으로 setter메서드를 사용할 때는, 필드의 값을 객체 외부에서 직접 넣지 못하도록 필드에 접근을 제한한다.
+- 필드가 선언되어 있는 클래스에서만 접근이 가능하도록 private 접근제한자를 붙힌다.
+```java
+private int age;
+```
+- 필드를 private으로 선언함으로써 필드를 한층 더 보호할 수 있으나, 객체의 외부에서 그 필드에 대한 값을 불러오는 것 또한 불가능해졌다.
+
 ## getter
 - private 필드를 객체 외부에서 값을 불러오기 위해 구현하는 메서드를 getter라고한다.
 - private 필드는 객체 외부에서는 접근이 불가능하지만, 필드가 선언된 클래스에서는 어디서든 접근이 가능하다.
 - 따라서 메서드를 통해서 값을 전달해 줄 수 있다.
+
+### Person클래스에 코드 추가하기
 ```java
-public int getSpeed() {
-	return speed;
+public int getAge() {
+	return age;
 }
 ```
+
+### PersonMaim클래스 코드 수정하기
+```java
+package method;
+
+public class PersonMain {
+	public static void main(String[] args) {
+		Person hong = new Person();
+//		hong.introduce("홍길동", 20);
+//		hong.hello();
+		//hong.age = -30;
+		hong.setAge(-30);
+		hong.setAge(30);
+		System.out.println("hong의 나이는 " + hong.getAge()+"세입니다.");
+	}
+}
+```
+
 ## setter&getter 실습
 ```java
 package test3;
@@ -906,366 +969,175 @@ public class CarTest {
 
 ```
 
+# 생성자
+- 클래스를 구성하는 구성요소중 하나인 생성자는, 객체를 생성할 때 호출되어 객체의 초기화를 담당하는 특별한 메서드이다.
+- 객체를 생성하고 초기화하기 위해서는 반드시 생성자를 호출해야 한다.
+- 따라서 객체를 생성해야 하는 참조용 클래스는 모두생성자를 가지고 있다.
 
-# 사용자 정의 클래스와 메서드 실습문제
+## 생성자의 정의
+- 생성자는 반환값이 없지만, 반환 타입을 아예 작성하지 않는다.(void로도 적지 않는다.)
+- 생성자는 초기화를 위한 데이터를 인수로 전달받을 수 있다.
 ```java
-//클래스로 계산기 만들어보기 문제.
-/*
-* 첫번째 숫자 입력 : 5
-* 두번째 숫자 입력 : 10
-* 연산기호 입력 : +
-* 결과 : 15
-* 
-* Scanner를 사용해 
-* 숫자 두 개와 연산기호를 받은 뒤 계산해주는 클래스를 만들고 실행하기
-* 
-* 참고: String의 비교는 ==아닌 String변수.equals("비교값")으로 한다
-*  if(str.equals("+"))
-*  else if(str.equals("-"))
-*  else if(str.equals("*"))
-*  else if(str.equals("/"))
-*/
+접근제어자 클래스명 (매개변수1,매개변수2...){
 
+}
+```
 
-//풀이
-public class CalTest {
+## 생성자의 호출 위치
+- 일반 메서드들과는 다르게, 생성자를 호출하는곳이 정해져있다.
+- 생성자는 클래스를 기반으로 객체를 생성할 때, 객체의 초기화를 담당하는 역할을 하므로 객체를 생성할 때만 호출할 수 있다.
+
+## 생성자 호출 방법
+- 생성자를 호출할 때는 new 키워드를 함께 사용한다.
+```java
+클래스명 객체명 = new 클래스명();
+					  ㄴ 이 메서드가 생성자이다.
+```
+
+## constructer패키지 생성하기
+### Snack 클래스 만들기
+```java
+package constructor;
+
+public class Snack {
+	int price;
 	
-	public int getResult(int n1, int n2, String str){
-		
-		if(str.equals("+"))
-			return n1 + n2;
-		else if(str.equals("-"))
-			return n1 - n2;
-		else if(str.equals("*"))
-			return n1 * n2;
-		else if(str.equals("/"))
-			return n1 / n2;
-		else{
-			System.out.println("연산기호가 올바르지 않습니다.");
-			return -1;
-		}
+	void info() {
+		System.out.println("과자의 가격은 " + price + "원입니다.");
 	}
 }
 
-//CalMain클래스 구현
-public class CalMain {
+```
+### SnackMain클래스 정의
+```java
+package constructor;
+
+public class SnackMain {
 	public static void main(String[] args) {
-		int n1, n2;
-		String str;
-		CalTest cal = new CalTest();
-		
-		Scanner sc = new Scanner(System.in);
-		System.out.print("첫번째 숫자 입력 : ");
-		n1 = sc.nextInt();
-		
-		System.out.print("두번째 숫자 입력 : ");
-		n2 = sc.nextInt();
-		
-		System.out.print("연산기호 입력 : ");
-		Scanner sc2 = new Scanner(System.in);
-		str = sc2.next();//next와 nextLine차이점 설명
-
-		System.out.print(“결과 : ”);
-		System.out.println(cal.getResult(n1, n2, str));
+		Snack chip = new Snack(); //객체 생성 및 초기화
+		chip.price = 2000; //객체 필드 설정
+		chip.info(); //객체 메서드 호출
 	}
 }
------------------------------------------------------------------------
-구구단 출력하기
+```
+- 객체의 필드에 데이터를 삽입하고, 메서드를 사용하기 위해 생성자를 통해 객체를 생성하고 사용할 준비를 한다.
+- 하지만 우리는 클래스에 Snack()생성자를 선언한적이 없는데 어떻게 상요할 수 있는것일까??
 
-문제설명 :
-TimesTable클래스를 만들고
+## 기본생성자
+- 자바의 모든 클래스에는 하나 이상의 생성자가 정의되어야 있어야 한다.
+- 클래스를 생성하면서 개발자가 직접 생성자를 선언하지 않았지만, 자바 컴파일러가 기본생성자를 자동으로 제공해주고 있다.
+- 다만, 컴파일러의 눈에만 보일 뿐 우리가 보는 코드에는 생략되어 있다.
 
-showTable()메서드를 정의한다.
-showTable()메서드에는 구구단을 출력하는 코드를 작성.
+```java
+package constructor;
 
-TimesTableMain클래스를 만들어 TimesTable객체를 생성하고 
-이를 이용하여 아래와같은 결과를 출력하자.
-
-Scanner를 통해 값을 받는 작업은 반드시 TimesTableMain클래스에서 하도록 한다.
-
-출력할 단을 입력 : 5
-5단
-5 * 1 = 5
-5 * 2 = 10
-5 * 3 = 15
-5 * 4 = 20
-5 * 5 = 25
-5 * 6 = 30
-5 * 7 = 35
-5 * 8 = 40
-5 * 9 = 45
-
-풀이 :
-TimesTable클래스 생성
-public class TimesTable {		
+public class Snack {
+	int price;
 	
-	public void showTable(int num){
-		
-		System.out.println(num + "단");
-		
-		for(int i = 1; i <= 9; i++){		
-			System.out.println(
-				num + " * " + i + " = " + (num * i));
-		}
+	public Snack() { //기본생성자
+					//안에는 텅 비어있음
+	}
+	
+	void info() {
+		System.out.println("과자의 가격은 " + price + "원입니다.");
 	}
 }
-TimesTableMain클래스 생성
-public class TimesTableMain {
+```
+- 기본 생성자는 파라미터가 별도로 없으며, 중괄호{}블록 안에 코드가 없는 비어있는 생성자를 말한다.
+- 기본생성자는 개발자기 직접 선언하지 않았을 때만 컴파일러가 자동으로 추가한다.
+- 만약 개발자가 직접 생성자를 선언한다면, 컴파일러는 선언된 생성자를 사용한다.
+
+## 생성자 선언 이유
+- 생성자는 객체를 생성함과 동시에 객체를 초기화 할 수 있다.
+- 생성자를 통해 객체를 초기화한다는 것은 필드와 메서드를 호출하는 등 객체를 사용하기 위해 객체를 메모리에 올린다는 의미이다.
+- 생성자를 통해 객체를 메모리에 올림과 동시에, 더 나아가 객체 멤버에 접근이 가능하므로 일반적인 메서드처럼 객체 멤버의 데이터를 초기화 할 수 있다.
+- 메서드를 호출해서 파라미터에 값을 전달했던 것처럼, **생성자 역시 파라미터를 통해 값을 전달할 수 있다.**
+
+### Snack클래스 코드 추가하기
+```java
+package constructor;
+
+public class Snack {
+	int price;
+	
+	public Snack(int p) { //기본생성자
+		price = p;
+	}
+	
+	void info() {
+		System.out.println("과자의 가격은 " + price + "원입니다.");
+	}
+}
+```
+
+```java
+package constructor;
+
+public class SnackMain {
+	public static void main(String[] args) {
+		Snack chip = new Snack(5000); //객체 생성 및 초기화
+		//chip.price = 2000; //객체 필드 설정
+		chip.info(); //객체 메서드 호출
+	}
+}
+```
+- 생성자를 통해 필드를 초기화 했으므로 chip.price로 필드에 접근하여 값을 주지 않아도 필드에 값이 들어가있음을 확인할 수 있다.
+- 물론 생성자를 통하지 않고 클래스에서 필드를 선언할 때 필드를 초기화할 수도 있다.
+
+```java
+public class Snack{
+	int price = 2000;
+	...
+}
+```
+- 위와 같은 클래스로 객체를 만들 경우 모든 과자의 가격이 2000원으로 생성된다.
+- 과자의 가격이 모두 2000원으로 동일하다면 효과적인 방법일 것이다.
+- 하지만 과자마다 가격이 다르다면 생성자를 통해 가격을 전달하고 객체를 생성하는 것이 더 효율적일 수 있다.
+```java
+Snack potatoChip = new Snack(2000);
+Snack potatoChip = new Snack(1800);
+```
+
+- 일반적인 메서드와 마찬가지로, 파라미터를 2개 이상 전달할 수 있다.
+
+## Person 클래스
+```java
+public class Person {
+	int age;
+	String name;
+
+	//예를들어서 나이와 이름, 전화번호를 알아야 친구가 된다고 가정을 해볼게요.
+	//이중에 한가지라도 빼먹고 안쓰면 문제가 있는거에요 써먹기 불가능한 객체가 될수도 있다는거죠.
+
+	//똑같은걸 계속 만드려고 한다면 기본생성자에 값을 넣어놓는것도 좋은 방법
+	pbulic Person() {
+		age = 40;
+		name = "노태문";
+	}
+
+	//빈공간에서 cntl + space bar 기본생성자 생성
+	//임의로 새로운 생성자를 정의한 순간부터 기본생성자는 쓸 수 없다.
+	public Person(int age, String) {
+		this.age = age;
+		this.name = name;
+
+	}
+
+	public void introduce() {
+		System.out.printf("안녕하세요. 저는 %d살 %s입니다.", age,name);
+	}
+}
+```
+## PMain 클래스
+```java
+public class PMain{
 	public static void main(String[] args) {
 		
-		int num;
+		Person p1 = new Person(20,"홍길동");
+		Person p2 = new Person(30,"김자바");
+
+		p1.introduce();
+		p2.introduce();
 		
-		TimesTable tt = new TimesTable();
-		
-		System.out.print("출력할 단을 입력 : ");
-		Scanner scan = new Scanner(System.in);
-		
-		num = scan.nextInt();
-		
-		tt.showTable(num);
-	}
-}
-------------------------------------------------------------------
-자바문제2(업다운)
-
-문제설명 : 
-Start클래스를 생성하여 1 ~ 50사이의 난수를 발생시킨다.
-메인클래스를 만들고 사용자가 키보드를 통해 정수를 입력받는다.
-Start클래스에서 사용자가 입력한 숫자를 판단하여 
-발생한 난수보다 크다면 DOWN!! 작다면 UP!!을 출력.
-사용자가 입력한 숫자와 발생한 난수가 같을경우에 프로그램을 종료시키며
-몇회만에 정답을 맞췄는지 판단해보자.
-단, 정답을 맞춘 경우 프로그램의 종료는 Start클래스가 아닌 
-메인클래스에서 이루어 지도록 한다.
-
-실행한 결과
-
-숫자입력 : 30
-Down!!
-숫자입력 : 15
-Up!!
-숫자입력 : 25
-3회 만에 정답!!!!
-
-
-public class Start {
-
-	Random rnd = new Random();
-	
-	int rnum = rnd.nextInt(50)+1;
-	int count = 1;
-	public String check(int number) {
-		if(number == rnum) {
-			return "정답!";
-		} else if(number >rnum) {
-			return "DOWN!";
-		} else {
-			return "UP!";
-		}
-	}
-}
-
-main
-public class StartMain {
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		
-		
-		Start s = new Start();
-		
-		while(true) {
-			System.out.print("숫자입력 : ");
-			int number = sc.nextInt();
-			if(s.check(number).equals("정답!")) {
-				System.out.println(s.count+"회 만에 정답");
-				break;
-			} else {
-				System.out.println(s.check(number));
-				s.count++;
-			}
-			
-		}
-	}
-}
-
----------------------------------------------------------------
-클래스를 이용한 입출금 로직 구현
-
-문제설명 :
-UserInfo클래스를 만든 뒤, 금액을 저장할 money라는 변수를 만든다.
-
-deposit(int money)메서드를 만들어 유저가 돈을 입금했을 경우를 처리.
-
-withdraw(int money)메서드를 만들어 유저가 돈을 출금했을 경우를 처리.
-단 이 메서드에는 출금하고자 하는 돈 보다 잔액이 적을경우 잔액이 부족하다는 메시지가 출력되도록 한다.
-
-showMoney()메서드를 만들어 현재 잔액을 반환하도록 한다.
-
-UserInfo클래스는 여기까지. 
-Main클래스를 새로 만들어 UserInfo형 객체를 생성한 뒤 아래의 결과가 나오도록 해보자.
-
-1.입    금 : 
-2.출    금 : 
-3.잔액확인 : 
-4.종    료 : 
-1
----입   금---
-입금할 금액을 입력 : 1000
-입금성공
-
-----------------------
-
-1.입    금 : 
-2.출    금 : 
-3.잔액확인 : 
-4.종    료 : 
-3
----잔액확인---
-1000원
-
-----------------------
-
-1.입    금 : 
-2.출    금 : 
-3.잔액확인 : 
-4.종    료 : 
-2
----출   금---
-출금할 금액을 입력 : 5000
-잔액부족
-
-
-풀이 :
-UserInfo클래스 생성
-public class UserInfo {
-
-	private int money; //잔액
-
-	public void deposit(int money){
-		System.out.println("입금성공");
-		this.money += money;
-	}
-
-	public void withdraw(int money){
-
-		if(this.money - money < 0){
-			System.out.println("잔액부족");
-
-		}else{
-			System.out.println("출금성공");
-			this.money -= money;
-		}
-	}
-	
-	public int showMoney(){
-		return money;
-	}
-}
-
-
-Main클래스 생성
-public class Main {
-	public static void main(String[] args) {
-
-		int select;
-		int money;
-
-		UserInfo ui = new UserInfo();
-
-		outer : while(true){
-			System.out.println("1.입    금 : ");
-			System.out.println("2.출    금 : ");
-			System.out.println("3.잔액확인 : ");
-			System.out.println("4.종    료 : ");
-
-			Scanner scan = new Scanner(System.in);
-			select = scan.nextInt();
-
-			switch (select) {
-			case 1:
-				System.out.println("---입   금---");
-				System.out.print("입금할 금액을 입력 : ");
-				money = scan.nextInt();	
-				ui.deposit(money);	
-				break;
-
-			case 2:
-				System.out.println("---출   금---");
-				System.out.print("출금할 금액을 입력 : ");
-				money = scan.nextInt();	
-				ui.withdraw(money);
-				break;
-				
-			case 3:
-				System.out.println("---잔액확인---");
-				System.out.println(ui.showMoney() + "원");
-				break;
-				
-				default :
-					System.out.println("종료");
-					break outer;//while문 탈출
-			}
-			
-			System.out.println("----------------------");
-		}//outer : while문의 끝
-	}
-}
-
------------------------------------------------------------------
-
-자바 강의 1주차(3) 문제(배열을 이용한 그래프)
-
-Graph라는 이름의 메인 클래스를 만들어 0 ~ 9사이의 난수를 100개 저장하는 배열을 만들고, 해당 배열이 가지고 있는 각 방의 난수를 판별하여 그래프화 해 보자.
-
-단, 발생한 난수의 그래프화 작업은 PrintGraph클래스가 하도록 한다.
-
-결과:
-0507...... //난수 100개
-0의 갯수 : ############ 12
-1의 갯수 : ######### 9
-2의 갯수 : ########### 11
-3의 갯수 : ######## 8
-4의 갯수 : ############## 14
-5의 갯수 : ####### 7
-6의 갯수 : ######### 9
-7의 갯수 : ############# 13
-8의 갯수 : ####### 7
-9의 갯수 : ########## 10
-
-풀이 :
-PrintGraph클래스 생성
-public class PrintGraph {
-	
-	public String print(char ch, int num){
-		char[] val = new char[num];
-		String str = "";
-	for(int i = 0; i < val.length; i++){
-	
-str += val[i] = ch;
-}
-		return str;
-	}
-}
-
-Graph클래스 생성
-public class Graph {
-	public static void main(String[] args) {
-	
-int[] num = new int[100];//난수를 담을 배열
-	
-int[] count = new int[10];//발생한 난수가 각각 몇 개인지 저장할 배열
-	for(int i = 0; i < num.length; i++){
-	
-//0 ~ 9사이의 난수
-System.out.print(num[i] = new Random().nextInt(10));
-}
-	System.out.println();
-	for(int i = 0; i < num.length; i++){
-	count[num[i]]++;
-	PrintGraph pg = new PrintGraph();
-		for(int i = 0; i < count.length; i++){
-			System.out.println(i + "의 갯수 : " + pg.print('#', count[i]) + " " + count[i]);
-        }	
-    }
 }
 ```
