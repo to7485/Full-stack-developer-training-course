@@ -1110,10 +1110,10 @@ public class Person {
 	//이중에 한가지라도 빼먹고 안쓰면 문제가 있는거에요 써먹기 불가능한 객체가 될수도 있다는거죠.
 
 	//똑같은걸 계속 만드려고 한다면 기본생성자에 값을 넣어놓는것도 좋은 방법
-	pbulic Person() {
-		age = 40;
-		name = "노태문";
-	}
+	//pbulic Person() {
+	//	age = 40;
+	//	name = "노태문";
+	//}
 
 	//빈공간에서 cntl + space bar 기본생성자 생성
 	//임의로 새로운 생성자를 정의한 순간부터 기본생성자는 쓸 수 없다.
@@ -1139,5 +1139,241 @@ public class PMain{
 		p1.introduce();
 		p2.introduce();
 		
+}
+```
+
+## 생성자 오버로딩
+- 생성자에 전달할 매개변수가 부족하면 어떤일이 발생할까??
+### Phone 클래스
+```java
+package test3;
+
+public class Phone {
+	String brand;
+	int series;
+	String color = "검정색";
+	
+	public Phone(String b, int s, String c) {
+			brand = b;
+			series = s;
+			color = c;
+	}
+	
+	public void phoneInfo() {
+		System.out.println(color + " " + brand + " " + series);
+	}
+}
+```
+### PhoneMain클래스
+```java
+package test3;
+
+public class PhoneMain {
+	public static void main(String[] args) {
+		Phone p1 = new Phone("갤럭시",1,"흰색");
+		Phone p2 = new Phone("아이폰",1);
+	}
+}
+```
+- 생성자에 전달할 매개변수가 부족하면, 객체를 생성할 수 없다.
+- 선언된 생성자의 형태에 맞게 매개변수를 전달해 줘야 하기 때문이다.
+- 클래스 내부에 선언된 필드의 기본값을 그대로 사용하고 싶다면 파라미터가 부족하다고 생성하지 못할 이유가 없어야 한다.
+- 이 경우 자바에서는 생성자를 여러 개 선언하는 것을 허용하고 있다.
+- 외부에서 제공할 수 있는 데이터만큼만 매개변수로 전달하여 객체를 생성할 수 있다.
+- 생성자를 다양한 형태로 선언하는 것을 '생성자 오버로딩'이라고 한다.
+
+### 오버로딩 규칙
+1. 매개변수의 개수가 다를 때
+2. 매개변수의 개수가 같아도 자료형이 다를 때
+3. 생성자나 메서드의 이름은 그대로 사용해야 한다.
+
+
+### Phone클래스에 코드추가하기
+```java
+package test3;
+
+public class Phone {
+	String brand;
+	int series;
+	String color = "검정색";
+
+	public Phone(String b, int s) {
+		brand = b;
+		series = s;
+	}
+
+	public Phone(String b, int s, String c) {
+		brand = b;
+		series = s;
+		color = c;
+	}
+
+	public void phoneInfo() {
+		System.out.println(color + " " + brand + " " + series);
+	}
+}
+```
+
+## 여러개의 생성자를 선언해보기
+### Book 클래스
+```java
+package test3;
+
+public class Book {
+	String title = "제목없음";
+	int series = 1;
+	int page = 100;
+	
+	public Book() {
+		// TODO Auto-generated constructor stub
+	}
+	
+	public Book(String t) {
+		title = t;
+	}
+	public Book(String t, int p) {
+		title = t;
+		page = p;
+	}
+	public Book(int s, String t) {
+		series = s;
+		title = t;
+	}
+}
+```
+### BookMain클래스
+```java
+package test3;
+
+public class BookMain {
+	public static void main(String[] args) {
+		Book b1 = new Book();
+		System.out.println("b1.title : " + b1.title);
+		System.out.println("b1.series : " + b1.series);
+		System.out.println("b1.page : " + b1.page);
+		
+		Book b2 = new Book("멘토시리즈 자바");
+		System.out.println("b2.title : " + b2.title);
+		System.out.println("b2.series : " + b2.series);
+		System.out.println("b2.page : " + b2.page);
+		
+		Book b3 = new Book("신데렐라",170);
+		System.out.println("b3.title : " + b3.title);
+		System.out.println("b3.series : " + b3.series);
+		System.out.println("b3.page : " + b3.page);
+		
+		Book b4 = new Book(5,"노인과 바다");
+		System.out.println("b4.title : " + b4.title);
+		System.out.println("b4.series : " + b4.series);
+		System.out.println("b4.page : " + b4.page);
+	}
+}
+```
+
+# this와 this()
+- 변수명을 지을 때, 최대한 구체적이고 명확하게 작명하는 것이 보다 효율적인 코드를 작성하는데 도움이 된다는 것을 알고있다.
+- 함수나 생성자에서 매개변수는 클래스의 필드보다 우선순위가 높아서, 대입연산자를 기준으로 왼쪽/오른쪽 변수 모두 매개변수를 뜻하게 된다.
+- 매개변수에 매개변수를 넣는 의미없는 코드가 된다.
+- 이러한 상황을 해결하기 위해 this키워드를 사용한다.
+
+## this
+- 객체 자기 자신 스스로 참조
+- this 참조 변수는 객체가 자기 자신을 참조하는데 사용하는 변수이다.
+- this를 필드에 붙여서 사용하면, 중괄호{}안에서도 같은 이름의 매개변수와 필드를 구분해서 사용할 수 있다.
+```java
+this.필드 = 매개변수명;
+```
+
+### Student.java
+```java
+package test3;
+
+public class Student {
+	String name;
+	int age;
+	int studentID;
+	
+	public Student(String name, int age, int studentID) {
+		this.name = name;
+		this.age = age;
+		this.studentID = studentID;
+	}
+}
+
+```
+
+## this()
+- 현재 클래스에 선언되어있는 생성자를 가리킬 수 있는 키워드이다.
+
+### this(매개변수1,매개변수2)
+- this()메서드는 같은 클래스 안에 있는 생성자 중 매개변수의 개수, 자료형, 순서에 맞는 다른 생성자를 호출하는 메서드로 생성자 내부에서만 사용할 수 있다.
+
+### Phone.java
+```java
+package test3;
+
+public class Phone {
+	String brand;
+	int series;
+	String color = "검정색";
+
+	public Phone(String b, int s) {
+		brand = b;
+		series = s;
+	}
+
+	public Phone(String b, int s, String c) {
+		//brand = b;
+		//series = s;
+		this(b,s); //this()는 첫줄에서만 사용할 수 있다.
+		color = c;
+	}
+
+	public void phoneInfo() {
+		System.out.println(color + " " + brand + " " + series);
+	}
+}
+```
+# 메서드 오버로드
+- 오버로드은 메서드의 '중복정의' 라고 하며, 하나의 클래스 내에서 같은 이름을 가진 메서드(함수)가 여러개 정의되는 것을 말한다.
+- 메서드들을 같은 이름으로 작업할 수 있다는 의미이다.
+
+```java
+public class Overload {
+  
+	public void result() {
+		System.out.println("인자가 없는 메서드");
+		//return; 강제로 끝내고 싶을 때는 return을 써도 됨.
+		// 대신 void 일때는 return에 아무 값도 실을 수 없음 사실 void일때는 return을 쓰는 경우도 거의 없고 쓸 필요도 없음
+	}
+
+	//메서드 이름이 같기 때문에 오류가 나는게 당연하다.
+	pulic void result( int n ) {
+		System.out.println("정수를 인자로 받는 메서드");
+	}
+	public void result( char n) {
+		System.out.println("문자를 인자로 받는 메서드");
+	}
+	public void result( String s, int n) {
+		System.out.println("문자열, 정수를 인자로 받는 메서드");
+	}
+
+	public void result( int n, String s) {
+		System.out.println("정수, 문자열을 인자로 받는 메서드");
+	}
+}
+```	
+
+```java
+public class OverloadingMain {
+	public static void main(String[] args) {
+
+	Ex1_Overload ov = new Ex1_Overload();
+	ov.result();
+	ov.result(10);
+	ov.result('A'); //인자를 char로 받으면 65를 넣어도 'A'가 출력되긴함.
+	ov.result("hi",10);
+	ov.result(10,"hi");
+  }
 }
 ```
