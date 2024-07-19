@@ -341,13 +341,199 @@ public class SuperMain {
 ### public
 - 접근 제한자 중에서 가장 사용 범위가 큰 제어자이다.
 - public으로 선언된 클래스와 멤버들은 같은 패키지는 물론 다른 패키지의 클래스에서도 접근할 수 있다.
+```
+public 클래스/생성자 : 모든 패키지, 모든 클래스 어디서나 해당 클래스로 객체를 생성할 수 있다.
+public 멤버(필드, 생성자,메서드) : 모든 패키지, 모든 클래스 어디서나 객체를 통해 접근할 수 있다.
+```
 
-# 2차 상속
+### PublicA클래스 생성
+```java
+package modifier;
+
+public class PublicA {
+	public int a;
+	
+	public PublicA(int a) {
+		this.a = a;
+	}
+	
+	public void printA() {
+		System.out.println("PublicA 클래스의 printA() 메서드이다.");
+	}
+}
+```
+
+### PublicB클래스 생성
+```java
+package modifier;
+
+public class PublicB {
+	public static void main(String[] args) {
+		PublicA a = new PublicA(10);
+		a.printA();
+	}
+}
+```
+
+### 객체 지향의 특징
+- 캡슐화
+  - 객체 내부의 멤버(필드,메서드 등)를 객체 외부에서 볼 수 없도록 캡슐화 한다.
+  - 접근이 필요한 경우 public 메서드를 활용해 접근 허용하고, 이외의 값들은 모두 캡슐화를 통해 정보를 은닉한다.
+- 추상화
+  - 공통된 기능과 정보를 추출해 객체화한다.
+- 상속
+  - 미리 정의된 부모 클래스의 모든 멤버를 자식 클래스가 물려받는다.
+- 다형성
+  - 하나의 방법으로 여러 객체를 호출하여 사용할 수 있다.
+
+### default
+- 접근제한자를 따로 명시하지 않는다면 클래스와 멤버들은 자동으로 default를 가진다.
+- default로 선언된 클래스와 멤버들은 같은 패키지 안에서는 어디든지 접근 및 사용이 가능하지만 다른 패키지에서는 접근이 불가능하다.
+```
+default 클래스/생성자 : 같은 패키지 내에서 어디서나 호출이 가능하며, 객체를 생성할 수 있다.
+default 필드/메서드 : 같은 패키지 내에서 제한 없이 접근 및 사용할 수 있다.
+```
+
+### DefaultC클래스 생성하기
+```java
+package modifier;
+
+class DefaultC {
+	public int varableC; 
+}
+```
+
+### PublicA클래스에 코드 추가하기
+```java
+package modifier;
+
+public class PublicA {
+	public int a;
+	
+	public PublicA(int a) {
+		this.a = a;
+	}
+	
+	public void printA() {
+		System.out.println("PublicA 클래스의 printA() 메서드이다.");
+	}
+	
+	DefaultC dc = new DefaultC(); //같은 패키지이기 때문에 객체생성 가능
+	void methodA() {
+		dc.varableC = 20; //public으로선언된 필드도 객체를 통해 접근 가능
+	}
+}
+```
+
+### PublicB클래스 생성
+```java
+package access;
+import modifier.*;
+
+
+public class PublicB {
+	public static void main(String[] args) {
+		DefaultC c = new DefaultC();//The type DefaultC is not visible
+		//c.varableC = 10; 필드가 public이더라도 객체를 생성하지 못하기 때문에 사용할 수 없다.
+	}
+}
+```
+
+### protected
+- 클래스 멤버를 위한 제한자로, 클래스의 접근 제한자로 사용하지 않는 protected는 상속과 관련있는 제한자이다.
+- protected라는 이름처럼 조금 특별하게 클래스 멤버를 보호하고 있다.
+- default처럼 같은 패키지 안에서 접근과 사용을 허가하지만, 다른 패키지에서의 접근을 완전히 제한하는 것이 아닌 "해당 클래스와 상속 관계에 있는 자식 클래스"라면 다른 패키지라도 접근 및 사용이 가능하다.
+- 즉, 같은 패키지에서 접근이 가능하며, 다른 패키지라면 자식 클래스만 접근을 허용한다.
+
+```
+protected 생성자 : 같은 패키지의 클래스에서 생성자를 호출해 객체를 생성할 수 있다.
+또한 다른 패키지더라도 해당 클래스의 자식 클래스라면 생성자를 호출해 객체를 생성할 수 있다.
+protected 필드/메서드 : 같은 패키지의 클래스에서 접근 및 사용할 수 있으며, 해당 클래스의 자식 클래스라면 다른 패키지에서도 사용할 수 있다.
+```
+
+### modifier패키지에 Parent클래스 생성하기
+```java
+package modifier;
+
+public class Parent {
+	protected void accessProtected() {
+		System.out.println("Protected 멤버에 접근하였습니다.");
+	}
+}
+```
+
+### access패키지에 Child클래스 생성하기
+- 다른 패키지에 있지만
+```java
+package modifier;
+
+import access.Parent;
+
+public class Child extends Parent{
+	void accessTest() {
+		super.accessProtected(); //protected 키워드가 붙은 메서드도 이런식으로 접근이 가능하다.
+		
+		Parent p1 = new Parent();
+		//p1.accessProtected(); 자식 클래스더라도, 객체로 접근하는것은 불가능하다.
+	}
+}
+```
+
+### access패키지에 NotChild클래스 생성하기
+- 다른패키지에 있고 상속도 안받았기 때문에 안된다.
+```java
+package access;
+
+import modifier.Parent;
+
+public class NotChild {
+	void accessTest() {
+		Parent p2 = new Parent();
+		//p2.accessProtected(); 에러
+	}
+}
+```
+
+### private
+- 가장 사용 범위가 좁은 클래스 멤버를 위한 제한자이다.
+- 클래스가 public/default이더라도, private로 선언된 멤버들은 클래스 외부에서 접근이 불가능하다.
+- 오직 선언된 클래스 내부에서만 접근하여 사용할 수 있다.
+- 따라서 private멤버는 public인터페이스를 직접 구현하지 않고, 클래스 내부의 세부적인 동작을 구현하는 데 사용된다.
+```
+private 생성자 : 클래스 외부에서 객체를 생성할 수 없으며, 클래스 내부에서만 생성자를 호출해 객체를 생성할 수 있다.
+
+private 필드/메서드 : 클래스 외부에서 접근할 수 없으며, 클래스 내부에서만 사용할 수 있다.
+```
+
+### PublicA 클래스의 생성자를 private으로 만들기
+```java
+package modifier;
+
+public class PublicA {
+	public int a;
+	
+	private PublicA(int a) {
+		this.a = a;
+	}
+	
+	public void printA() {
+		System.out.println("PublicA 클래스의 printA() 메서드이다.");
+	}
+	
+	DefaultC dc = new DefaultC();
+	void methodA() {
+		dc.varableC = 20;
+	}
+}
+```
+- PublicB클래스를 확인하면 생성자부분에서 에러가 나는것을 확인할 수있다.
+
+## 2차 상속
 - 우리는 누군가의 자식이 될 수 있지만 누군가의 부모도 될 수 있듯이,
 - 상속 역시 원한다면 다음 세대에게, 또 다음 세대로 이어질 수 있다.
 - 자바도 마찬가지로 한 번에 상속에서 끝내지 않고 2차,3차 ... N차까지 원하는 만큼 상속을 이어받을 수 있다.
 
-## Car 클래스
+### Car 클래스
 ```java
 package test3;
 
@@ -358,7 +544,7 @@ public class Car {
 }
 ```
 
-## Bus클래스
+### Bus클래스
 ```java
 package test3;
 
@@ -377,7 +563,7 @@ public class Bus {
 }
 ```
 
-## SchoolBus클래스
+### SchoolBus클래스
 ```java
 package test3;
 
@@ -402,7 +588,7 @@ public class SchoolBus extends Bus {
 }
 ```
 
-## CarMain 클래스
+### CarMain 클래스
 ```java
 package test3;
 
