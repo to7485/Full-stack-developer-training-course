@@ -532,6 +532,9 @@ public class PublicA {
 - 우리는 누군가의 자식이 될 수 있지만 누군가의 부모도 될 수 있듯이,
 - 상속 역시 원한다면 다음 세대에게, 또 다음 세대로 이어질 수 있다.
 - 자바도 마찬가지로 한 번에 상속에서 끝내지 않고 2차,3차 ... N차까지 원하는 만큼 상속을 이어받을 수 있다.
+```
+A 클래스 ← B 클래스 extends A 클래스 ← C클래스 extends D 클래스 ...  ← 
+```
 
 ### Car 클래스
 ```java
@@ -601,7 +604,7 @@ public class CarMain {
 }
 ```
 
-# final 클래스와 final 메서드
+## final 클래스와 final 메서드
 - final키워드는 상수를 뜻하는 키워드로, 필드 앞에 선언하여 사용한다.
 - 초기화 이후 값을 바꿀 수 없으며 시간이 지나도 처음 정의된 상태가 변하지 않는다는 의미를 가지고 있다.
 - 이 키워드는 메서드와 클래스에도 사용할 수 있다.
@@ -611,16 +614,12 @@ public class CarMain {
 - 어떠한 클래스도 이 클래스의 자식 클래스가 될 수 없고, 자연스럽게 이 클래스는 어떤 클래스의 부모클래스가 될 수 없다.
 
 ```java
-package test4;
-
 public final class Parent {
 
 }
 ```
-
+- final 클래스를 상속받고자 시도한다면 에러가 발생한다.
 ```java
-package test4;
-
 public class Child  extends Parent{
 
 }
@@ -629,6 +628,12 @@ public class Child  extends Parent{
 ## final 메서드
 - 메서드 앞에 final을 추가하게 되면 상속은 받더라도, 오버라이딩 할 수 없는 메서드를 뜻한다.
 - 즉, 자식 클래스이더라도 부모 클래스에 final로 선언된 메서드는 자식 클래스에서 오버라이딩 하지 못하고 있는 그대로 사용해야 한다.
+
+```java
+접근제한자 final 반환형 메서드명(매개변수1,매개변수2...){
+
+}
+```
 
 ### Book클래스
 ```java
@@ -706,3 +711,4 @@ public class BookMain {
 
 ### 생성자에는 final을 추가할 수 없다.
 - 생성자는 접근제한자(public,protected,private)만 추가할 수 있다.
+- 따라서 클래스를 final로 선언하더라도 생성자를 final로 선언할 수 없다.
