@@ -441,6 +441,38 @@ public class FarmTest {
 	}
 }
 ```
+### instanceof 연산자와 '=='연산자의 차이
+- A instanceof B : 객체변수 A가 객체의 타입 B로 생성된것인지 확인
+- C == D : 객체 변수 C와 객체 변수 D가 같은 객체를 참조하고 있는지 확인한다.
+
+### Instanceof클래스 생성하기
+```java
+package class_casting;
+
+class Animal{};
+class Pig extends Animal{};
+
+public class Instanceof {
+	public static void main(String[] args) {
+		Pig p1 = new Pig();
+		Pig p2 = new Pig();
+		
+		Animal a = p1;
+		
+		if( a instanceof  Pig) {
+			System.out.println("객체 변수 a는 Pig타입으로 생성된 객체이다.");
+		}
+		
+		if(a == p1) {
+			System.out.println("a와 p1은 같은 객체를 참조하고 있다.");
+		}
+		
+		if(a != p2) {
+			System.out.println("a와 p2는 같은 객체를 참조하고 있지 않다.");
+		}
+	}
+}
+```
 
 ## 오버라이딩으로 해결하기
 - instanceof 연산자를 사용하지 않고도, 오버라이딩을 사용해 같은 문제를 해결할 수 있다.
@@ -480,23 +512,66 @@ public class FarmTest {
 	}
 }
 ```
-# 추상화
+
+## 오버로딩과 오버라이딩
+- 객체 지향 프로그래밍에서 다형성을 얘기할 때 빼놓을 수 없는 것이 바로 오버로딩과 오버라이딩이다.
+- 비슷한 기능을 하고 중복되는 구현이 필요하지만 우리는 오버로딩과 오버라이딩을 적절히 사용할 수 있다면, 중복이 없는 최소한의 코드로 원하는 기능을 모두 구현해낼 수 있다.
+
+### 오버로딩
+- 자바는 매개변수의 자료형/개수/순서를 기반으로 메서드를 구별하므로 하나의 클래스 안에서 같은 이름의 메서드를 여러 개 구현하고 필요에 따라 메서드를 선택해 사용할 수 있다.
+### 오버라이딩
+- 부모 클래스에게 상속받은 메서드를 재정의하여 자식 클래스용 메서드를 구현하고 자식 객체를 통해 메서드를 호출하면 오버라이딩된 메서드가 호출된다.
+
+
+<br>
+
+**간단히 정리하자면 오버로딩은 새로운 메서드를 정의하는 것이며, 오버라이딩은 상속받은 기존의 메서드를 재정의하는 것을 말한다.**
+
+### InheritanceMethodTest클래스 생성하기
 ```java
-//추상화
-//공통성과 본질을 모아 추출하는것
-//기존 클래스들의 공통적인 요소를 모아 상위 클래스를
-//만들어내는 기술
+package class_casting;
 
-//공통적인 속성과 행위를 모아 정의하면, 반복적인 코드를
-//줄일수 있고, 보다 효과적인 클래스간의 관계를 설정하여
-//유지보수가 용이해진다.
+class Parent{
+	public void display() {
+		System.out.println("부모 클래스의 display()메서드이다.");
+	}
+}
+
+class Child extends Parent{
+	
+	//오버라이딩 된 display()메서드
+	@Override
+	public void display() {
+		System.out.println("자식 클래스의 display() 메서드이다.");
+	}
+	
+	//오버로딩된 display()메서드
+	public void display(String str) {
+		System.out.println(str);
+	}
+}
+
+public class Inheritance {
+	public static void main(String[] args) {
+		Child ch = new Child();
+		ch.display();
+		ch.display("오버로딩된 display()메서드입니다.");
+	}
+}
 ```
+# 추상화
 
+- 공통성과 본질을 모아 추출하는것
+- 기존 클래스들의 공통적인 요소를 모아 상위 클래스를 만들어내는 기술
+- 공통적인 속성과 행위를 모아 정의하면, 반복적인 코드를 줄일수 있고, 보다 효과적인 클래스간의 관계를 설정하여 유지보수가 용이해진다.
+
+```
 - 바로 전에 작성했던 FarmTest에서 메서드 오버라이딩을 이용하여 처리한 경우를 다시한번 살펴보자.
 - Animal클래스의 cry()메서드가 텅 비어있는 것을 확인할 수 있다.
 - Animal 객체를 통해 직접 cry()메서드를 호출할 일은 없지만,
 - Animal클래스를 상속받은 자식 클래스들이 cry()메서드를 오버라이딩 하여 재정의 하고
 - 타입변환을 통해서 그 메서드를 사용하기 위함이었다.
+```
 
 ## 추상메서드
 - 선번부만 작성하고 구현부는 작성하지 않고 남겨둔 미완성 메서드를 '추상 메서드'라고 한다.
@@ -509,7 +584,7 @@ public class FarmTest {
 [접근제한] abstract [반환형] [메서드명](파라미터1,파라미터2);
 abstract [접근제한] [반환형] [메서드명](파라미터1,파라미터2);
 ```
-## 추상 클래스
+## 추상 클래스(abstract class)
 - 추상메서드가 한 개 이상 정의되어 있는 클래스를 추상 클래스라고 한다.
 - 추상 메서드를 포함하고 있다는 것을 제외하고 일반 클래스와 다르지 않다.
 - 추상 클래스에도 생성자가 있으며, 멤버변수와 메서드도 가질 수 있다.
@@ -525,40 +600,79 @@ abstract [접근제한] [반환형] [메서드명](파라미터1,파라미터2);
 - 일반 클래스 처럼 독립적으로 생성자를 호출해 객체를 생성할 수 없다.
 - 자식 클래스의 생성자에 super()를 총해 추상 클래스의 생성자를 호출하여 부모 객체를 생성한 후 자식 객체를 생성한다.
 
-## AbsParent클래스(abstract)
+### Receipt클래스 만들기
 ```java
-abstract public class AbsParent {
-	//추상메서드를 한갤라도 가지고 있는 클래스는
-	//abstract키워드를 붙여 추상클래스로 정의해둬야 한다.
+package abstrarct;
 
-	int value = 100;
-
-	//get space+cntl 누르면 완성 가능
-	public int getValue(){ // 일반적인 메서드
-		return value;
-	}
-	그동안 우리가 만들던 일반적인 메서드들과 가장 큰차이점이 뭘까요??
-	// 추상 메서드는 body가 없기때문에 이를 "미완성적 개념"이라 한다.
-
-	//추상 메서드는 body( { } )가 없다. - abstract로 시작한다.
-	abstract public void setValue(int n);
-	//public abstract void setValue(int n);
+public abstract class Receipt {
+	String chef;
 	
-	// 그러므로 이 미완성적 개념을 자식이 물려
-	// 받아서 완성 시켜야하는 것이 하나의 조건이 된다.
+	public Receipt(String chef) {
+		this.chef = chef;
+	}
+	
+	void info() {
+		System.out.println("이 레시피는 " + chef+"님의 레시피입니다.");
+	}
+}
+```
+
+### PastaReceipt클래스 만들기
+```java
+package abstrarct;
+
+public class PastaReceipt extends Receipt{
+
+	public PastaReceipt(String chef) {
+		super(chef); //부모클래스의 생성차 호출
+	}
+	
+	void makeSource() {
+		System.out.println("파스타 소스를 직접 만듭니다.");
+	}
+}
+```
+
+### StakeReceipt클래스 만들기
+```java
+package abstrarct;
+
+public class StakeReceipt extends Receipt{
+
+	public StakeReceipt(String chef) {
+		super(chef);
+	}
+
+	void grillStake() {
+		System.out.println("스테이크를 맛있게 굽습니다.");
+	}
+	
+}
+```
+
+### ReceiptMain클래스 정의
+```java
+package abstrarct;
+
+public class ReceiptMain {
+	public static void main(String[] args) {
+		//Receipt r = new Receipt(); -> 추상클래스는 직접 객체를 생성할 수 없음
+		
+		PastaReceipt pr = new PastaReceipt("최연석");
+		pr.info(); //자식객체를 통해 추상 클래스의 메서드를 호출할 수 있음
+		pr.makeSource();
+		
+		StakeReceipt sr = new StakeReceipt("이현복");
+		sr.info();
+		sr.grillStake();
+	}
 }
 ```
 
 ## AbsChild클래스 정의
 ```java
 public class AbsChild extends AbsParent{
-	
-	//추상 클래스를 상속받은 자식 클래스는
-	//부모가 가지고 있는 추상 메서드(미완성)를 무조건 받아두어야 한다.
-	//재정의 할 필요는 없지만 오버라이딩 해서 가지고는 있어야 한다는 의미.
 
-	//추상클래스에서 만든 메서드를 몸체까지 강제로 오버라이딩이 됨.
-	//무조건 받아야 하고 자식클래스의 상황에 맞게 내용을 정의할 수 있다.
 
 	@Override
 	public void setValue(int n) {
