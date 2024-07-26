@@ -668,49 +668,17 @@ public class ReceiptMain {
 	}
 }
 ```
+- 추상클래스는 사실 일반 클래스와 크게 다를것은 없어보이지만, 직접 객체를 생성하지 못한다는 사실을 알 수 있다.
 
-## AbsChild클래스 정의
-```java
-public class AbsChild extends AbsParent{
+### 추상클래스에 추상메서드는 언제 구현해야 할까??
+- 자식 클래스들이 반드시 구현해야 하는 메서드가 있다면, 우리는 추상 메서드로 해당 메서드를 부모 클래스(추상클래스)에 선언해 둘 수 있다.
+```
+추상 클래스를 상속받은 모든 자식 클래스는 반드시 추상 메서드를 오버라이딩 및 재정의하여 구현해야 한다.
 
-
-	@Override
-	public void setValue(int n) {
-		System.out.println("추상메서드 재정의함");
-	}
-```	
-	
-## AbsMain정의
-```java
-public class AbsMain {
-	public static void main(String[] args) {
-		//추상클래스는 인스턴스를 직접 가질 수 없다.
-		//즉, 객체화 시킬 수 없다는 것.
-		AbsParent ap = new AbsParent(); //오류확인 후 주석
-			
-		// 그러므로 추상클래스는 자신의 기능을 자식이 완성 시키도록 조건부 
-		// 상속하여 자식클래스가 생성될 때 객체화된다.
-		AbsChild a1 = new AbsChild();
-		a1.setValue(20);
-		System.out.println(a1.getValue());
-	}
-}
+그렇지 않으면 컴파일 에러가 발생한다.
 ```
 
-## AbsClass정의
-```java
-public abstract class AbsClass {
-	int value = 100;
-
-	public int getValue(){
-		return value;
-	}
-
-	public abstract int changeValue(); // 추상메서드
-}
-```
-
-## Phone 클래스
+### Phone 클래스
 ```java
 package test2;
 
@@ -728,7 +696,7 @@ public abstract class Phone {
 }
 ```
 
-## PineapplePhone클래스
+### PineapplePhone클래스
 ```java
 package test2;
 
@@ -741,7 +709,7 @@ public class PineApplePhone extends Phone{
 }
 ```
 
-## ThreeStarPhone클래스
+### ThreeStarPhone클래스
 ```java
 package test2;
 
@@ -754,7 +722,7 @@ public class ThreeStarPhone extends Phone{
 }
 ```
 
-## PhoneMain클래스
+### PhoneMain클래스
 ```java
 package test2;
 
@@ -774,12 +742,25 @@ public class PhoneMain {
 }
 ```
 
+## 추상 클래스와 추상 메서드의 용도
+```
+- 자식 클래스 간의 공통적인 필드와 메서드 이름을 통일할 수 있다.
+- 반드시 구현해야 하는 메서드를 선언함으로써 공통 규격을 제공한다.
+```
+- 결과적으로 자식 클래스들의 규격과 내용을 통일하기 위함이며, 이는 곧 객체 지향 프로그래밍의 다형성을 구현하기 위한 탄탄한 기반이 된다.
+
 # 인터페이스
 - 모든 메서드가 추상 메서드인 일종의 추상 클래스를 '인터페이스'라고 부른다.
-- 인터페이스는 추상 메서드와 상수로만 이루어져 있으며, 추상클래스와 마찬가지로 스스로 객체를 생성할 수 없다.
+- 인터페이스는 <b>추상 메서드와 상수</b> 로만 이루어져 있으며, 추상클래스와 마찬가지로 스스로 객체를 생성할 수 없다.
 - 언뜻 보면 인터페이스와 추상 클래스가 같은 역할을 하는 것처럼 느껴질 수 있지만, 취지는 완전히 다르다.
 - 추상 클래스는 자식클래스들의 공통적인 특징을 추출하고 제공하는것이 주된 역할이었다면
+
+![image](img/추상화.png)
+
+![image](img/인터페이스.png)
+
 - 인터페이스는 그뿐 아니라 다른 클래스 코드들과의 중간 매개 역할을 하는 것을 중점으로 생각할 수 있다.
+
 
 ## 인터페이스의 선언
 - 인터페이스는 클래스가 아니다.
@@ -793,8 +774,12 @@ public class PhoneMain {
 	//추상메서드
 }
 ```
+- 인터페이스를 선언하는 방법은 클래스를 작성하는 방법과 동일하며 class키워드 대신 interface를 작성한다.
+- 또한, 인터페이스의 추상 메서드는 다른 클래스들과의 매개체 역할을 하므로 누구나 접근할 수 있다.
+- 따라서 항상 public으로 구현한다.
+- 만약 접근자를 default로 구현했다면 자동으로 public으로 인식한다.
 
-## Phone클래스
+### Phone인터페이스
 ```java
 package test3;
 
@@ -815,6 +800,26 @@ public interface Phone {
 - 따라서 인터페이스도 자신이 가지고 있는 추상 메서드를 구현해줄 클래스를 작성해야만 한다.
 - 인터페이스를 구현해주는 클래스를 '구현 클래스'라고 한다.
 
+
+### 상수의 선언
+- 인터페이스에서는 필드 대신 상수를 선언할 수 있다.
+- 단, 상수이기 때문에 인터페이스는 고정된 값만 선언할 수 있어 충분한 고민을 통해 선언해야 한다.
+```java
+[접근제한자] interface 인터페이스 이름{
+	public static final 자료형 상수명 = 값;
+}
+
+public : 인터페이스는 다른 클래스들의 접근이 가능해야 하기 때문에 public으로 한다.
+static : 객체가 생성되지 않는 인터페이스이기 때문에, 내부 상수에 접근하려면 클래스 변수처럼 static으로 선언되어 메모리에 올라가있어야 한다.
+final : 상수를 뜻하는 키워드이다.
+```
+
+## 인터페이스 사용
+- 추상클래스는 추상메서드가 비어있기 때문에 객체를 스스로 생성할 수 없다.
+- 대신 자식 클래스의 생성자의 힘을 빌려 객체를 생성할 수 있었다.
+- 인터페치스 역시 추상 메서드가 비어있기 때문에 객체 ㅅ애성을 스스로 할 수 없다.
+- 인터페이스를 구현해주는 클래스를 '구현 클래스'라고 한다.
+
 ### implements
 - 구현 클래스는 인터페이스를 사용해 구현하겠다는 선언을 해야 한다.
 - 구현한다는 의미를 가지고 있는 implements키워드를 사용하여 명시할 수 있다.
@@ -826,7 +831,8 @@ public interface Phone {
 }
 ```
 
-## PineApplePhone클래스
+
+### PineApplePhone클래스
 ```java
 package test3;
 
@@ -889,7 +895,7 @@ public class PineApplePhone implements Phone{
 }
 ```
 
-## ThreeStarPhone클래스
+### ThreeStarPhone클래스
 ```java
 package test3;
 
@@ -951,8 +957,7 @@ public class ThreeStarPhone implements Phone{
 	}
 }
 ```
-
-## Person클래스
+### Person클래스
 ```java
 package test3;
 
@@ -991,7 +996,7 @@ public class Person {
 }
 ```
 
-## PhoneMain클래스
+### PhoneMain클래스
 ```java
 package test3;
 
@@ -1024,6 +1029,10 @@ public class PhoneMain {
 - 정보은닉 : 실제 구현 클래스의 내용을 전혀 보지 않고도 개발 코드로 객체를 사용할 수 있다.
 - 모듈화 : 구현 클래스들이 독립적으로 구현되고 사용될 수 있다. 개발 코드에서 객체 변경이 필요할 때, 개발코드의 수정을 최소화할 수 있다.
 
+### 추상 클래스와 인터페이스의 공통점
+- 정보은닉, 모듈화, 추상화 등은 추상클래스와 인터페이스가 공통적으로 가진 장점이다.
+- 추상 클래스와 인터페이스 모두 다형성을 구현할 수 있는 기반을 제공하며, 추상 메서드 구현에 대한 강제성을 반영하고 있다.
+
 ## 다중 인터페이스 구현
 - 우리는 하나의 클래스로 여러 개의 인터페이스를 구현할 수 있다.
 - 선언한 모든 인터페이스에 대한 추상 메서드를 모두 구현해 줘야 한다.
@@ -1035,87 +1044,40 @@ public class PhoneMain {
 	//인터페이스2에 대한 구현 메서드
 }
 ```
-## Menu1 인터페이스 정의
+### MicroPhone인터페이스 생성
 ```java
-public interface Menu1 {
-	abstract String jajang();
+package inter;
 
-	//abstract는 생략되어도 interface안에서는 자동으로 추상으로 인식.
-	String jjambbong();
+public interface MicroPhone {
+	abstract void sing();
 }
 ```
 
-## Menu2 인터페이스 정의
+### Speaker인터페이스 생성
 ```java
-public interface Menu2 {
-	abstract String tangsuyuck();//탕수육 철자 모르겠다;;ㅋ
+package inter;
+
+public interface Speaker {
+	abstract void music();
 }
 ```
 
-## Menu3 인터페이스 정의
+### BluetoothMIC클래스 생성
 ```java
-public interface Menu3 extends Menu1, Menu2{
-	//인터페이스는 일반클래스 상속이 불가능하고 인터페이스만 상속이 가능하다.
-	//인터페이스는 구현능력이 없기 때문에 다중상속이 가능하다
-	abstract String boggembab();//보끔밥....
-}
-```
+package inter;
 
-## Kitchen 클래스 생성
-```java
-public class Kitchen implements Menu1, /*Menu2, Menu3*/ {
+public class BluetoothMIC implements MicroPhone, Speaker{
+
 	@Override
-	public String jajang() {
+	public void music() {
 		// TODO Auto-generated method stub
-		return "중면 + 춘장 + 완두콩";
+		
 	}
 
 	@Override
-	public String jjambbong() {
+	public void sing() {
 		// TODO Auto-generated method stub
-		return "중면 + 홍합 + 야채;
-	}
-
-	@Override
-	public String tangsuyuck() {
-		// TODO Auto-generated method stub
-		return "돼지고기 + 당근 + 갖은양념";
-	}
-
-	@Override
-	public String boggembab() {
-		// TODO Auto-generated method stub
-		return "춘장 + 달걀 + 쌀";
-	}
-
-}
-```
-
-## InterMain 클래스 정의
-```java
-package test3;
-
-public class KitchenMain {
-
-	public static void main(String[] args) {
-		Kitchen k = new Kitchen();
 		
-		Menu1 im1 = k;
-		Menu2 im2 = k;
-		Menu3 im3 = k;
-		
-		//타입 변환된 각 인터페이스 내에 정의된 메서드들로 국한된다.
-		
-		//im1 객체에서는 jjambbong()과 jajang()만 호출할 수 있다.
-		System.out.println(im1.jajang());
-		System.out.println(im1.jjambbong());
-		
-		//im2 객체에서는 tangsuyuck()만 호출할 수 있다.
-		System.out.println(im2.tangsuyuck());
-		
-		//im3객체에서는 boggembab()만 호출할 수 있다.
-		System.out.println(im3.boggembab());
-
 	}
 
 }
