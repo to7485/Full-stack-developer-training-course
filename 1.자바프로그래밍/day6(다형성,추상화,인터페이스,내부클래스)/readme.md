@@ -1083,11 +1083,108 @@ public class BluetoothMIC implements MicroPhone, Speaker{
 }
 ```
 
-# 내부 클래스
+## 인터페이스 상속
+- 인터페이스끼리 상속관계를 만들 수 있다.
+- 클래스의 상속과 만찬가지로 extends키워드를 사용하며, 다중 상속이 가능하기 때문에 콤마(,)를 이용해서 다음과 같이 선언한다.
+```java
+[접근제한자] interface 인터페이스명 extends 인터페이스1, 인터페이스2,...{
+
+}
+```
+- 인터페이스 상속을 선언하면, 하위 클래스는 상위 클래스의 모든 멤버를 상속받게 된다.
+- 따라서 만약 하위 인터페이스를 구현하는 클래스가 있다면, 해당 클래스는 하위 인터페이스의 추상메서드를 포함하여 상위 인터페이스르의 추상 메서드까지 구현해야 한다.
+
+### BluetoothMIC 인터페이스로 수정하기
+```java
+package inter;
+
+public interface BluetoothMIC extends MicroPhone, Speaker{
+
+	abstract void connect();
+}
+```
+
+### TJmic클래스 생성하기
+```java
+package inter;
+
+public class TJmic implements BluetoothMIC{
+
+	@Override
+	public void sing() {
+		System.out.println("마이크에 대고 노래를 부른다.");
+		
+	}
+
+	@Override
+	public void music() {
+		System.out.println("마이크에 장착된 스피커로 반주가 나온다.");
+		
+	}
+
+	@Override
+	public void connect() {
+		System.out.println("핸드폰과 블루투스 연결이 되었습니다.");
+	}
+}
+```
+
+### MicMain클래스 수정하기
+```java
+package inter;
+
+public class MicMain {
+	public static void main(String[] args) {
+		System.out.println("---TJmic 객체---");
+		TJmic tj = new TJmic();
+		tj.connect();
+		tj.music();
+		tj.sing();
+		
+		System.out.println("\n---TJmic 객체를 BluetoothMIC로 타입 변환---");
+		BluetoothMIC bm = tj;
+		bm.connect();
+		bm.music();
+		bm.sing();
+		
+		System.out.println("\n---TJmic 객체를 Microphone으로 타입 변환---");
+		MicroPhone m = tj;
+		//m.connect(); 호출불가능
+		//m.music(); 호출불가능
+		m.sing();
+		
+		System.out.println("\n--TJmic 객체를 Speaker로 타입 변환---");
+		Speaker s = tj;
+		//s.connect(); 호출불가능
+		s.music();
+		//s.sing(); 호출불가능
+		
+	}
+}
+
+결과
+---TJmic 객체---
+핸드폰과 블루투스 연결이 되었습니다.
+마이크에 장착된 스피커로 반주가 나온다.
+마이크에 대고 노래를 부른다.
+
+---TJmic 객체를 BluetoothMIC로 타입 변환---
+핸드폰과 블루투스 연결이 되었습니다.
+마이크에 장착된 스피커로 반주가 나온다.
+마이크에 대고 노래를 부른다.
+
+---TJmic 객체를 Microphone으로 타입 변환---
+마이크에 대고 노래를 부른다.
+
+--TJmic 객체를 Speaker로 타입 변환---
+마이크에 장착된 스피커로 반주가 나온다.
+```
+
+## 내부 클래스
 - 내부 클래스는 클래스 안에 만들어진 또 다른 클래스로 중첩 클래스라고도 부른다.
 - 클래스에 다른 클래스를 선언하는 이유는 두 개의 클래스가 서로 긴밀한 관계를 맺고 있기 때문이다.
 
-## 내부 클래스의 장점
+### 내부 클래스의 장점
 - 두 클래스 멤버들 간에 손쉽게 접근할 수 있다.
 - 불필요한 클래스를 감춰서 코드의 복잡성을 줄일 수 있다.
 
@@ -1100,7 +1197,7 @@ public class OuterClass{ //외부 클래스
 }
 ```
 
-## 내부 클래스의 종류
+### 내부 클래스의 종류
 |메서드|설명|
 |-----|-----|
 |인스턴스 클래스|외부 클래스의 멤버 변수와 같은 위치에 선언<br>주로 외부 클래스의 멤버 변수와 관련된 작업에 사용될 목적으로 선언|
@@ -1125,15 +1222,16 @@ public class Outer{
 ```
 - 내부 클래스도 외부 클래스 안에 생성되는 것 외에는 별도의 클래스이기 때문에, 파일이 컴파일되면 별도로 생성된다.
 
-## 인스턴스 클래스의 객체화
+### 인스턴스 클래스의 객체화
 - 인스턴스 클래스는 기본적인 내부 클래스이다.
 - 외부 클래스 안에 생성되기 때문에, 클래스를 사용하려면 외부 클래스객체가 생성된 상태에서 객체 생성을 할 수 있다.
+
 ```java
 Outer outer = new Outer(); //외부 클래스 객체 생성
 Outer.Inner in = Outer.new Inner(); //외부 클래스를 이용해 내부 클래스 객체 생성
 ```
 
-## CalculatorExample클래스
+### CalculatorExample클래스
 ```java
 package test3;
 
@@ -1207,7 +1305,6 @@ public class Outer{
 	}
 }
 ```
-
 ## 정적 내부 클래스의 객체 생성
 - 외부 클래스의 객체를 생성하지 않아도 선언할 수 있다.
 ```java
@@ -1283,37 +1380,28 @@ public class LocalClassExample {
 ## 내부 클래스의 접근 제한
 - 내부 클래스도 클래스이기 때문에 접근 제한자를 붙여서 사용할 수 있다.
 
-## Permit클래스
+### PermitExample클래스
 ```java
-package test3;
+package innerclass;
 
-public class Permit {
+public class PermitExample {
 	private class InClass{
 		public void print() {
-			System.out.println("접근을 private로 제한합니다.");
+			System.out.println("접근을 private로 제한한다.");
 		}
 	}
 	
-	public void getInClass() {
-		InClass inClass = new InClass();
-		inClass.print();
+	public InClass getInClass() {
+		return new InClass();
 	}
-}
-```
-
-## PermitMain클래스
-```java
-package test3;
-
-public class PermitMain {
-
+	
 	public static void main(String[] args) {
-		Permit permit = new Permit();
-		
-		permit.getInClass();
-
+		PermitExample permit = new PermitExample();
+		permit.getInClass().print();
 	}
 }
+
+접근을 private로 제한한다.
 ```
 
 ## 지역 클래스의 접근 제한
@@ -1322,7 +1410,7 @@ public class PermitMain {
 - 그래서 지역 클래스에서 메서드 내의 변수를 사용할 때는 변수를 복사해 사용한다.
 - 이러한 이유로 지역 클래스에서 메서드의 변수를 사용할 때 해당 변수가 변경되면 오류가 발생한다.
 
-## LoacalClassExample클래스 코드 추가하기
+### LoacalClassExample클래스 코드 추가하기
 ```java
 package test3;
 
@@ -1359,7 +1447,6 @@ public class LocalClassExample {
 - 오직 하나의 객체만을 생성할 수 있는 일회용 클래스이다.
 - 따라서 생성자를 선언할 수도 없으며, 둘 이상의 인터페이스를 구현할 수도 없다.
 
-## 보통의 상속관계 처리
 - Person클래스
 ```java
 package test3;
@@ -1395,83 +1482,16 @@ public class PersonMain {
 - Person클래스를 확장하기 위해 자식 클래스를 만들어서 사용한다.
 - 그런데 만약 Person을 상속받아 처리해야 하는 클래스가 또 필요하지만 한번만 사용할 거라면 굳이 상속할 필요가 없다.
 
+### AnonymousExample클래스 생성하기
 ```java
-package test3;
-
-public class PersonMain {
-	public static void main(String[] args) {
-		Student s = new Student();
-		s.mySelf();
-		
-		Person p2 = new Person() {
-			@Override
-			public void mySelf() {
-				System.out.println("저는 직장인입니다.");
-			}
-		};
-		
-		p2.mySelf();
-	}
-}
-```
-- 생성자 뒤에 코드 블록{}이 추가되고, 해당 클래스가 가진 메서드들을 override하여 구현하는 방법이다.
-- 해당 클래스 자체를 재정의하여 구현한다.
-- 구현된 문법 마지막에는 세미콜론(;)을 붙힌다.
-- 익명 클래스는 보통 인터페이스의 기능을 구현할 때 사용한다.
-- 인터페이스를 상속하여 하위 클래스를 통해 구현하는 것이 아니라 인터페이스를 익명 클래스로 선언하여 기능을 직접 구현한다.
-
-## 내부 클래스의 접근 제한
-- 멤버 클래스 내부에서 외부 클래스의 필드와 메서드에 접근할 때는 제한이 따른다.
-- 또한 내부 클래스의 선언 위치에 따라 생기는 제약들도 존재한다.
-### 1. 접근제한자
-- 내부클래스도 클래스이기 때문에 접근 제한자를 붙여서 사용할 수 있다.
-- 우리가 앞에서 배웠던 접근 제한자들을 사용해 외부에서 접근을 제한할 수 있다.
-```java
-package test2;
-
-public class Test {
-	private class InClass{
-		public void print() {
-			System.out.println("접근을 private로 제한한다.");
-		}
-	}
-	
-	public InClass getInClass() {
-		return new InClass();
-	}
-
-	public static void main(String[] args) {
-		Test test = new Test();
-		test.getInClass().print();
-	}
-}
-//결과
-//접근을 private로 제한한다.
-```
-- 인스턴스 클래스를 private로 선언하여 getter를 통해 클래스를 얻도록 제한을 했다.
-
-### 2. 지역 클래스의 접근 제한
-- 지역 클래스는 메서드 내에서 선언되어 사용한다.
-- 보통 메서드가 종료되면 클래스도 함께 종료되지만 메서드와 실행되는 위치가 다르기 때문에 종료되지 않고 남아있을 수 있다.
-- 그래서 지역 클래스에서 메서드 내의 변수를 사용할 때는 변수를 복사해사용한다.
-- 이러한 이유로 지역 클래스에서 메서드의 변수를 사용할 때 해당 변수가 변경되면 오류가 발생한다.
-```java
-```
-
-## AnonymousExample클래스
-- 익명클래스는 다른 내부클래스와는 달리 이름이 없는 클래스를 의미한다.
-- 익명클래스는 클래스의 선언과 객체의 생성을 동시에 하므로 한 번만 사용할 수 있으며 오직 하나의 객체만을 생성할 수 있는 일회용 클래스이다.
-- 따라서, 생성자를 선언할 수도 없으며, 둘 이상의 인터페이스를 구현할 수도 없다.
-- 오직 단 하나의 클래스를 상속받거나 단 하나의 인터페이스를 구현해야 한다.
-```java
-package test;
+package innerclass;
 
 interface buttonClickListener{
 	public void click();
 }
 
 public class AnonymousExample {
-	
+
 	public class Button{
 		private buttonClickListener listener;
 		
@@ -1479,12 +1499,12 @@ public class AnonymousExample {
 			this.listener = listener;
 		}
 		
-		//버튼 클릭 기능
 		public void click() {
 			if(listener != null) {
 				this.listener.click();
 			}
 		}
+		
 	}
 	
 	public static void main(String[] args) {
@@ -1496,8 +1516,12 @@ public class AnonymousExample {
 			@Override
 			public void click() {
 				System.out.println("버튼을 눌렀습니다.");
+				
 			}
 		});
+		
+		button.click();
 	}
 }
+버튼을 눌렀습니다.
 ```
