@@ -406,6 +406,7 @@ public class ComMain {
 - instanceof연산자의 특징
     -  A instanceof B : A 객체가 생성될 때 B 타입으로 생성되었는지 확인하는 연산자
     -  맞으면 true, 아니면 false를 반환하며 만약 null을 가리키고 있으면 false를 반환한다.
+
 ### 객체 instanceof타입(클래스명)
 ```
 - instanceof 기준으로 왼쪽 객체가 생성될 때 오른쪽 타입으로 생성되었는지 확인하는 연산자이다.
