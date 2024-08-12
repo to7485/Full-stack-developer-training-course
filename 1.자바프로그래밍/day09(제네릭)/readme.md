@@ -1,39 +1,8 @@
-# 제네릭
-- JDK 1.5 이전에는 여러 타입을 사용하는 대부분의 클래스나 메서드에서 반환값으로 Object타입을 사용했다.
-- 이러한 경우 잘못된 캐스팅으로 인해 런타임 오류가 발생할 가능성이 있다.
-- JDK 1.5부터 도입된 제네릭을 사용하면 컴파일할 때 타입이 미리 정해지므로 타입 검사나 변환과 같은 번거로운 작업을 생략할 수 있다.
-- 클래스나 메서드 내부에 사용될 데이터 타입의 안정성을 높일 수 있다.
-- 자바에서 제네릭(Generics)은 클래스 내부에서 사용할 데이터 타입을 외부에서 지정하는 기법이다.
-- 객체별로 다른 타입의 자료가 저장될 수 있도록 한다.
 
-## 제네릭 타입 매개변수 정의
-- 제네릭은 <> 꺾쇠 괄호 키워드를 사용하는 데 이를 다이아몬드 연산자라고 한다.
-- 꺾쇠 괄호 안에 식별자 기호를 지정함으로써 파라미터화 할 수 있다.
-- 이것을 마치 메서드가 매개변수를 받아 사용하는 것과 비슷하게 제네릭의 **타입 매개변수(parameter)/타입 변수**라고 부른다.
-
-```java
-
-Class<T> class = new Class<>();
-
-```
-### 타입 파라미터 기호 네이밍
-- 제네릭 기호를 <T>와 같이 써서 표현했지만 사실 식별자 기호는 문법적으로 정해진것은 없다.
-- 다만 우리가 for문을 이용할 때 루프 변수를 i로 지정해서 사용하듯이, 제네릭의 표현변수를 T로 표현한다고 보면 된다. 만일 두번째, 세번째 제네릭이 필요하다고 하면 S,U로 이어나간다.
-- 명명하고 싶은대로 아무 단어나 넣어도 문제는 없지만, 대중적으로 통하는 통상적인 네이밍이 있으면 개발이 용이해지기 때문에 암묵적인 규칙(convention)이 존재한다.
-
-|타입|설명|
-|----|----|
-|\<T>|타입(Type)|
-|\<E>|요소(Element)|
-|\<K>|키(Key)|
-|\<V>|값(Value)|
-|\<N>|숫자(Number)|
-
+## ex02_generic패키지 만들기
 ### GenEx 클래스 정의
 ```java
 public class GenEx<T>{
-  //public class 클래스명<T>{}
-  //public interface 인터페이스명<T>{}
 
 	T value;
 
@@ -61,10 +30,6 @@ public class Ex2_Generic {
 
 		System.out.println(v1.getValue());
 
-		// 제네릭 타입은 기본자료형을 인식하지 않음
-		// 따라서 int, double등의 기본자료형을 제네릭타입으로 이용하고자 할 때는
-		// Integer, Double등의 클래스를 이용해야 한다. 
-  
 		//타입 매개변수의 생략
 		//jdk 1.7버전 이후부터, new 생성자 부분의 제네릭 타입을 생략할 수 있게 되었다.
 		GenEx<Integer> v2 = new GenEx<>();
@@ -98,6 +63,8 @@ class Sample<T> {
 ### 2. static 멤버에 제네릭 타입이 올 수 없음
 - static 변수의 데이터 타입으로 제네릭 타입 파라미터가 올 수는 없다.
 - 왜냐하면 static 멤버는 클래스가 동일하게 공유하는 변수로서 제네릭 객체가 생성되기도 전에 이미 자료 타입이 정해져 있어야 하기 때문이다.
+
+#### 2-1 static 메서드의 반환타입으로 사용이 불가능하다.
 ```java
 class Student<T> {
     private String name;
@@ -108,12 +75,15 @@ class Student<T> {
 
     }
 }
+```
 
+#### 2-2 static 메서드의 매개변수의 타입으로 사용이 불가능하다.
+```java
 class Student<T> {
     private String name;
     private int age = 0;
 
-    // static 메서드의 매개변수 타입으로 사용 불가
+    // static 메서드의 매개변수 타입으로 사용 불가능
     public static void addAge(T n) {
 
     }
@@ -131,9 +101,8 @@ public class Main {
     }
 }
 ```
-
 - 또한 제네릭 타입 파라미터에 클래스가 타입으로 온다는 것은, 클래스끼리 상속을 통해 관계를 맺는 객체 지향 프로그래밍의 다형성의 원리가 그대로 적용이 된다는 뜻이다.
-- 
+
 ### Ex2_Generic클래스 만들기
 ```java
 class Fruit { }
@@ -148,7 +117,7 @@ class FruitBox<T> {
     }
 }
 
-public class Ex3_Generic {
+public class Ex2_Generic {
     public static void main(String[] args) {
         FruitBox<Fruit> box = new FruitBox<>();
         

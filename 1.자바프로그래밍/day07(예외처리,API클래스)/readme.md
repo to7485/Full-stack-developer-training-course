@@ -189,72 +189,6 @@ public class Test {
 	}
 }
 ```
-
-### 예외처리 실습
-```java
-문제:
-키보드에서 정수를 입력받도록 하고, 정수 이외의 값이 입력되었다면
-‘정수만 입력가능’이라는 메시지를 출력하자.
-
-결과:
-
-//정수를 입력 받은 경우
-정수 : 100
-입력받은 수 : 100
-
-
-//정수를 입력 받지 않은 경우
-정수 : aaa
-정수만 입력가능
-
-
-풀이 :
-public class Try_Main {
-	public static void main(String[] args) {
-		
-		System.out.print("정수 : ");
-		Scanner sc = new Scanner(System.in);
-		
-		try {
-		int n = sc.nextInt();
-		//오류가 발생하면 출력문을 실행하지 않고 catch로 넘어간다.
-		System.out.println("입력받은 수: " + n);
-		} catch (Exception e) {
-			System.out.println("정수만 입력 가능함");
-		} 
-			
-	}//main
-}
-```
-
-```java
-문제:
-//정수 : 100
-//결과 : 100
-
-//정수 : aab
-//결과 : aab은(는) 정수가 아닙니다.
-
-public class Ex4_TryCatch {
-	public static void main(String[] args) {
-		
-		System.out.print("정수입력 : ");
-		Scanner sc= new Scanner(System.in);
-		String str = "";
-		
-		try {
-			int n = sc.nextInt();
-			str = sc.next();
-			int num = Integer.parseInt(str);
-			System.out.println("결과 : " + num);
-		} catch (Exception e) {
-			String name = sc.nextLine();
-			System.out.println(str + "은(는) 정수가 아닙니다.");
-		}		
-	}
-}
-```
-
 ## 다중 catch 사용하기
 - 프로그램을 구동할 때 하나의 예외만 발생한다면 처리하기는 어렵지 않다.
 - 하지만 try 구문 안에서 예외는 다양하게 발생할 수 있다.
@@ -653,123 +587,18 @@ String arr[] = str.split(" ");//띄어쓰기를 기준으로 분할
 
 for(int i = 0; i < arr.length; i++)
 	System.out.println("arr[" + i + "] : " + arr[i]);
-```
 
-### Ex2_String
-```java
-키보드에서 숫자와 특수문자를 제외한 알파벳을 무작위로 입력받는다.
-입력받은 문자열에 소문자 a가 몇 개 있는지를 판별하는 로직을 구현해보자.
+//특정문자열을 치환해주는 메서드
+//replace(기존문자열, 바꿀문자열);
+System.out.println(str.replace("Mal", "Gae"));
 
-결과 : 
-입력 : asdfasdf
-a의 갯수 : 2
+//특정문자를 포함하고 있는지 판별
+//contains(String str)
+System.out.println(str.contains("a"));
 
-풀이 : 
-public class Work_Ex1 {
-	public static void main(String[] args) {
-
-		String str;
-		int count = 0;
-		
-		System.out.print("입력 : ");
-		Scanner scan = new Scanner(System.in);
-		str = scan.next();
-		
-		for(int i = 0; i < str.length(); i++){
-			if(str.charAt(i) == 'a'){
-				count++;
-			}
-		}
-		
-		System.out.println("a의 갯수 : " + count);
-	}
-}
--------------------------------------------------------------------------
-자바 강의 1주차(3) 문제(String) - 3
-회문수 구하기.
-회문수란 앞으로 읽어도 뒤로 읽어도 똑같이 읽히는 숫자를 말합니다. 예를들어 12121과 같은 숫자.
-
-키보드에서 세자리 이상의 숫자를 입력받은 후 해당 숫자가 회문수인지 아닌지를 판단하는 로직을 구현하자.
-
-단, String클래스의 메서드를 활용하는 문제이니만큼, 키보드에서 입력받는 숫자는 String변수에 담아서 활용할수 있도록 한다.
-
-풀이 :
-public class Work_Ex3 {
-	public static void main(String[] args) {
-		
-		String str = "";
-		String str2 = "";
-		
-		System.out.print("3자리 이상의 숫자를 입력하세요 : ");
-		Scanner scan = new Scanner(System.in);
-		str = scan.next();
-		
-		for(int i = str.length(); i > 0; i--){
-			str2 += str.charAt(i-1);
-		}
-		
-		if(str.equals(str2)){
-			System.out.println(str + "은 회문수 입니다.");
-		}else{
-			System.out.println(str + "은 회문수가 아닙니다.");
-		}			
-	}
-}
--------------------------------------------------------------------------
-자바 강의 1주차(3) 문제(String) - 4
-아래와 같은 결과를 반영하는 로직을 구현해보자.
-
-결과)
-
-주민번호를 모두 입력하세요(-포함)
-예)911223-203345
->> 991122-1122333
-당신은 1999년 11월 22일에 태어난 남자입니다.
-
-
-풀이)
-public class Work {
-	public static void main(String[] args) {
-		
-		System.out.println("주민번호를 모두 입력하세요(-포함)");
-		System.out.println("예)911223-203345");
-		System.out.print(">> ");
-		Scanner scan = new Scanner(System.in);
-		String id = scan.next();
-
-		if(id.trim().length() < 14 || id.trim().charAt(6) != '-'){
-
-			System.out.println("주민번호를 올바르게 입력하세요.");
-
-		}else{
-
-			String year = "";
-			String result = "";
-
-			year = id.substring(0, 2);
-
-			if(Integer.parseInt(year) <= 14){
-				result = "당신은 20";
-			}else{
-				result = "당신은 19";
-			}
-			result += year + "년 "
-					+ id.substring(2, 4) +"월 " 
-					+ id.substring(4, 6)
-					+ "일에 태어난 ";
-
-			if(id.charAt(7)%2 != 0){
-				result += "남자입니다.";
-			}else{
-				result += "여자입니다.";
-			}
-
-			System.out.println(result);
-
-		}//else
-
-	}//main
-}
+//문자열의 길이가 0인경우 true를 반환
+//isEmpty();
+System.out.println(str.isEmpty());
 ```
 
 ## StringBuffer/StringBuilder
