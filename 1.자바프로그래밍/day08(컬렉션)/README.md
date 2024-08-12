@@ -231,65 +231,184 @@ List<데이터 타입> list = new ArrayList<>();
 - 기존에 존재하는 마지막 데이터 뒤에 차례대로 삽입된다.
 - 삽입시에는 index가 부여되며 배열과 마찬가지로 순차적으로 부여된다.
 
-### Ex1_Array 클래스 정의
+![image](img/add메서드.png)
+
+#### add(int index, E e)
+- 원하는 위치에 데이터를 삽입할 수 있다.
+- 그러나 연속성이 없어 순서를 부여해 삽입하는 것은 불가능하다.
+- 만약 데이터가 3개 들어있는 List가 있다면, 해당 리스트에서 index가 1인, 즉 2번째 위치에 데이터를 삽입할 경우 아래와 같이 진행된다.
+
+![image](img/add메서드2.png)
+
+- 하지만 추가를 원하는 위치가 연속성이 없는 위치라면 문법적으로 오류가 발생하지 않지만 실행 시 오류가 발생한다.
+
+![image](img/add메서드에러.png)
+
+
+## ex02_ArrayList패키지 만들기
+### Ex01_ArrayList 클래스 정의
 ```java
-public class Ex1_Array {	
+package ex02_ArrayList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Ex01_ArrayList {
 	public static void main(String[] args) {
-
-//ArrayList : index제한 없이 값을 추가하거나 제거하는 용도의 클래스
-//중복된 값을 무시하지 않고 추가
-//index번호를 가지고 있다. 가장 중요
-
-// 배열과 같지만 배열은 크기가 정해져야만 한다
-//  int[] ar = new int[10]; 이런식으로.
-// 하지만 List구조는 size가 늘었다가 줄었다가 유동적이다.
-
-컬렉션은 map을 제외하면 add로 추가한다.
-
-중복값을 체크해서 안들어가게 해준다던지 킷값이 바뀌면 추가가 안된다던지 하는 기능이 없기 때문에 만드는데로 방의 크기가 증가한다.
-	ArrayList<Integer> list = new ArrayList<Integer>();
-	list.add(100);
-	list.add(100);	
-	list.add(20);		
-	System.out.println("list의 크기:" + list.size());
-	System.out.println(list);
-
-//20이라는 값만 가져오기
-	int res = list.get(2);	
-	System.out.println(res);
-
-중복체크는 못하지만 중복체크는 Set의 특징이기 때문에 ArrayList에서 중복체크를 못한다고 단점은 아니다.
-
-//for문을 사용하여 list가 가진 모든 index로 접근하기	
-	for(int i=0; i<list.size(); i++) {	
-		System.out.println(list.get(i));
-}
-//개선된 for문(개선된 roop) 간단하긴 한데 특정 index로 접근하는게 힘들다.
-//배열, list와 같은 순차적 index구조로 자동으로 접근하여 내용을 출력하는 것이 간편해진다.
-// 단, index로 직접적인 접근이 불가능 하기 때문에 특정 index에 대한 수정이나 제어가 불가능 하다.
-for(int I : list) {
-    System.out.println(i); //list.get(i)
-    }	
+		//리스트 선언
+		List<String> list = new ArrayList<>();
+		
+		//데이터 삽입
+		list.add("딸기");
+		list.add("바나나");
+		list.add("망고");
+		
+		//리스트 출력
+		System.out.println("리스트 내용1 : " + list);
+		
+		//3번째 위치에 삽입
+		list.add(2,"수박");
+		
+		System.out.println("리스트 내용2 : " + list);
+	}
 }
 ```
 
-### Ex2_Array 클래스 정의
+## ArrayList 데이터 치환
+- List에 저장된 데이터를 변경할 수 있다.
+- 변경을 원하는 index위치와 치환할 값 또는 객체를 지정하면 해당 위치의 값이 변경된다.
+
 ```java
-public class Ex1_Array {	
-public static void main(String[] args) {
-	ArrayList<Integer> list = new ArrayList<Integer>();
-list.add(10);
-list.add(10);	
-list.add(1, 14); //데이터 추가 방 번호가 밀림
-list.set(2, 20); //2번 index의 값을 20으로 수정
-list.add(55);
-list.remove(1); //삭제 방 번호가 당겨짐
-
-//list.removeAll(list);
-list.clear(); //list의 모든 방을 제거		
-System.out.println(list);
+void set(int index, E value);
 ```
 
+### Ex02_ArrayList 클래스 정의
+```java
+package ex02_ArrayList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Ex02_ArrayList {
+	public static void main(String[] args) {
+		//리스트 선언
+		List<String> list = new ArrayList<>();
+		
+		//데이터삽입
+		list.add("딸기");
+		list.add("바나나");
+		list.add("망고");
+		
+		//리스트 출력
+		System.out.println("리스트 내용1 : " + list);
+
+		// 데이터 변환
+		list.set(1,"복숭아");
+		list.set(0, "딸기");
+
+		System.out.println("리스트 내용2 : " + list);
+		
+	}
+}
+```
+
+## ArrayList데이터 삭제
+- List의 데이터 삭제는 단지 데이터만 삭제되는 것이 아니라 해당 위치의 공간까지 삭제된다.
+- 배열의 경우 공간이 생성되면 삭제할 수 없지만, List는 원하는 위치의 공간을 삭제할 수 있으며 빈 공백을 메우기 위해 뒤의 데이터들이 앞으로 이동한다.
+
+![image](img/remove메서드.png)
+
+- 데이터를 삭제할 때는 remove()메서드를 이용한다.
+- 해당 메서드는 remove(int index)와 remove(Object o)두가지가 있는데 remove(int index)는 index를 이용해 특정 위치의 데이터를 삭제하고 remvoe(Object o)는 저장한 데이터를 삭제한다.
+
+### Ex03_ArrayList클래스 정의
+```java
+package ex02_ArrayList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Ex03_ArrayList {
+	public static void main(String[] args) {
+		List<Integer> list = new ArrayList<>();
+		
+		//2의 배수를 넣는다.
+		for(int i = 1; i< 10; i++) {
+			int temp = 2 * i;
+			list.add(temp);
+		}
+		
+		//출력
+		System.out.println("리스트의 값 : " + list);
+		
+		//3번째 인덱스 내용 삭제
+		list.remove(3);
+		//숫자 타입의 데이터는 객체화 후 삭제
+		list.remove(Integer.valueOf(10));
+		
+		//출력
+		System.out.println("리스트의 값 : " + list);
+			
+	}
+}
+```
+
+## ArrayList 데이터 얻기
+- List에 담긴 값을 가져올 때는 E get(int index)메서드를 이용해 원하는 index위치에 저장되어 있는 값을 출력할 수 있다.
+
+### Ex04_ArrayList클래스 생성하기
+```java
+package ex02_ArrayList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Ex04_ArrayList {
+	public static void main(String[] args) {
+		List<Integer> list = new ArrayList<>();
+		
+		//List에 랜덤함수를 이용해 값을 넣는다.
+		for(int i = 1; i < 10; i++) {
+			int temp = (int)(Math.random() * 30)+1;
+			list.add(temp);
+		}
+		
+		System.out.println("전체 데이터 : " + list);
+		
+		//List에 담긴 데이터 중 짝수만 출력
+		System.out.print("짝수 : ");
+		for(int i = 0; i < list.size(); i++) {
+			//List에서 각 index에 위치하는 값 가져오기
+			int value = list.get(i);
+			if(value % 2 == 0) {
+				System.out.print(value+" ");
+			}
+		}
+	}
+}
+```
+### 향상된 for문을 통해 출력할 수도 있다.
+```java
+for(int value : list){
+	System.out.println("값 : " + value);
+}
+```
+## LinkedList
+- 데이터와 다음 데이터의 주소를 가지는 노드(Node)객체가 연결되어 데이터를 저장하는 자료구조이다.
+- ArrayList와 마찬가지로 List컬렉션의 구현 클래스이므로 사용할 수 있는 메서드가 대부분 동일하다.
+- ArrayList는 배열을 이용해 데이터를 저장하는 반면, LinkedList는 Node라는 객체를 생성하여 인접 데이터를 링크해서 체인처럼 관리한다.
+
+![image](img/LinkedList.png)
+
+- LinkedList는 node라는 구조를 가진 클래스들이 체인 형식으로 이어져있다.
+- 노드는 데이터와 주소를 가지는데, 주소는 다음에 오는 노드의 값을 가지고 있이서 연결 구조를 이룬다.
+- 따라서 index가 실제 존재하지는 않지만, 서로 연결되어있기 때문에 순서를 알 수 있다.
+
+### LinkedList의 선언
+```java
+List<Integer> list = new LinkedList<Integer>();
+List<Integer> list = new LinkedList<>();
+```
 ### Ex3_Array클래스 정의
 ```java
 public class Ex3_Array {
