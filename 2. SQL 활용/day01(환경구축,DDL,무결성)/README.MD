@@ -1,5 +1,3 @@
-# DataBase
-
 ## DB(DataBase) 
 - 구조화된 정보, 데이터의 조직화된 모음, 일반적으로 컴퓨터에 전자적으로 저장이 되고 데이터베이스관리시스템에 의해 제어된다.
 
@@ -47,8 +45,9 @@
 - DB2 : IBM이 개발, 한동한 IBM 컴퓨터에서만 구동이 가능했다.
 등등
 
-회사에 가서 다른 DBMS를 사용할 수 도 있지만 프로그래밍언어 처럼 한가지를 배워놓으면<br>
-다른 DBMS도 금방 습득할 수 있다.
+```
+회사에 가서 다른 DBMS를 사용할 수 도 있지만 프로그래밍언어 처럼 한가지를 배워놓으면 다른 DBMS도 금방 습득할 수 있다.
+```
 
 ## 오라클 DBMS 설치
 https://www.oracle.com/database/technologies/xe-prior-release-downloads.html
@@ -110,7 +109,8 @@ https://www.oracle.com/database/technologies/xe-prior-release-downloads.html
 ![image](https://user-images.githubusercontent.com/54658614/230276265-885421ae-af8b-4092-ab5d-d793754b2657.png)
 
 ## DBeaver IDE 설치하기
-- IDE : 통합 개발 환경(IDE)이란 프로그래머가 소프트웨어 코드를 효율적으로 개발하도록 돕는 소프트웨어 애플리케이션입니다.<br> 이는 소프트웨어 편집, 빌드, 테스트, 패키징과 같은 기능을 사용하기 쉬운 하나의 애플리케이션에 통합하여 개발자 생산성을 높입니다.
+- IDE : 통합 개발 환경(IDE)이란 프로그래머가 소프트웨어 코드를 효율적으로 개발하도록 돕는 소프트웨어 애플리케이션입니다.
+- 이는 소프트웨어 편집, 빌드, 테스트, 패키징과 같은 기능을 사용하기 쉬운 하나의 애플리케이션에 통합하여 개발자 생산성을 높입니다.
 
 ※ DBeaver는 JDK 가 설치되어있지 않으면 작동을 하지 않는다.
 
@@ -118,25 +118,24 @@ DBeaver 홈페이지 : https://dbeaver.io/
 
 ![image](https://user-images.githubusercontent.com/54658614/230538837-c45cd02a-6a1c-40f6-aea6-8a4963a98544.png)
 
-최신버전은 어떤 기능이 바뀌었는지 파악하기 힘들기 때문에 수업을 할 때는 구버전인 5.2.5 버전을 사용할 것이다.<br>
 
-스크롤을 아래로 내려서 이전버전을 받을 수 있는 아카이브로 들어가기
+- 스크롤을 아래로 내려서 이전버전을 받을 수 있는 아카이브로 들어가기
 
 ![image](https://user-images.githubusercontent.com/54658614/230538904-603b27c8-c8ba-45f7-b5c6-67375a0f96de.png)
 
-다운로드 받고싶은 버전을 찾아서 들어간다.
+- 다운로드 받고싶은 버전을 찾아서 들어간다.
 
 ![image](https://user-images.githubusercontent.com/54658614/230538950-2bc68b34-8342-4dc5-b197-14cef9b19079.png)
 
-본인의 운영체제에 맞게 다운로드를 해준다.
+- 본인의 운영체제에 맞게 다운로드를 해준다.
 
 ![image](https://user-images.githubusercontent.com/54658614/230539001-37599182-a5e1-483a-8f0e-b366df1c94d0.png)
 
-util 폴더에 압축을 풀고 사용하면 된다.
+- util 폴더에 압축을 풀고 사용하면 된다.
 
 ![image](https://user-images.githubusercontent.com/54658614/230539081-19ddf391-5326-49f7-9cb9-79ef62a6b9c3.png)
 
-처음 DBeaver를 켜면 다음과 같은 창이 뜬다.
+- 처음 DBeaver를 켜면 다음과 같은 창이 뜬다.
 
 ![image](https://user-images.githubusercontent.com/54658614/230539138-9f00132d-1b55-4ece-a541-5a06cbd79309.png)
 
@@ -151,6 +150,9 @@ util 폴더에 압축을 풀고 사용하면 된다.
         - 클라이언트의 tnsnames.ora파일에 기록된다.
     - User name : hr
     - Password : hr
+#### 익스프레스 에디션(XE)
+- 무료로 사용할 수 있는 버전으로 상용으로 사용하려면 기능상 제한이 있음
+
 ![image](https://user-images.githubusercontent.com/54658614/230539317-eb33e20e-c975-4591-b1c8-9e2c092d87e3.png)
 
 - 아마 처음 Oracle을 설치했다면 hr 계정이 잠겨있을 것이다.
@@ -215,8 +217,8 @@ ok를 누르면 오라클과 DBeaver의 연결이 완료된다.
 
 ![image](https://user-images.githubusercontent.com/54658614/230540303-417e24ee-0ef6-4d32-bdca-57061b2bf603.png)
 
-Select Data Source 창이 뜸 오라클 선택 F2 눌러서 이름 day00로 수업 날짜에 맞춰 변경<br>
-글자가 잘안보인다면 windows > Preferences > font 검색 > Colors and Fonts > Basic > Text Font 더블클릭 > 글꼴과 크기 변경 가능
+- Select Data Source 창이 뜸 오라클 선택 F2 눌러서 이름 day00로 수업 날짜에 맞춰 변경
+- 글자가 잘안보인다면 windows > Preferences > font 검색 > Colors and Fonts > Basic > Text Font 더블클릭 > 글꼴과 크기 변경 가능
 
 ## 스키마
 - 스키마란?
@@ -257,6 +259,44 @@ Select Data Source 창이 뜸 오라클 선택 F2 눌러서 이름 day00로 수�
 	- 이것이 외부 스키마는 여러개 존재할 수 있다는 의미이다.
 	- 응용 프로그래머는 C,JAVA등의 언어를 이용해서 DB에 접근한다.
 
+## SQL문
+- 구조화된 질의언어(Structured Query Language)의 약자로 DBMS 상에서 데이터를 읽고 쓰고 삭제하는 등 데이터를 관리하기 위한 일종의 프로그램 언어이다.
+- C나 Java같은 일반 프로그래밍 언어는 절차적 언어라고 할 수 있는데 반해 SQL은 집합적 언어이다.
+- 집합적 언어는 데이터를 특정 집합 단위로 분류해 이 단위별로 한 번에 처리하는 언어이다.
+- RDBMS의 표준 언어로 SQL을 채택했고, 표준 SQL문만 학습하면 오라클은 물론 MSSQL, DB2등 여러 DBMS에서 동일하게 사용할 수 있다는 뜻이다. 물론 DBMS별로 독특한 기능이 있지만, 다른 프로그래밍 언어에 비해 그 차이는 미미하다.
+- SQL문장은 대소문자를 구별하지 않는다.
+- 한줄 또는 여러줄에 걸쳐 입력하는 것이 가능
+- SQL문장의 끝은 세미콜론(;)으로 맺어야 한다. 
+
+## SQL문장의 종류
+1. DDL(Data Definition Language) : 데이터 정의어
+    - 데이터베이스 객체를 관리하는 언어이다.
+2. DML(Data Manipulation Language) : 데이터 조작어
+    - 데이터 삽입, 조회,삭제, 갱신 등 실제로 데이터를 조작하는 언어이다.
+    - 개발자 입장에서 가장 많이 사용하는 SQL이다.
+3. DCL(Data Controll Language) : 데이터 제어어
+    - grant, revoke등의 키워드를 가지는 문장
+4. TCL(Transaction Controll Language) : 트랜잭션 제어어
+    - commit, rollback, savepoint
+    
+## DDL(Data Definition Language) : 데이터 정의어
+- 데이터베이스 객체를 생성, 삭제, 변경하는 언어이다.
+  1. CREATE : 테이블이나 인덱스, 뷰 등 데이터베이스 객체를 생성한다.
+  2. DROP : 생성된 데이터베이스 객체를 영구히 삭제
+  3. ALTER : 이미 생성된 데이터 베이스 객체를 수정
+  4. TRUNCATE : 테이블의 데이터를 통째로 삭제
+
+### 개발 현장에서의 DDL의 사용
+```
+실제 일을 하면 DDL을 사용하는 일은 그리 많지 않다.
+보통 데이터베이스 객체의 관리는 DBA(데이터베이스 관리자)나 별도 관리 인원이 담당한다.
+각 개발자가 공통으로 사용하고 있는 테이블을 마음대로 삭제하고 생성하게 되면 프로젝트를 원활이 진행할 수 없을것이다.
+
+프로젝트의 규모에 따라 다르긴 하지만, 일반적인 SI나 SM 프로젝트들은 개발 DB와 운영DB를 별도로 분리한 후, 개발자들에게는 개발DB만 접속할 수 있는 권한을 주고, 데이터베이스 객체의 관리는 별도 인원이 한다.
+
+프로젝트마다 다르겠지만 일반적인 개발자들은 DDL명령어를 실행할 수 없게 할 때가 많다^^
+```
+
 ## 테이블
 - 행과 열로 이루어진 데이터의 집합을 테이블이라고 한다. 엑셀을 켜고 보는 모양과 매우 흡사하다.
 - 일반적인 데이터베이스에서는 행과 열만 있으면 테이블이라고 하지만, 관계형데이터베이스에서는 특별한 제약을 추가해서 릴레이션(relation)이라고 부른다.
@@ -277,103 +317,11 @@ Select Data Source 창이 뜸 오라클 선택 F2 눌러서 이름 day00로 수�
 - 하나의 속성이 취할 수 있는 동일한 유형의 데이터 집합을 의미한다.
 - 예를들어 성별을 저장하기로 했으면 남,여에 대한 데이터만 들어올 수 있다.
 
-## SQL문
-- 원하는 결과를 얻어오기 위해 DB에 요청하는 요청문장(Query문)
-- SQL문장은 대소문자를 구별하지 않는다.
-- 한줄 또는 여러줄에 걸쳐 입력하는 것이 가능
-- SQL문장의 끝은 세미콜론(;)으로 맺어야 한다. 
-
-## SQL문장의 종류
-1. DDL(Data Definition Language) : 데이터 정의어
-    - create, alter, drop등의 키워드를 가지는 문장
-2. DML(Data Manipulation Language) : 데이터 조작어 사실상 가장 많이 사용하는 쿼리문이 될것! 
-    - select, insert, update, delete를 가지는 문장
-3. DCL(Data Controll Language) : 데이터 제어어
-    - grant, revoke등의 키워드를 가지는 문장
-4. TCL(Transaction Controll Language) : 트랜잭션 제어어
-    - commit, rollback, savepoint
-    
-## DDL(Data Definition Language) : 데이터 정의어
-- 테이블 조작, 제어 관련 쿼리문
-  1. CREATE : 테이블 생성
-  2. DROP : 테이블 삭제 복구도 안됨. 회사에서 쓰지 말것!
-  3. ALTER : 테이블 수정
-		- 테이블명 수정 :ALTER TABLE [원래이름] RENAME TO [새로운 테이블 명]
-		- 컬럼 추가  :ALTER TABLE [테이블명] ADD([새로운 컬럼명] [컬럼 타입])
-		- 컬럼명 변경 :ALTER TABLE [테이블명] RENAME COLUMN [생성된 컬럼명] TO [새로운 컬럼명]
-		- 컬럼 삭제 :ALTER TABLE [테이블명] DROP COLUMN [생성된 컬럼명]
-  4. TRUNCATE : 테이블 내용 전체 삭제 아~어쩔수 없이 버리다 라는 느낌 이것도 복구 안됨
-
-## 제약조건
-- 제약조건이란, 테이블에 문제가 되는/ 결함이 있는 데이터가 입력되지 않도록 미리 지정해둔 조건입니다.
-- 제약조건은 테이블을 생성할 때 함께 설정할 수 있고, 추후에 생성하거나 변경할 수 도 있습니다.
-
-※ 이미 데이터가 포함되어 있는 상황에서 제약조건을 함부로 바꾸기 어려우므로 사전에 테이블 설계를 잘 해두는 편이 좋다.
-
-<table>
-<tr>
-	 <th>제약조건</th>	
-	 <th>NULL 허용여부</th>	
-	 <th>데이터 중복 허용여부</th>	
-	 <th>특징</th>
-</tr>
-<tr>
-	<td>PRIMARY KEY(고유키)</td>
-	<td>NULL 불가</td>
-	<td>중복 불가</td>
-	<td>지정한 열은 유일한 값을 반드시 가져야 함 테이블 당 1개만 지정가능</td>
-</tr>
-	<tr>
-	<td>FOREIGN KEY(외래키)</td>
-	<td colspan="4">다른 테이블 열을 참조하여 해당 테이블에 존재하는 값만 입력 가능<br>다른 테이블의 고유키(PRIMARY KEY)를 참조</td>
-</tr>
-<tr>
-	<td>UNIQUE(유일키)</td>
-	<td>NULL 가능</td>
-	<td>중복 불가 (* NULL끼리는 중복으로 간주하지 않음)</td>
-	<td>지정한 열은 유일한 값을 반드시 가져야 함 테이블 당 1개만 지정가능</td>
-</tr>
-<tr>
-	<td>NOT NULL</td>
-	<td>NULL 불가</td>
-	<td>중복 가능</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CHECK</td>
-	<td colspan="4">설정한 조건식을 만족하는 데이터만 입력가능<br>조건식을 만족하지 않는 데이터는 입력이 거부됨</td>
-</tr>
-<tr>
-	<td>DEFAULT</td>
- 	<td>아무것도 입력하지 않으면 설정한 기본값이 입력됨</td>
-	<td>중복가능</td>
-	<td>값이 입력되면 기본값은 무시됨</td>
-</tr>
-	
-</table>
-
-## NULL 
-- 정의되지 않은 값
-- 빈 값 대신 미정 값을 부여할 때 사용 가능(PK는 불가능, FK는 가능)
-
-### NOT NULL 제약조건
-- 이미 생성된 테이블에 NOT NULL 제약조건을 넣고 싶을 때
-```SQL
-ALTER TABLE 테이블명 MODIFY 컬럼명 NOT NULL;
-```
-
-## TBL_MEMBER 테이블 생성해보기
-```
-CREATE TABLE TBL_MEMBER(
-	NAME VARCHAR2(500),
-	AGE NUMBER
-);
-```
-
 ## 자료형(데이터타입)
-- 데이터타입이란 컬럼이 저장되는 데이터의 유형을 말합니다.
+- 데이터 타입이란 컬럼이 저장되는 데이터의 유형을 말하며, 오라클에서는 기본으로 제공되는 기본 데이터 타입이 있다.
 
 ### 문자 데이터 타입
+- 문자나 문자열 데이터는 문자형 데이터에 속하며, 오라클에서 제공하는 문자형은 다음과 같다.
 <table>
 <tr>
 	 <th>데이터타입</th>	
@@ -395,20 +343,12 @@ CREATE TABLE TBL_MEMBER(
 	<td> NVARCHAR(n)</td>
 	<td>가변길이 유니코드 문자(다국어 입력가능) / 최대 2000byte / 디폴트 값은 1byte</td>
 </tr>
-<tr>
-	<td>LONG</td>
-	<td>최대 2GB 크기의 가변길이 문자형 </td>
-</tr>
-<tr>
-	<td>CLOB</td>
-	<td>대용량 텍스트 데이터 타입(최대 4Gbyte)</td>
-</tr>
-<tr>
-	<td> NCLOB</td>
-	<td>대용량 텍스트 유니코드 데이터 타입(최대 4Gbyte)</td>
-</tr>
-	
 </table>
+
+- 가변길이라 함은 실제 입력된 데이터 길이에 따라 크기가 변해 정해지는 것을 말한다.
+- 예를들어 VARCHAR2(10)으로 선언하면, 10byte까지 데이터를 입력할 수 있지만, 'bac'라는 세글자만 들어왔을 때 실제 길이는 3byte가 된다.
+- 공간효율적인 측면에서 VARCHAR2를 사용하는 것이 좋다.
+- 영어는 글자당 1byte, 한글은 2byte이다.
 
 ### 숫자 데이터 타입
 - 대부분 NUMBER형을 사용한다.
@@ -435,6 +375,12 @@ CREATE TABLE TBL_MEMBER(
 </tr>	
 </table>
 
+- 숫자타입은 4가지가 있긴 하지만 NUMBER형만 사용할 때가 많다.
+- NUMBER(5)는 12345를 나타낼수 있다.
+- NUMBER(5,2)는 123.45를 나타낼 수 있다.
+- 다른 DBMS는 INTEGER와 같은 정수형, DECIMAL과 같은 실수형을 제공한다.
+- 오라클도 이런 타입으로 작성하는 것이 가능하지만 내부에서는 모두 NUMBER로 변환되어 생성된다.
+
 ### 날짜 데이터 타입
 <table>
 <tr>
@@ -449,13 +395,96 @@ CREATE TABLE TBL_MEMBER(
 	<td>TIMESTAMP</td>
 	<td>연도, 월, 일, 시, 분, 초 + 밀리초까지 입력가능</td>
 </tr>
-
 </table>
+
+- 가장 일반적이고 많이 사용하는 날짜 데이터 타입은 DATE이며 연,월,일과 시,분,초까지 입력 가능하다.
+- TIMESTAMP는 초 단위를 더 세부적으로 입력할 수 있다.
+
+### LOB데이터 타입
+- LOB은 'Large OBject'의 약자로 대용량 데이터를 저장할 수 있는 데이터 타입이다.
+
+|데이터 타입|설명|
+|------|-----|
+|CLOB|문자형 대용량 객체, 고정길이와 가변길이 문자 집합 지원, 최대 크기는 (4GB)|
+|NCLOB|유니코드(다국어)를 포함한 문자형 대용량 객체, 최대 크기는 (4GB)|
+|BLOB|이진형 대용량 객체, 최대 크기는(4GB)|
+|BFILE|대용량 이진 파일에 대한 로케이터(위치,이름)저장 최대 크기는(4GB)|
+
+## 제약조건
+- 제약조건이란, 테이블에 문제가 되는 결함이 있는 데이터가 입력되지 않도록 미리 지정해둔 조건입니다.
+- 제약조건은 테이블을 생성할 때 함께 설정할 수 있고, 추후에 생성하거나 변경할 수 도 있습니다.
+```
+※ 이미 데이터가 포함되어 있는 상황에서 제약조건을 함부로 바꾸기 어려우므로 사전에 테이블 설계를 잘 해두는 편이 좋다.
+```
+
+### NOT NULL
+```sql
+컬럼명 데이터타입 NOT NULL;
+```
+- 컬럼을 정의할 때 NOT NULL 제약조건을 명시하면 해당 컬럼에는 반드시 데이터를 입력해야 한다.
+- 즉 반드시 값이 들어 잉ㅆ어야 하는 컬럼에는 NOT NULL제약조건을 만들어 사용한다.
+
+### UNIQE
+```sql
+컬럼명 데이터타입 UNIQUE;
+또는
+CONSTRAINTS 제약조건명 UNIQUE(컬럼명,...);
+```
+- 해당 컬럼에 들어가는 값이 유일해야 한다는 의미이다.
+- 즉, 중복되는 값을 허용하지 않는다.
+- NOT NULL을 같이 명시하면 해당 컬럼에 들어오는 값은 유일함은 물론 반드시 입력해야 한다.
+
+### PRIMARY KEY(기본키)
+- 보통 테이블에 키를 생성했다라고 할 때, 이는 기본키를 의미한다.
+- 기본키는 UNIQUE와 NOT NULL 속성을 동시에 가진 제약조건으로, 테이블 당 1개의 기본키만 생성할 수 있다.
+```sql
+컬럼명 데이터타입 PRIMARY KEY;
+또는
+CONSTRAINTS 제약조건명 PRIMARY KEY(컬럼명,...);
+```
+### FOREIGN KEY(외래키)
+```sql
+CONSTRAINT 외래키명 FOREIGN KEY(컬럼명, ...)
+REFERENCES 참조 테이블(참조 테이블 컬럼명, ...);
+```
+- 부서의 정보는 부서테이블에 저장이 되어있고, 사원 테이블에는 부서번호만 저장을 했을때 신입사원이 입사했을 때 잘못된 부서번호를 입력하는 오류를 범할 수 있다.
+- 외래키를 설정해놓으면 부서정보에 없는 부서번호를 입력하려고 할 때 오라클은 오류를 발생시켜 잘못된 데이터가 입력되는 것을 방지한다.
+- 삭제에서도 마찬가지이다. 사원이 있는 부서가 있을 때는 부서의 정보를 삭제할 수 없다.
+
+#### 외래키 제약사항
+```
+- 반드시 참조하는 테이블이 먼저 생성되어야 하며, 참조키가 참조 테이블의 기본키로 만들어져 있어야 한다.
+- 외래키에 사용할 수 있는 컬럼 개수는 최대 32개이다.
+- 여러 컬럼을 외래키로 만들려면, 참조하는 컬럼과 외래키 컬럼의 순서와 개수는 같아야 한다.
+```
+
+#### 현장에서의 외래키 생성 시점
+```
+개발 현장에서 초창기에는 외래키를 생성하지 않는다. 개발 중에는 수시로 데이터를 입력하고 삭제하는 경우가 빈번한데, 외래키를 생성하면 여러 모로 불편한 것이 사실이다.
+그래서 개발 후 테스트 기간을 거쳐 어느 정도 시스템이 안정화된 후 외래키를 생성할 때가 많다.
+```
+
+### CHECK
+- 컬럼에 입력되는 데이터를 체크해 특정 조건에 맞는 데이터만 입력받고 그렇지 않으면 오류를 낸다.
+```sql
+CONSTRAINT 체크명 CHECK(체크조건);
+```
+
+### DEFAULT
+- 아무것도 입력하지 않으면 설정한 기본값이 입력됨
+- 값이 입력되면 기본값은 무시된다.
+
+## TBL_MEMBER 테이블 생성해보기
+```
+CREATE TABLE TBL_MEMBER(
+	NAME VARCHAR2(500),
+	AGE NUMBER
+);
+```
 
 ## CAR 테이블 생성
 - 테이블을 생성하며 제약조건을 같이 줘보자.
 - CONSTRAINT [제약조건이름] [제약조건 종류] (컬럼명)
-- 
 ```
 CREATE TABLE TBL_CAR(
 	ID NUMBER,
@@ -473,19 +502,57 @@ DROP TABLE TBL_CAR;
 DROP TABLE TBL_MEMBER;
 ```
 
+## 테이블 변경
+- CREATE문으로 테이블을 생성한 후 불가피하게 수정해야 할 상황이 발생할 때가 많다.
+- 최초설계를 잘못한 원인도 있고 요구사항이 변경되기 때문이기도 하다.
+- 여러 원인으로 기존에 생성했던 컬럼의 데이터 타입을 수정하거나 삭제, 새로운 컬럼을 넣어야 하는 경우가 발생하는데, 이때마다 테이블을 삭제하고 다시 생성하는 것은 여러 문제를 만들 수 있다.
+- 이럴때 ALTER TABLE문을 사용해 테이블을 수정할 수 있다.
+
+### ex2_10테이블 생성
+```sql
+CREATE TABLE ex2_10(
+	Col1 VARCHAR2(10) NOT NULL,
+	Col2 VARCHAR2(10) NULL,
+	Create_date DATE DEFAULT SYSDATE
+);
+```
+### 컬럼명 변경
+```sql
+ALTER TABLE [테이블명] RENAME COLUMN [생성된 컬럼명] TO [새로운 컬럼명];
+ALTER TABLE ex2_10 RENAME COLUMN Col1 TO Col11;
+```
+
+### 컬럼타입 변경
+```sql
+ALTER TABLE 테이블명 MODIFY 컬럼명 데이터타입;
+ALTER TABLE ex2_10 MODIFY Col2 VARCHAR2(30);
+```
+
+### 컬럼추가
+```sql
+ALTER TABLE 테이블명 ADD 컬럼명 데이터타입;
+ALTER TABLE ex2_10 ADD Col3 NUMBER;
+```
+
+### 컬럼삭제
+```sql
+ALTER TABLE 테이블명 DROP COLUMN 컬럼명;
+ALTER TABLE ex2_10 DROP COLUMN Col3;
+```
+## 제약 조건 추가
+- 테이블이 이미 생성된 뒤 제약조건 추가를 해보자
+```SQL
+ALTER TABLE 테이블명 ADD CONSTRAINT [제약조건명] [제약조건 종류](컬럼명);
+ALTER TABLE ex2_10 ADD CONSTRAINT pk_ex2_10 PRIMARY KEY(Col11);
+```
+
 ## 제약 조건 삭제
 - ALTER TABLE 테이블명 DROP CONSTRAINT 제약조건명;
 ```SQL
 ALTER TABLE TBL_CAR DROP CONSTRAINT CAR_PK;
 ```
 
-## 제약 조건 추가
-- 테이블이 이미 생성된 뒤 제약조건 추가를 해보자
-- ALTER TABLE 테이블명 ADD CONSTRAINT [제약조건명] [제약조건 종류](컬럼명);
-```SQL
-ALTER TABLE TBL_CAR ADD CONSTRAINT CAR_PK PRIMARY KEY(ID);
-SELECT * FROM TBL_CAR;	
-```
+
 
 ## TBL_ANIMAL 테이블 생성
 ```SQL

@@ -58,15 +58,15 @@ Connected.
 
 
 ## SCOTT을 통해 BABY라는 아이디를 만드려 했지만 권한이 없어 실패
-```
+```sql
 SQL> create user baby identified by baby;
 create user baby identified by baby
                                *
 ERROR at line 1:
 ORA-01031: insufficient privileges
-
-BABY라는 계정을 만들 때 BABY가 사용할 저장소를 만들어야 되는데 이 저장소를 테이블 스페이스라고 한다.
-
+```
+- BABY라는 계정을 만들 때 BABY가 사용할 저장소를 만들어야 되는데 이 저장소를 테이블 스페이스라고 한다.
+``` sql
 SQL> conn sys as sysdba
 Enter password:
 Connected.
@@ -98,6 +98,8 @@ TEMPORARY
 USERS                                                        ONLINE
 PERMANENT
 ------------------------------------------------------------------------------------
+```
+```sql
 SQL> select file_name, tablespace_name,autoextensible from dba_data_files;
 							ㄴ용량이 다 차면 자동으로 증가하는지
 FILE_NAME
@@ -120,11 +122,33 @@ TABLESPACE_NAME                                              AUTOEX
 ------------------------------------------------------------ ------
 C:\ORACLEXE\APP\ORACLE\ORADATA\XE\SYSTEM.DBF
 SYSTEM
+```
 
+## 테이블 스페이스
+- 오라클은 데이터를 관리하는 시스템이다.
+- 따라서 데이터를 어딘가에 저장해 놓고 사용해야 하는데, 데이터 저장 단위 중 가장 상위의 개념이 테이블스페이스이다.
+- 테이블들을 담을 커다란 공간이 테이블스페이스이다.
+
+### 테이블 스페이스의 생성
+- BABY라는 이름으로 200MB의 크기로 생성할 것이다.
+- 논리적 개념인 테이블스페이스도 물리적으로는 파일로 존재하므로 실제 저장될 파일의 이름과 위치가 필요하다.
+- 오라클이 설치된 'C:\oraclexe\app\oracle\oradata\XE' 폴더에 BABY.dbf라는 이름으로 생성을 할 것이다.
+- 데이터가 늘어나 테이블스페이스가 꽉 찰 것을 대비해 '5MB'씩 자동으로 증가 옵션도 추가할 것이다.
+
+```sql
+CREATE TABLESPACE 테이블스페이스명 DATAFILE '경로와 이름' SIZE 크기 AUTOEXTEND 크기 (MAXSIZE 크기);
+
+- 최대크기는 생략 가능하다.
+```
+### BABY라는 이름의 테이블스페이스 생성하기
+```sql
 SQL> CREATE TABLESPACE BABY DATAFILE'C:\oraclexe\app\oracle\oradata\XE\BABY.DBF'SIZE 200M AUTOEXTEND ON NEXT 5M MAXSIZE 300M;
 
 Tablespace created.
-
+```
+### SCOTT에게 계정 생성권한주기
+- scott 계정에게 계정 생성권한을 주고 BABY계정을 만든다.
+```sql
 SQL> grant create user to scott; -> 스콧에게 계정을 만들 권한을 줌
 
 Grant succeeded.
@@ -134,7 +158,9 @@ Connected.
 SQL> create user baby identified by baby;
 
 User created.
-
+```
+### 생성한 BABY권한으로 로그인을 시도한다.
+```sql
 SQL> conn baby/baby
 ERROR: create session이라는 권한이 없어서 로그인이 안된다.
 ORA-01045: user BABY lacks CREATE SESSION privilege; logon denied
@@ -149,24 +175,31 @@ Grant succeeded.
 
 SQL> conn baby/baby
 Connected.
+```
 
-방금 만든 테이블스페이스와 baby 계정을 연결해야 한다. 안그러면 default 값인 user로 간다.
+### BABY계정과 테이블 스페이스 연결하기
+- 방금 만든 테이블스페이스와 baby 계정을 연결해야 한다. 안그러면 default 값인 user로 간다.
+```sql
 SQL> conn baby/baby
 Connected.
-SQL> alter user baby default tablespace BABY; -> 권한이 없으니 system으로 다시 로그인 하자.
+SQL> alter user baby default tablespace BABY; 
+권한이 없으니 system으로 다시 로그인 하자.
 
- SQL> conn system/1111
+SQL> conn system/1111
 Connected.
-SQL> alter user baby default tablespace BABY; 디폴트 스페이스를 베이비로 바꿀거임
+
+디폴트 스페이스를 베이비로 바꿀거임
+SQL> alter user baby default tablespace BABY; 
+User altered.
+
+임시저장소는 temp로 해놓겠다.
+SQL> alter user baby temporary tablespace TEMP; 
 
 User altered.
 
-SQL> alter user baby temporary tablespace TEMP; 임시저장소는 temp로 해놓겠다.
-
-User altered.
-
-SQL> alter user baby default tablespace BABY QUOTA unlimited on baby;
 저 baby라는 계정이 baby테이블스페이스의 어느정도 양을 쓸꺼냐 무한으로 쓸거임
+SQL> alter user baby default tablespace BABY QUOTA unlimited on baby;
+
 User altered.
 
 SQL> conn baby/baby
