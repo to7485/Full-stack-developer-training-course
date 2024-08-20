@@ -1027,3 +1027,19 @@ public class Test {
 	}
 }
 ```
+## 보조스트림으로 입력받기
+- BufferedReader를 통해 키보드에서 입력받기
+- 장점 : Scanner보다 속도가 빠르다
+```java
+BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+문자열 입력받기
+String str = reader.readLine();
+
+정수 입력받기
+int n = Integer.parseInt(reader.readLine());
+
+특정 기준을 가지고 정수 여러개 입력받기
+String[] arr = reader.readLine().split("");
+System.out.println(Arrays.toString(arr));
+```
