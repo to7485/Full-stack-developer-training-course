@@ -222,17 +222,6 @@ SELECT LOWER('hello ORACLE!') AS LOWER,
     UPPER('hello ORACLE!') AS UPPER,
     INITCAP('hello ORACLE!') AS INITCAP
 FROM dual;
-
--- 첫 번째 지정한 문자를 두번째 지정한 문자로 바꿔 반환한다.
-문) 부서번호가 50번인 사원들의 이름을 출력하되 이름중 'el'을 모두 '**'로 대체하여 출력하시오
-SELECT REPLACE(FIRST_NAME,'el','**') FROM EMPLOYEES WHERE DEPARTMENT_ID = 50;
-
--- 이름이 6글자 이상인 사원의 사번과 이름, 급여를 출력
-SELECT employee_id, first_name, salary
-FROM EMPLOYEES e 
-WHERE length(first_name)>=6;
-
-
 ```
 
 <hr>
@@ -276,20 +265,6 @@ SELECT MOD(1,3),MOD(2,3),MOD(3,3),MOD(4,3),MOD(0,3) FROM DUAL;
 
 -- 주어진 숫자의 지정된 수 만큼 제곱값을 반환한다.
 SELECT POWER(2,1),POWER(2,2),POWER(2,3),POWER(2,0) FROM DUAL;
-
--- 사원번호가 홀수이면 1, 짝수이면 0을 출력하시오.
-select employee_id, mod(employee_id, 2)
-from employees;
-
--- 사원번호가 짝수인 사람들의 사원 번호와 이름을 출력하시오.
-select first_name, employee_id
-from emp
-where mod(employee_id,2) = 0;
-
--- 사원테이블에서 이름, 급여, 급여 1000당 0의 개수를 채워 조회하세요
--- ex) 급여가 8,000이다. 00000000로 표현
-SELECT first_name, salary, RPAD('■',ROUND(SALARY/1000),'■')
-FROM EMPLOYEES;
 ```
 
 ## 날짜함수
@@ -306,36 +281,15 @@ FROM EMPLOYEES;
 
 ```SQL
 -- 특정 날짜에 개월수를 더한다.
-
+-- 현재 날짜에서 2개월 뒤의 날짜 구하기
 select sysdate, add_months(sysdate, 2)from dual;
-
-문제) 사원테이블에서 모든 사원의 입사일로부터 6개월 뒤의 날짜를 이름, 입사일, 6개월뒤 날짜 순으로 출력
-select first_name, hire_date,add_months(hire_date,6) new_date from employees;
-
-문제) 사번이 120번인 사원이 입사후 3년 6개월째 되는날 진급예정이다. 진급 예정 날짜를 구하시오.
-select fist_name, add_months(hire_date, 42) promotion from employees where employee_id = 120;
 
 select trunc( months_between(sysdate, '01/01/2015'), 2)from dual;
 
 2) MONTHS_BETWEEN : 두 날짜 사이의 개월수를 구한다
 
-문제)모든 사원들이 입사일로부터 오늘가지 몇개월이 경과했는지 출력
-
+-- 모든 사원들이 입사일로부터 오늘가지 몇개월이 경과했는지 출력
 SELECT sysdate, hire_date, MONTHS_BETWEEN(sysdate,hire_date) FROM EMPLOYEES;
-
-문제) 사원들의 이름, 입사일, 입사후 오늘까지의 개월수를 조회하되 입사기간이 200개월 이상인 사람만 출력하고 입사개월수는
-소수점 이하 한자리까지만 버림하시오.
-
-SELECT FIRST_NAME, HIRE_DATD, TRUNC(MONTHS_BETWEEN(SYSDATDE,HIRE_DATE),1) MONTHS FROM EMPLOYEES
-WHERE TRUNC(MONTHS_BETWEEN(SYSDATDE,HIRE_DATE),1) >= 200;
-
-문제)입사기간이 160개월 이상인 사원들의 이름, 입사일, 입사후 개월수를 출력
-
-select first_name, hire_date,mon from employees where trunc(months_between(sysdate, hire_date)>=200),0) mon
-
-문제) 사번이 120번인 사원이 입사후 3년 6개월이 되는날 퇴사했다. 이 사원의 사번,이름,입사일,퇴사일을 출력
-
-SELECT EMPLOYEE_ID, FIRST_NAME, HIRE_DATE, add_months(HIRE_DATE, 42) fired FROM EMPLOYEES WHERE EMPLOYEE_ID = 120;
 
 SELECT SYSDATE,
 	NEXT_DAY(SYSDATE-7,'일요일') prev_sunday, --이전 일요일 
@@ -443,8 +397,6 @@ DENSE_RANK() OVER(ORDER BY 컬럼)
 SELECT RANK() OVER(ORDER BY SALARY DESC) AS "RANK", FIRST_NAME, SALARY FROM EMPLOYEES;
 SELECT RANK() OVER(ORDER BY SALARY DESC,EMPLOYEE_ID ASC ) AS "RANK", FIRST_NAME, SALARY FROM EMPLOYEES;
 ```
-
-
 <hr>
 
 ## 집계함수
@@ -471,38 +423,14 @@ select COUNT(*) FROM EMPLOYEES;
 예) 사원테이블에서 보너스를 받는 사원의 수를 출력
 select count(commIssion_pct) from employees;
 
--- COMMISSION_PCT 속성에 값이 있는 행의 개수만 센다.
-
-문제) 사원테이블에서 직종이 SA_REP인 사원들의 평균급여, 급여최고액, 급여최저액, 급여의 총 합계를 출력하시오.
-select AVG(salary) AVG,MAX(salary) MAX,MIN(salary) MIN,SUM(salary) SUM
-from employees
-WHERE JOB_ID = 'SA_REP';
-
 예) 부서의 갯수를 출력
 select count(DISTINCT department_id)from employees;
 
 DISTINCT : 중복된 값은 세지 않는다.
 
-문) 부서번호가 80번인 부서의 사원들의 급여의 평균을 출력
-
-SELECT ROUND(AVG(SALARY), 1) AVG FROM EMPLOYEES WHERE DEPARTMENT_ID = 80;
-
 예) 관리자의 수를 출력
 distinct : 중복된 값을 제외
 select count(distinct manager_id) from employees;
-
-
-문제) 사원 테이블에 등록되어있는 모든 사원의 수, 보너스를 받는 인원수, 전체사원 급여의 평균, 등록되어있는 부서의 갯수를 화면에 출력
-select count(employee_id),count(
-				select count(employee_id),count(commission_pct),avg(salary),count(distinct department_id) 
-				from employees; commission_pct),avg(salary),count(distinct department_id) 
-				from employees;
-
-문제) 사원테이블에서 80번 부서에 속하는 사원들의 연봉의 평균을 소수점 두자리까지 반올림하여 출력하시오
-select round(AVG(salary), 2) from employees where department_id = 80;
-
-문제) 사원테이블에서 50번에 속하는 사원들의 급여의 최대값과 최소값을 출력하세요
-select Max(salary),MIN(SALARY), FROM EMPLOYEES WHERE DEAPRTMENT_ID = 50;
 ```
 ## GROUP BY(그룹화)
 - 특정테이블에서 소그룹을 만들어 결과를 분산시켜 얻고자 할 때
@@ -520,23 +448,6 @@ GROUP BY로 소그룹을 지정하고 싶은 컬럼이 있는데 이걸 SELECT�
 SELECT DEPARTMENT_ID, JOB_ID, COUNT(*) FROM EMPLOYEES GROUP BY DEPARTMENT_ID, JOB_ID ORDER BY DEPARTMENT_ID;
 
 부서가 같아도 직종이 다른 경우가 있기 때문에 좀더 세부적인 결과물을 가져올수 있는게 GROUP BY다.
-
-문) 각 직종별 인원수를 출력
-
-SELECT JOB_ID, COUNT(*) FROM EMPLOYEES GROUP BY JOB_ID;
-
-문) 각 직종별 급여의 합을 출력
-
-SELECT JOB_ID, SUM(SALARY) FROM EMPLOYEES GROUP BY JOB_ID;
-괄호안에 어떤걸 넣어야 하는지 알면 난이도가 많이 내려간다.
-
-문) 부서별로 가장 높은 급여를 조회
-
-SELECT DEPARTMENT_ID, MAX(SALARY) FROM EMPLOYEES GROUP BY DEPARTMENT_ID;
-
-문) 부서별 급여의 합계를 내림차순으로 조회
-
-SELECT DEPARTMENT_ID, SUM(SALARY) FROM EMPLOYEES GROUP BY DEPARTMENT_ID ORDER BY SUM(SALARY) DESC;
 ```
 ## 그룹함수
 
@@ -610,33 +521,5 @@ from employees
 group by department_id
 having MAX(salary)>=8000; -> 그룹함수가 사용된 조건이라면 WHERE 이 아닌 HAVING을 써야한다.
 --WHERE MAX(SALARY) >= 8000;
-
-문제) 각 부서별 인원수가 20명 이상인 부서의 정보를 부서번호, 급여의 합, 급여의 평균, 인원수 순으로 출력
-단, 급여의 평균은 소수점 2자리 반올림
-select department_id, SUM(salary), ROUND(AVG(salary),2) avg,COUNT(*)
-from employees
-having COUNT(*)>=20;
-
-그룹함수만 having에 쓰고 일반 조건은 where에 써야 한다. 일반조건이 having절에 들어가려면 group by에 묶여야 한다.
-
-문제) 부서별, 직종별로 그룹화 하여 결과를 부서번호, 직종, 인원수 순으로 출력, 단, 직종이 'MAN'으로 끝나는 경우만 출력
-sleect department_id,job_id,count(*)
-from employees
-where job_id like '%MAN' -> HAVING으로 해도 값이 나오긴 하지만 일반컬럼이기 때문에 WHERE쓰는게 좋다.
-group by department_id,job_id;
-
-문제)각 부서별 평균 급여를 소수점 한자리까지 버림으로 출력 단, 평균 급여가 10000미만인 그룹만 조회해야 하며
- 부서번호가 50이하인 부서만 조회 
-select department_id, TRUNC(AVG(salary),1)
-from employees 
-where department_id<=50 
-group by department_id
-having AVG(salary)<10000;
-
-문제) 각 부서별 부서번호, 급여의 합, 평균, 인원수 순으로 출력 단, 급여의 합이 30000이상인 경우만 출력해야 하며, 급여의 평균은 소수점 2자리에서 반올림 하시오.
-select department_id, SUM(salary), ROUND(AVG(salary),2),COUNT(*) 
-from employees 
-group by department_id 
-having SUM(salary)>=30000;
 ```
 
