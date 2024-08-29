@@ -1,139 +1,124 @@
-# 실습 환경 구축하기
+## 웹페이지란?
+- 일종의 문서파일이다.
+- 웹페이지를 작성하는 도구는 html이다.
+- 웹페이지는 주로 원거리 통신을 통해 전달되는 경우가 많으며, 이 때 사용하는 방식을 HTTP라고 한다.
+- 웹페이지는 글자와 사진뿐 아니라 동영상, 음악 등 다양한 정보를 아름다운 형태로 제공할 수 있다.
+- 웹페이지들이 모여서 만들어진 덩어리를 웹사이트라고 한다.
 
-1. WEB1500 폴더 아래 web 폴더 생성후 안에 util과 work폴더 만들기
+## 웹개발자의 업무
 
-![image](https://user-images.githubusercontent.com/54658614/226801868-03bcf23c-42d1-461f-892c-63e71c3668b2.png)
+### 프론트엔드 개발자
+- 사용자가 직접적으로 눈으로 보며 사용하는 웹페이지를 개발하는 엔지니어이다.
 
-2. util 폴더에 eclipse와 tomcat 넣기
-  - 이클립스 압축폴더는 지우지말고 갖고 있을 것 이후 과정에서 계속 새로 풀어서 사용할 것이기 때문에
+### 백엔드 개발자
+- 데이터를 저장하거나 프론트엔드의 원활한 활동을 도와주기 위한 서버를 개발하는 엔지니어이다.
+- 바깥에서는 잘 보이지 않는 뒷단에서 작동하는 소프트웨어를 개발한다.
 
-![image](https://user-images.githubusercontent.com/54658614/226802076-a4bb3306-b813-496c-bbea-33c8435ad70e.png)
+## 마크업언어란?
+- 문서에 마크업을 추가하기 위해 사용하는 도구이다.
+- 언어라고 이름이 붙은 이유는 사람과 컴퓨터가 서로 대화하기 위해 사용하는 도구이기 때문이다.
+- 마크업은 교과서나 참고서의 중요한 부분에 밑줄을 긋거나 형광펜으로 칠하는 등 문서를 꾸미는 행위를 말한다.
+- 웹페이지도 마크업 언어로 작성된 문서이다.
 
-## 톰캣
-1. apache.org 사이트로 접속한다.
+### 웹페이지의 원본 형태 들여다보기
+- 익스플로러,엣지,크롬 등 웹브라우저를 활용해 아무 사이트에 들어가서 F12 버튼 눌러보기
+- 상단에 요소 탭을 클릭한다.
+- 요소 창에 보이는 글자들이 웹 페이지의 원본 마크업 언어이다.
+- 프론트엔드 개발자는 마크업 문서를 작성하는 역할을 수행하는 사람이다.
 
-![image](https://user-images.githubusercontent.com/54658614/226802448-d7ab5716-b0eb-4ec1-8bcf-8d005e598c5a.png)
+### 개발의 기본은 협업이다.
+- 현재 보는 페이지의 코드가 매우 복잡해보이지만 개발은 혼자하는 것이 아니다.
+- 수십명의 개발자가 협업을 통해 제작한 작품이다.
 
-2. 스크롤을 많이 내리면 T 부분에 톰캣이 있다.
+## 웹 프론트엔드 개발을 위한 기본기
+- HTML을 통해 웹 페이지를 제작해 볼 것입니다.
+- 이후 CSS를 통해 HTML로 제작한 홈페이지에 디자인적 요소를 추가해 더욱 아름다운 웹페이지를 제작할 수 있다.
+- 마지막으로 JS를 활용하면 웹 페이지에 각양각색의 기능들을 추가할 수 있다.
+- 웹 페이지가 역동적으로 움직이고 변화하며, 우리와 상호작용 할 수 잇는 비밀이 JS덕분이다.
 
-![image](https://user-images.githubusercontent.com/54658614/226802570-87c4a3c5-cbe9-4659-9877-acd73a188d32.png)
+## 실습 환경 구축하기
 
-3. 왼쪽에 다운로드 받는 탭이 있고 원하는 버전을 선택한 뒤 운영체제에 맞는 파일을 다운로드 받는다.
+## 1. Visual Studio Code 설치하기
+- 마이크로소프트에서 제공하는 Visual Studio Code 설치하기
+- https://code.visualstudio.com으로 접속하여 설치하기
 
-![image](https://user-images.githubusercontent.com/54658614/226802738-bf19dc32-0f6f-4429-82f2-df49b636879f.png)
+![image](img/vscode설치.png)
 
-## 톰캣의 구조
-![image](https://user-images.githubusercontent.com/54658614/226803279-57f73f5d-113c-4019-a4cd-9f307c28a759.png)
+- 추가 작업 선택 메뉴에서 <기타> 항목에 있는 네 가지 박스를 모두 체크하시오.
 
-#### 톰캣 디렉토리 설명
+## 2. 개발을 도와주는 유용한 프로그램 설치하기
 
-|디렉토리 이름|설명|
-|----|---------|
-|bin|톰캣을 실행하고, 종료시키는 스크립트 (.bat , .sh 등) 파일이 들어있다.|
-|conf|서버 전체 설정파일 폴더 ( server.xml 등 )|
-|lib|톰캣구동하는데 필요한 라이브러리(jar)가 들어있다|
-|logs|예외 발생 사항 등의 로그 저장|
-|temp|임시 저장용 폴더|
-|webapps|웹 어플리케이션 폴더|
-|work|jsp 파일을 서블릿형태로 변환한 java 파일과 class 파일이 저장|
+### 프레임워크란?
+- 복잡한 문제를 해결하는 데 사용할 수 있는 누군가 만들어 둔 소프트웨어이다.
+- 영단어 그대로 번역하면 뼈대 또는 골조라는 단어로 해석할 수 있다.
 
-#### 톰캣 주요 파일들
+### 프레임워크를 사용하여 문제를 해결하는 방법
+- 구글 검색을 통해 원하는 프레임워크를 찾아냈다면, 프레임워크의 사용설명서를 읽어 보시오.
+- 우리는 지킬이라는 프레임워크를 사용할 것이다.
+- https://jekyllrb-ko.github.io/
 
-|파일 이름|설명|
-|----|---------|
-|context.xml|세션,쿠키 저장 경로 등을 지정하는 설정 파일이다. |
-|server.xml|Tomcat의 주 설정 파일로 접근/접속에 관한 설정이 주를 이룬다.|
-|web.xml|Tomcat의 환경설정 파일이며 서블릿, 필터, 인코딩 등을 설정할 수 있다.<br>가장 먼저 읽는 파일 DefaultServlet 지정 및 Servlet-mapping|
+![image](img/지킬.png)
 
+- 지금은 지킬이 무슨 용도로 사용되는지 전혀 몰라도 좋다.
+- 상단에 docs를 누르면 프레임워크의 사용설명서를 열람할 수 있다.
+- 유용한 프로그램을 만들어 굳이 남들이 볼 수 있는 곳에 무료로 배포하는 개발자들은 자신의 작품이 조금이라도 더 많은 사람들에게 사랑받기를 원한다.
 
-4. conf폴더의 server.xml을 켜 서버와 관련된 설정을 해주자(메모장으로 열어주자)
+### 루비와 지킬 설치하기
 
-![image](https://user-images.githubusercontent.com/54658614/226803820-1869e834-76b0-4719-b4bd-e134cde340fa.png)
+#### 1. 시스템 정보 확인하기
+- 시스템 정보 검색하고 앱을 누른다.
 
-5. 주석처리가 되어있지 않는 Connector 부분의 포트번호를 9090으로 바꿔주자
-    - 데이터베이스가 8080포트를 차지하게 될 것이므로 최고한 8080,8081은 피해주자.
-  
-![image](https://user-images.githubusercontent.com/54658614/226804150-6f98a567-7f6c-43e7-9b9a-2b378f101c80.png)
+![image](img/시스템정보.png)
 
-## 이클립스 설정하기
+- 시스템 종류에 x64 또는 x86인지 확인한다.
+- 지킬을 사용하려면 루비라는 도구가 필요하다.
+- https://rubyinstaller.org/downloads/
 
-1. 인코딩 타입 설정하기
-Window > Preferences
+![image](img/루비설치.png)
 
-![image](https://user-images.githubusercontent.com/54658614/226804554-8990af76-be15-4b76-90f0-bd5ef2087bf8.png)
+- 항목을 클릭하면 설치 프로그램이 다운로드된다.
+- 프로그램을 실행하여 컴퓨터에 루비를 설치한다.
+- 별다른 주의사항은 없고, 체크되어 있는 항목의 체크를 해제하지 않도록 주의한다.
+- 설치가 완료되었다면 <실행>창을 열고 cmd를 입력하여 프롬프트를 띄웁니다.
+- 지킬을 설치하기 위해 다음의 명령어를 입력합니다.
+```
+gem install jekyll bundler
+```
+- 정상적으로 명령이 전달되었다면 지킬 설치가 자동으로 진행된다.
+- 설치가 정상적으로 마무리 되었는지 다음의 명령어로 확인한다.
+```
+jekyll -v
+```
+- 아래 문구와 같이 설치된 지킬의 버전이 화면에 출력된다면 정상적으로 지킬이 설치된 것이다.
+- 이때 설치된 버전에 따라 숫자가 다르게 출력될 수 있다.
+```
+jekyll 4.3.3
+```
 
-General > Workspace > Text file encoding
-한글이 깨지지 않게 설정을 해주자.
+## 깃허브 활용하기
+### 깃허브
+- 작업중인 코드를 업로드하건, 다른 컴퓨터에서 다운받는 등의 작업을 도와주는 일종의 온라인 사무실과도 같은 서비스이다.
+- 코드의 백업과 무료 웹 호스팅 이용을 위해 깃허브를 사용해보자.
+- https://github.com 에서 sign up 버튼을 통해 회원가입을 한다.
+- 회원가입을 마무리하고 이메일 인증까지 마친다면 여러분만의 온라인 작업실이 마련된다.
 
-![image](https://user-images.githubusercontent.com/54658614/226804733-7137a44d-9a9b-48b6-b295-7fdb7bb7f70f.png)
+```
+http://github.com/닉네임
+```
 
-General > Web Brower
+### 깃 설치하기
+- 깃은 컴퓨터 파일의 변경사항을 추적하고 여러 사용자 간에 파일을 다루는 공동 작업을 위한 분산 버전 관리 시스템이다.
+- https://gitforwindows.org
 
-![image](https://user-images.githubusercontent.com/54658614/226804993-fcadf6ae-6ce6-4f3f-bff8-833f71b2d460.png)
-
-2. 서버 설정하기
-
-Server > Runtime Environments
-
-![image](https://user-images.githubusercontent.com/54658614/226805141-0a338172-9b35-440c-8392-ed51ae01c340.png)
-
-톰캣 버전 선택하고 Next 누르기 (수업할 때는 8.5버전을 사용하지만 상황에 따라서 유동적으로 설치한 버전 선택해서 하기)
-
-![image](https://user-images.githubusercontent.com/54658614/226805263-87e4d715-0ffd-4dae-851c-7b065806ae02.png)
-
-Browse 눌러서 톰캣이 설치된 경로 잡아주기
-
-![image](https://user-images.githubusercontent.com/54658614/226805381-a3875021-bcef-475e-8852-19270c5f2336.png)
-
-bin 폴더가 눈으로 보이는 곳에서 폴더 선택하기(bin 폴더까지 절대로 들어가지 말것!!)
-
-![image](https://user-images.githubusercontent.com/54658614/226805537-77d9ab82-74a1-4a04-aef8-a7718bff4d62.png)
-
-Finish 누르기
-
-3. Web의 인코딩 타입 변경하기
-
-Web > CSS Files
-
-![image](https://user-images.githubusercontent.com/54658614/226806029-5a7eda11-2c77-464b-ba5c-353f14bb81f4.png)
-
-Web > HTML Files
-
-![image](https://user-images.githubusercontent.com/54658614/226806171-1d1356f1-460b-4929-883f-7e0258e4e068.png)
-
-
-Web > JSP Files
-
-![image](https://user-images.githubusercontent.com/54658614/226806216-a2946c2f-463c-4252-8ca7-3cd12a6da6c1.png)
-
-### 프로젝트 생성하기
-
-File > New > Dynamic Web Project
-
-![image](https://user-images.githubusercontent.com/54658614/226806476-d4e2ac7b-6a97-4e18-bf8f-51284c78b41f.png)
-
-톰캣, 모듈버전(3.1로 잡혀있는지) 확인 후 finish
-
-![image](https://user-images.githubusercontent.com/54658614/226806619-cd77fd30-19cf-4371-807e-3981021559f0.png)
-
-#### 구조
-- 당분간 src는 사용할 일이 없을것이다.
-
-![image](https://user-images.githubusercontent.com/54658614/226806767-e6c537e0-c70a-4e47-9036-b8cb89b6a14f.png)
-
-#### html 파일 생성
-- WebContent 바로 아래 만들어야 한다. META-INF,WEB-INF아래에 만들지 말것
-
-![image](https://user-images.githubusercontent.com/54658614/226807075-bce4e9ec-05c3-4fbb-be78-69d3f3ded79e.png)
-
-파일 이름 정하고 finish
-
-![image](https://user-images.githubusercontent.com/54658614/226807216-138da8b7-3bf1-4189-87d7-b11a7272ab71.png)
-
+- 메인 화면에서 Download 버튼을 클릭하여 설치를 진행한다.
+![image](img/깃다운로드.png)
+- 설치 과정에서 Windows Explorer integration 항목 아래에 있는 Git Bash Here 항목에는 반드시 체크를 하자.
+- Next 버튼을 몇 번 눌러 설치를 마무리 하면 준비가 끝난다.
 
 ## HTML
 ### 정의
 - HTML은 Hyper Text Markup Language의 약자입니다.
+- 하이퍼텍스트는 말 그대로 종이에 인쇄된 텍스트 기술의 한계를 초월한 고차원적인 기술이다.
 - HTML은 웹페이지를 만드는 대표적인 마크업 언어입니다
 - HTML은 웹페이지의 구조를 표현합니다.
 - HTML은 여러 요소로 구성되어 있습니다
@@ -142,6 +127,28 @@ File > New > Dynamic Web Project
 ### 기본 구조
 
 ![image](https://user-images.githubusercontent.com/54658614/226808086-fb78d205-363b-4f50-a8b3-739b11d256b3.png)
+
+## HTML 가지고 놀기
+
+### 웹사이트의 HTML소스 살펴보기
+ - 구글에 접속하여 개발자도구 열어보기
+ - 요소탭으로 이동하여 코드 살펴보기
+```
+<!DOCTYPE html> <!-- HTML5 문서임을 선언, 대소문자 구분 없이 정의해도 상관없음 -->
+```
+- DOCTYPE은 Document Type의 줄임말로, 문서의 종류라는 뜻이다.
+- DOCTYPE html은 이 문서의 종류는 html입니다.
+
+## HTML 문서 작성하기
+
+### HTML 코드 작성을 위한 준비
+- 앞서 누군가 만들어놓은 HTML 코드를 마음대로 수정하는 과정을 체험해봤다.
+- 이번에는 직접 HTML코드를 작성해보자
+
+### 폴더만들기
+- 3. WEB폴더를 만들고 안에 WORK폴더 만들기
+- 폴더로 들어가 빈공간에서 마우스로 우클릭을 합니다.
+- 메뉴창에서 Code(으)로 열기 항목을 클릭한다.
 
 ## HTML 주석(Comments)
 - 주석은 브라우저에서 출력이 되지 않는 설명문장 입니다. 
