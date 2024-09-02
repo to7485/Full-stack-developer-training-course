@@ -433,11 +433,204 @@ git push origin master
 - 인스타그램 페이지의 핵심 구성요소는 사진과 글자이다.
 - 우선 화면에 글자를 먼저 표현해보자.
 
-### 5_1_3.html 파일 생성하기
+### index.html 코드 추가하기
+- 코드 작성시 엔터를 눌러 줄바꿈을 시도했음에도 불구하고 실행 화면에서는 한 줄로 연결된 채로 나온다.
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>instgram</title>
+</head>
+<body>
+    <!-- <br>태그는 줄바꿈 기능이 있다.-->
+    half_bottle
+    프로필 편집
+    반병현(Bynghyun Ban)
+    작가
+    needleworm.github.io
+	게시물
+	팔로워
+	팔로우
+	133
+	408
+	189
+</body>
+</html>
+```
+
+### 줄바꿈 - \<br>
+- HTML에서 줄 바꿈을 담당하는 태그는 \<br>이다.
+- 줄바꿈이 필요한 구역마다 <br>태그를 입력해보자.
+- 이때, 여는 태그와 닫는 태그를 각각 기재해주지 않고 \<br>이라는 표현 하나로만 태그 입력을 처리할 수 있다.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>instgram</title>
+</head>
+<body>
+    <!-- <br>태그는 줄바꿈 기능이 있다.-->
+    half_bottle<br/>
+    프로필 편집<br/>
+    반병현(Bynghyun Ban)<br>
+    작가<br/>
+    needleworm.github.io<br/>
+	게시물<br/>
+	팔로워<br/>
+	팔로우<br/>
+	133<br/>
+	408<br/>
+	189<br/>
+</body>
+</html>
+```
+
+### 단락구분 - \<p>
+- 인스타그램의 페이지 스크린샷을 자세히 살펴보면 글자나 여러 개의 영역에 나뉘어 표시되고 있는 것을 확인할 수 있다.
+- 영역별로 글자의 크기나 굵기, 표현하려는 정보의 종류가 조금씩 다르다.
+- 정보를 여러 조각으로 구분 짓는 방식은 다양하지만, 그 중에서 가장 쉬운 방법인 \<p>태그를 사용해보자.
+- \<p>태그는 단락을 의미하는 단어인 paragraph에서 유래했다.
+- 한 덩어리로 묶고 싶은 내용물들을 \<p> ~ \<p>태그 내부에 삽입한다.
+
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>instgram</title>
+</head>
+<body>
+    <!-- <br>태그는 줄바꿈 기능이 있다.-->
+    <!-- <p>태그는 문단을 나누는 태그 paragraph의 약자이다.
+        p태그는 줄바꿈을 표현하는 block이라는 속성이 있기 때문에
+        옆에 글이 올 수 없다.-->
+    <p>half_bottle</p>
+    <p>프로필 편집</p>
+    <p>
+        <!-- <strong> 볼드체 표현-->
+        <strong>
+            반병현(Bynghyun Ban)<br>
+        </strong>
+        작가
+    </p>
+    <p>needleworm.github.io</p>
+    <p>
+        게시물<br/>
+        팔로워<br/>
+        팔로우<br/>
+        133<br/>
+        408<br/>
+        189<br/>
+    </p>
+</body>
+</html>
+```
+- \<p> 태그는 block이라는 속성이 있기 때문에 \<br>을 쓰지 않아도 알아서 줄바꿈이된다.
+### 제목표현 - \<h>
+- 그림에서 아이디에 해당하는 글자가 유독 크게 표현되어 있는 모습을 볼 수 있다.
+- 이처럼 본문의 내용 중 제목이나 부제목, 소제목 등에 해당하는 영역을 강조할 때 사용할 수 있는 \<h>태그에 대해 알아보자.
+- 이 태그는 heading이라는 단어에서 유래했다.
+
+### 5_1_7.html 파일 만들기
+```html
+<!-- 제목표현 태그 <h>
+    본문의 내용 중 제목이나 부제목
+    소제목 등에 해당하는 영역을 강조할 때
+    사용하는 태그
+    heading이라는 단어에서 유래함-->
+<h1>heading 1</h1>
+<h2>heading 1</h2>
+<h3>heading 1</h3>
+<h4>heading 1</h4>
+<h5>heading 1</h5>
+<h6>heading 1</h6>
+<!-- 사실 h7은 없음
+ html은 없는 태그를 입력하면 평문으로 출력함-->
+<h7>heading 1</h7>
+```
+### \<h>태그를 활용하여 인스타그램 아이디가 입력된 공간을 꾸며보자.
+- index.html에 half_bottle부분을 \<h2>태그로 묶어보자.
+```html
+<h2>half_bottle</h2>
+```
+- \<h>태그도 마찬가지로 block 속성이 있어 자동으로 줄바꿈이 되기 때문에 \<p>태그는 지워도 된다.
+### 볼드체 표현 - \<strong>
+- 그림을 보면 름이 굵은 글자로 표현되어 있다.
+- 굵은 글자를 표현할 때는 \<strong>태그가 제격이다.
+
+### index.html에 이름을 \<strong>태그로 묶기
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>instgram</title>
+</head>
+<body>
+    <!-- <br>태그는 줄바꿈 기능이 있다.-->
+    <!-- <p>태그는 문단을 나누는 태그 paragraph의 약자이다.
+        p태그는 줄바꿈을 표현하는 block이라는 속성이 있기 때문에
+        옆에 글이 올 수 없다.-->
+    <h2>half_bottle</h2>
+    <p>프로필 편집</p>
+    <p>
+        <!-- <strong> 볼드체 표현-->
+        <strong>
+            반병현(Bynghyun Ban)<br>
+        </strong>
+        작가
+    </p>
+    <p>needleworm.github.io</p>
+    <p>
+        게시물<br/>
+        팔로워<br/>
+        팔로우<br/>
+        133<br/>
+        408<br/>
+        189<br/>
+    </p>
+</body>
+</html>
+```
+
+### HTML의 꽃, 하이퍼링크 - \<a>
+- 하이퍼텍스트를 구현하려면 하이퍼링크 기술이 필요하다.
+- 하이퍼링크를 클릭하면 순식간에 다른 페이지로 갈 수 있다.
+- 하이퍼링크를 구성하는 태그는 \<a>이다.
+- needleworm.github.io를 누르면 실제로 이동하게 바꿔보자.
+
+### 5_1_10.html
+```html
+<!-- 하이퍼링크 태그 <a> 
+    하이퍼링크를 클릭하는 순간 다른페이지로 이동할 수 있다.-->
+<a href="https://booksr.co.kr">생능출판사</a><br>
+
+<a href="5_1_7.html">생능출판사</a><br>
+```
+- \<a>태그는 여는 태그 안에 href="https://booksr.co.kr"이라는 문구가 기재되어있다.
+- href는 hypertext reference의 줄임말로, 직역하자면 '하이퍼텍스트 참조' 정도이다.
+- 실제로 실행했을 때는 \<a> ~ \</a> 사이에 기재된 문자가 출력이 된다.
+- 태그의 본질은 다른 정보를 꾸미기 위한것이다.
+- 문서의 본질적인 정보는 생능출판사 라는 문구이다.
+- 실행화면에서 생능출판사 문구를 클릭하면 생능출판사의 홈페이지로 이동한다.
+- href에 기재된 url을 변경하면 다른 사이트로 이동할 수 있으며, \<a> ~ \</a>사이에 기재된 문구를 변경하면 실행했을 때 표시되는 글자를 변경할 수 있다.
+
+### index.html에 링크 걸기
+- 인스타그램 페이지에서 보이는 것과 같이 저자의 홈페이지 주소에 대한 하이퍼링크를 화면에 입력해보자.
+
 ```html
 
 ```
- 
+
+
 # 글자/폰트 관련 태그
 
 ## HTML 헤더(Headings)태그
