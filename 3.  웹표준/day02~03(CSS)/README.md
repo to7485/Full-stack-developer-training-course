@@ -3,113 +3,6 @@
 - 즉 CSS는 HTML의 각 요소(element)의 style(design, layout etc)을 정의 하여 화면(Screen) 등에 어떻게 렌더링하면 되는지 브라우저에게 설명하기 위한 언어이다.
 - CSS(Cascading Style Sheet)는 HTML과 같은 마크업 언어로 작성된 문서에 색상, 폰트, 각 요소의 위치 변경, 백그라운드 및 간단한 애니메이션(transition) 등의 효과를 주어 보다 보기 좋게 꾸며 주는 역할을 합니다.
 
-## HTML에서 CSS를 적용하는 방법
-- HTML과 CSS는 각자의 문법을 갖는 별개의 언어이며 HTML은 CSS를 포함할 수 있다.
-- 그러나 HTML없이 단독으로 존재하는 CSS는 의미가 없다.
-
-## CSS 기본 문법
-![image](img/css_grammer.png)
-
-### 1. 선택자(Selector)
-- CSS를 적용하고자 하는 HTML 요소(element)
-
-### 2. 선언부
-- 하나 이상의 선언들을 세미콜론(;)으로 구분하여 포함할 수 있으며, 중괄호({})를 사용하여 전체를 둘러 싼다.
-- 각 선언은 CSS 속성명(property)과 속성값(value)을 가지며, 그 둘은 콜론(:)으로 연결된다.
-- 이러한 CSS 선언은 언제나 마지막에 세미콜론으로 끝마친다.
-
-## CSS 선언 방식
-
-### 인라인(in-line)방식
-- HTML의 각 태그에서 style 속성에 직접 작성하는 방식
-```html
-<p style="color: red">빨간색</p>
-```
-
-### 내장(embaedded)방식
-- 같은 HTML 문서에 \<style\> \</style\> 태그 안에 스타일을 적용하는 방식 입니다. 
-
-### ex01_embedded.html
-```html
-<!DOCTYPE html>
-	<html>
-		<head>
-			<meta charset="UTF-8">
-			<title>css(스타일시트)</title>
-			
-			<!-- css를 적용하기 위한 태그 -->
-			<style type="text/css">
-				/* body안에 존재하는 각각의 태그에게 스타일을 적용 */
-            /*태그이름{속성 : 속성값;}*/
-            
-            /*body에 있는 h1 태그는 모두 색이 바뀌게 된다.*/
-				h1{color:red;} 
-				h2{color:yellow;}
-				h3{color:buttonhighlight;}
-            
-            /*네이버에 생상표 검색 스크롤 내리면 RGB 코드값이 나온다.
-            색깔을 16진수로 표현한것. 빨강 초록 파랑 순서.
-            16진수는 0~9 A~F까지로 이루어져있다.*/
-				p{color:#ffaaff;} /* #faf;  */ 
-			</style>
-		</head>
-		
-		<body>
-			<h1 >스타일 연습중1-1</h1>
-			<h1>스타일 연습중1-2</h1>
-			<h2>스타일 연습중2</h2>
-			<h3>스타일 연습중3</h3>
-			<p>스타일 연습중4</p>
-		</body>
-	</html>
-```
-
-### 링크(link)방식
-- HMTL <link>를 이용하여 외부 문서로 CSS를 불러와 적용하는 방식
-```html
-<link rel=”stylesheet” type=”text/css” href='css 외부 파일 경로'>
-```
-### css 폴더 만들고 style.css 파일 만들기
-```css
-p{color : red;}
-```
-
-### ex02_link.html
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="css/style.css" rel="stylesheet" type="text/css">
-    <title>Document</title>
-</head>
-<body>
-    <p>외부 스타일시트 적용</p>
-</body>
-</html>
-```
-
-### @import 방식
-- @import를 이용하여 외부 문서로 CSS를 불러와 적용하는 방식
-
-### ex03_import.html
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        @import url(css/style.css);
-    </style>
-    <title>Document</title>
-</head>
-<body>
-    <p>외부 스타일시트 적용</p>
-</body>
-</html>
-```
 
 ## CSS 선택자
 
@@ -199,6 +92,30 @@ h2 { color: teal; text-decoration: underline; }
 		</body>
 	</html>
 ```
+### index.html에 class주기
+```html
+<div>
+	<!-- 높이 35px로 하이라이트 이미지 2개 넣기-->
+	<div class="highlight">
+		<div>
+			<img src="image/hl 1.jpg" height="35px">
+		</div>
+		<div>
+			<!-- window + ; -->
+			😎
+		</div>
+	</div>
+	<div class="highlight">
+		<div>
+			<img src="image/hl 2.jpg" height="35px">
+		</div>
+		<div>
+			<!-- window + ; -->
+			😊
+		</div>
+	</div>
+</div>
+```
       
 ### id
 - CSS를 적용할 대상으로 특정 요소를 선택할 때 사용
@@ -234,6 +151,26 @@ h2 { color: teal; text-decoration: underline; }
 		</body>
 	</html>      
 ```
+### index.html의 프로필 영역에 id값주기
+```html
+<div id="profile">
+	<img src="image/profile.jpg" width="50px">
+	<!-- <br>태그는 줄바꿈 기능이 있다.-->
+	<!-- <p>태그는 문단을 나누는 태그 paragraph의 약자이다.
+		p태그는 줄바꿈을 표현하는 block이라는 속성이 있기 때문에
+		옆에 글이 올 수 없다.-->
+	<div>
+		<h2>half_bottle</h2>
+		<button>프로필 편집</button>
+	</div>
+</div>
+```
+
+### 클래스와 아이디를 구분하는 이유
+- HTML의 정보 전달력 향상에 있다.
+- 클래스로 정의된 정보는 디자인은 같지만 내용물은 다른 형태로 화면에 여러번 등장할 수 있다.
+- 아이디는 문서 내에서 단 한번만 등장한다.
+- 따라서 HTML코드를 읽기만 해도 어떤 정보가 반복되는 정보이며 어떤 정보가 단 한 번만 등장하는 유일한 정보인지를 구분지을 수 있다는 장점이 있다.
 
 ### 그룹(group)선택자
 - 위에서 언급한 여러 선택자를 같이 사용할 때 사용한다.
@@ -304,6 +241,170 @@ h2 { color: teal; text-decoration: underline; }
 - 클래스 선택자
 - 태그 선택자
 - 전체 선택자
+
+## HTML에서 CSS를 적용하는 방법
+- HTML과 CSS는 각자의 문법을 갖는 별개의 언어이며 HTML은 CSS를 포함할 수 있다.
+- 그러나 HTML없이 단독으로 존재하는 CSS는 의미가 없다.
+
+## CSS 기본 문법
+![image](img/css_grammer.png)
+
+### 1. 선택자(Selector)
+- CSS를 적용하고자 하는 HTML 요소(element)
+
+### 2. 선언부
+- 하나 이상의 선언들을 세미콜론(;)으로 구분하여 포함할 수 있으며, 중괄호({})를 사용하여 전체를 둘러 싼다.
+- 각 선언은 CSS 속성명(property)과 속성값(value)을 가지며, 그 둘은 콜론(:)으로 연결된다.
+- 이러한 CSS 선언은 언제나 마지막에 세미콜론으로 끝마친다.
+
+## CSS 선언 방식
+
+### 인라인(in-line)방식
+- HTML의 각 태그에서 style 속성에 직접 작성하는 방식
+```html
+<p style="color: red">빨간색</p>
+```
+
+
+### 내장(embaedded)방식
+- 같은 HTML 문서에 \<style\> \</style\> 태그 안에 스타일을 적용하는 방식 입니다. 
+
+### ex01_embedded.html
+```html
+<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>css(스타일시트)</title>
+			
+			<!-- css를 적용하기 위한 태그 -->
+			<style type="text/css">
+				/* body안에 존재하는 각각의 태그에게 스타일을 적용 */
+            /*태그이름{속성 : 속성값;}*/
+            
+            /*body에 있는 h1 태그는 모두 색이 바뀌게 된다.*/
+				h1{color:red;} 
+				h2{color:yellow;}
+				h3{color:buttonhighlight;}
+            
+            /*네이버에 생상표 검색 스크롤 내리면 RGB 코드값이 나온다.
+            색깔을 16진수로 표현한것. 빨강 초록 파랑 순서.
+            16진수는 0~9 A~F까지로 이루어져있다.*/
+				p{color:#ffaaff;} /* #faf;  */ 
+			</style>
+		</head>
+		
+		<body>
+			<h1 >스타일 연습중1-1</h1>
+			<h1>스타일 연습중1-2</h1>
+			<h2>스타일 연습중2</h2>
+			<h3>스타일 연습중3</h3>
+			<p>스타일 연습중4</p>
+		</body>
+	</html>
+```
+
+
+### index.html에 제목 색깔 바꾸기
+- 제목을 빨간색으로 바꿔보자
+```html
+<body>
+	<style>
+		h2{
+			color : red;
+		}
+	</style>
+...
+```
+
+### index.htm에 클래스 선택자 사용해보기
+- highlight라는 클래스에 테두리 적용시키기
+```html
+<body>
+	<style>
+		h2{
+			color : red;
+		}
+		/*클래스 선택자를 쓸 때는 .클래스값으로 써야한다.*/
+		.highlight{
+			border : solid;
+		}
+	</style>
+...
+```
+
+### index.html에 아이디 선택자 사용하기
+- profile라는 id값을 가진 태그에 테두리주기
+```html
+<body>
+	<style>
+		h2{
+			color : red;
+		}
+		/*클래스 선택자를 쓸 때는 .클래스값으로 써야한다.*/
+		.highlight{
+			border : solid;
+		}
+		/*아이디 선택자를 쓸 때는 #아이디값으로 써야한다.*/
+		#profile{
+			border : solid;
+			border-color : blue;
+		}
+	</style>
+...
+```
+
+
+### 링크(link)방식
+- HMTL <link>를 이용하여 외부 문서로 CSS를 불러와 적용하는 방식
+```html
+<link rel=”stylesheet” type=”text/css” href='css 외부 파일 경로'>
+```
+### css 폴더 만들고 style.css 파일 만들기
+```css
+p{color : red;}
+```
+
+### ex02_link.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <title>Document</title>
+</head>
+<body>
+    <p>외부 스타일시트 적용</p>
+</body>
+</html>
+```
+
+### @import 방식
+- @import를 이용하여 외부 문서로 CSS를 불러와 적용하는 방식
+
+### ex03_import.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url(css/style.css);
+    </style>
+    <title>Document</title>
+</head>
+<body>
+    <p>외부 스타일시트 적용</p>
+</body>
+</html>
+```
+
+## CSS파일을 분리하는 이유
+- HTML코드 내부에서 디자인과 관련된 정보를 제거할 수 있다는 점이다.
+- HTML코드가 정보의 전달과 웹 페이지의 구조 설계라는 본연의 기능에 집중할 수 있게 되었으므로, 훨씬 읽기 편안한 코드를 작성할 수 있게 되었다.
 
 
 ## 테두리(border)
