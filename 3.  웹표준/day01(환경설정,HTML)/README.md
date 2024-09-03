@@ -992,12 +992,266 @@ git push origin master
 - 왜냐하면 가장 수요가 높고, 가장 만들기 어렵기 때문이다.
 
 
+# 웹페이지를 더 풍성하게 만들어보기
+- 앞서 인스타그램 웹페이지와 똑같이 코딩을 해보았다.
+- 여기서는 인스타그램 웹페이지에는 없지만, 추가로 알아야 하는 다른 문법들을 살펴보자.
 
+## 검색창의 구현과 \<input>태그의 다양한 활용법
+### 검색창 구현하기 - \<input>
+- 상단바의 중앙에는 검색창이 자리잡고 있다.
+- 검색창을 클릭하면 글자를 입력할 수도 있다.
+- 검색창의 핵심 기능은 사용자로부터 정보를 입력받는 것이다.
 
+```html
+<input/><br>
+<input value="검색"><br>
+value 속성을 넣으면 입력상자에 값을 넣은채로 시작할 수 있다.
+```
+### index.html에 \<input>태그 넣기
+- 상단 바 영역의 \<div>태그 안에, \<img>태그 아래 넣어보자
 
+```html
+<body>
+    <img src="image/instagramlogo.png" width="150px">
+    <!-- //////////////////코드추가//////////////-->
+    <input value="검색">
+    <!-- //////////////////코드추가//////////////-->
+```
 
+### \<input>태그의 기본형
+- 앞서 우리가 사용한 방법은 바람직한 것은 아니다
+- \<input>태그는 다양한 기능이 있기 때문에 어떤 종류의 데이터를 입력받기 위한 용도인지 명시해줘야 한다.
 
+```html
+<input type="text"/><br>
+<input type="text" value="검색"><br>
+```
+- 어떤 의도로 \<input>태그가 웹 페이지에 삽입되었는지를 손쉽게 전달하기 위해서라도 반드시 type이 명시되어야 할 필요가 있다.
+- 특정 브라우저에서의 버그 발생 방지라는 부차적인 목표도 있다.
+- \<input>의 기본값은 text로 되어있다.
 
+## \<input> 태그의 입력창 타입
+
+### 숫자의 입력 - number
+- 웹페이지를 개발하다 보면 구매하려는 물품의 수량, 사람의 나이 등 숫자만 입력받아야 하는 경우가 종종 있다.
+- 오직 숫자만 입력할 수 있다.
+```html
+<input type="number" ><br>
+```
+
+### 비밀번호 입력 - password
+- password타입으로 지정된 필드에 글자를 입력하면, 모든 글자가 마스킹되어 가려진다.
+```html
+<input type="password"><br>
+```
+
+### 전화번호 입력 - tel
+- 전화번호 입력을 구현할 때는 tel타입을 사용하면 좋다.
+- 특별한 기능이 있는것은 아니고 스마트폰 등, 일부 디바이스에서 tel 속성이 지정된 \<input>태그를 만나면 쿼티 자판 대신 전화번호를 입력할 수 있는 다이얼패드를 띄워준다.
+```html
+<input type="tel"><br>
+```
+- 데스크톱 전용 사이트를 제작할 때는 별로 의미가 없는 속성이지만, 요즘 대부분의 사람들이 컴퓨터보다 스마트폰으로 인터넷 사이트에 접속하는 경우가 더 많다는 점을 고려한다면 중요도가 높은 기능이다.
+- 특히 아이폰이 이런 경우에 민감하게 반응하므로, 최대한 적극적으로 사용하면 좋다.
+
+### 검색창 구현 - search
+- 검색창에 입력하기 부적절한 줄 바꿈 표시(엔터)등의 특수문자가 제거된다.
+- search타입을 입력할 경우, 검색어를 입력하면 우측에 x표시가 나타난다.
+- 이 표시를 클릭하면 검색창의 내용물이 삭제된다.
+- 스마트폰에서 search 타입을 클릭하면 키보드에 엔터대신 검색버튼이 활성화된다.
+
+```html
+<input type="search"><br>
+```
+
+### index.html의 검색창을 search타입으로 수정하자
+
+```html
+<img src="image/instagramlogo.png" width="150px">
+<input type="search" value="검색">
+```
+
+### 기타
+- email, url등의 타입이 존재한다.
+- 각각 이메일, url입력을 위한 태그이다.
+- 이런 속성들 대신 JS를 사용하여 입력받은 정보를 검사하거나 다듬어 사용하는 것이 최근의 추세이다.
+
+#### 1. email 속성
+- 이메일의 유효성을 검증하는 기능이 작동한다.
+- 골뱅이가 표시되어 있는지, 골뱅이 뒤의 url 모양이 그럴싸한지 등을 검사한다.
+- 이 기능들은 입력받은 자료를 제출할 때만 의미가 있다.
+- 그전에는 아직 이메일의 id부분을 덜 입력한 것인지, 혹은 잘못된 자료가 입력된 것인지 검증할 방법이 없다.
+
+#### 2. url속성
+- 입력받은 자료가 url형태인지 검증하기 위한 기능이 제공된다.
+- email타입과 마찬가지로 잘못된 정보가 입력된 것인지 혹은 아직 정보가 입력이 덜 된 것인지 검증할 방법이 없어 잘 사용되지 않는다.
+
+## \<input>태그의 버튼 타입
+### 버튼을 그리는 button
+- \<input>태그에 button타입을 지정하면 마치 \<button>태그와 유사한 버튼을 화면에 표현할 수 있다.
+```html
+<input type="button"><br>
+<input type="button" value="버튼"><br>
+```
+
+### 제출 버튼을 그리는 submit
+- \<input>태그에 submit타입을 지정하면 양식을 제출할 때 사용할 수 있는 "제출"버튼을 만들 수 있다.
+```html
+ <input type="submit"><br>
+ <input type="submit" value="제출"><br>
+```
+- 제출 버튼은 뒤에서 다룰  \<form>태그와 함께 사용된다.
+- 제출 버튼을 누르는 순간 다른 컴퓨터로 데이터가 전송된다.
+
+### 알아둬야 하지만 사용하지는 말것!
+- \<input>태그의 button타입 속성으로 구현한 버튼과 submit타입 속성으로 구현한 버튼, \<button>태그로 구현한 버튼은 것보기에는 차이가 없다.
+- 하지만 거의 모든 경우에 \<button>태그가 상위호환 기능이다.
+- \<button>태그는 CSS를 적용하여 아름답게 꾸미기가 쉽고, JS코드를 연결하여 온갖 다채로운 기능을 부여하기에도 좋다.
+
+### 파일 업로드를 위한 file
+- file타입을 활용하면 이메일이나 게시판의 첨부파일 등록 따위에 사용되는 파일 업로드 버튼을 표현할 수 있다.
+```html
+<input type="file"> <br>
+```
+- 버튼을 누르면 우리에게 익숙한 파일 탐색기가 실행이된다.
+- 모바일에서도 적당한 파일 업로드 탐색기가 실행이된다.
+- accept속성을 추가하는 것으로 입력받을 파일의 종류를 제어할 수 있다.
+```html
+ <input type="file" accept="image/*"/> <br>
+ <input type="file" accept="audio/*"/> <br>
+ <input type="file" accept="video/*"/> <br>
+ <input type="file" accept=".jpg, .png, .pdf"/><br> 
+```
+
+### 색상을 입력받는 color
+- 사용자로부터 색상을 입력받을 때는 color타입을 활용한다.
+- 버튼을 클릭하면 색상을 선택할 수 있는 팔레트 창이 화면에 표시된다.
+- 여기서 사용자가 선택한 색상이 브라우저에 전달된다.
+```html
+<input type="color"><br>
+<input type="color" value="#ff0000"><br>
+```
+
+## \<input>태그의 선택지 입력 타입
+### Yes or No, checkbox
+- yes/no로 구성된 2지선다를 코딩으로 구현한 것입니다.
+```html
+ <input type="checkbox">아침을 드셨나요??<br>
+ <input type="checkbox">점심을 드셨나요??<br>
+ <input type="checkbox" checked>저녁을 드셨나요??<br>
+```
+
+### 여러 선택지중 하나, radio
+- 여러 선택지중 하나를 선택할 때는 radio타입을 활용한다.
+```html
+<p>
+    <input type="radio" name="radio1"  checked>한식
+    <input type="radio" name="radio1">중식
+    <input type="radio"name="radio1" >일식
+    <input type="radio" name="radio1">양식
+</p>
+<p>
+    <input type="radio"name="radio2" checked> 뜨거운 것
+    <input type="radio" name="radio2" > 차가운 것
+</p>
+<p>
+    <input type="radio"name="radio3" checked> 매운 것
+    <input type="radio" name="radio3"> 안매운 것
+</p>
+```
+- name속성을 삭제한 후 버튼을 다시 눌러보자.
+```html
+<p>
+    <input type="radio"  checked>한식
+    <input type="radio">중식
+    <input type="radio">일식
+    <input type="radio">양식
+</p>
+<p>
+    <input type="radio" checked> 뜨거운 것
+    <input type="radio" > 차가운 것
+</p>
+<p>
+    <input type="radio" checked> 매운 것
+    <input type="radio"> 안매운 것
+</p>
+```
+- 한 번 눌린 선택지가 해제되지 않는걸 볼 수 있다.
+- 이번에는 모든 태그의 name속성을 동일하게 만들어보자.
+```html
+<p>
+    <input type="radio" name="radio"  checked>한식
+    <input type="radio" name="radio">중식
+    <input type="radio"name="radio" >일식
+    <input type="radio" name="radio">양식
+</p>
+<p>
+    <input type="radio"name="radio" checked> 뜨거운 것
+    <input type="radio" name="radio" > 차가운 것
+</p>
+<p>
+    <input type="radio"name="radio" checked> 매운 것
+    <input type="radio" name="radio"> 안매운 것
+</p>
+
+```
+- 이번에는 선택지를 하나 클릭하면 나머지 모든 선택지가 해제된다.
+- radio타입은 name이 동일한 대상들을 하나의 그룹으로 인식하고, 하나의 그룹 안에서 반드시 하나의 선택지만 선택되도록 세팅되어있다.
+- name을 삭제하면 각 선택지가 모두 별개의 그룹으로 인식되어, 한 개의 선택지를 선택하더라도 다른 선택지가 영향을 받지 않는다.
+
+### 슬라이더로 값을 선택하는 range
+- 최소값은 min
+- 최댜값은 max
+- 증감량은 step
+- 초기값 지정은 value
+```html
+<input type="range" min="0" max="1000"><br>
+<input type="range" min="0" max="1000"
+step="10"><br>
+<input type="range" min="0" max="1000"
+step="10" value="100"><br>
+```
+
+## \<input>태그의 날짜와 시간 입력 타입
+- 날짜와 시간을 입력하는 태그는 사실 자주 사용되지 않는다.
+- 왜냐하면 JS를 활용하면 현재 시각을 굳이 사용자에게 물어보지 않고 확인할 수 있기 때문이다.
+
+```HTML
+<p>
+<input type="date">
+</p>
+<!-- 월을 입력받는 month-->
+<p>
+    <input type="month"
+</p>
+<!-- 주를 입력받는 week-->
+<p>
+    <input type="week"
+</p>
+<!-- 시간을 입력받는 time
+시간에 대한 예약을 받아야 할 때-->
+<p>
+    <input type="time"
+</p>
+
+<!-- 날짜와 시간을 동시에 입력받는 datetime-local
+날짜와 시간을 동시에 입력받아야 하는 경우 -->
+ <p>
+    <input type="datetime-local">
+ </p>
+```
+## \<input>으로 입력받은 데이터는 어디로 가나요?
+- 사용자의 PC는 HTTP라는 규격을 따라 서버와 대화를 나눈다.
+- 이때 PC와 서버가 주고받는 정보는 복잡하고 난해하므로, 그들 사이의 대화에 일반인이 끼어드는 것은 몹시 어려운일이다.
+- \<input>태그는 우리가 이 대화에 개입하는 것을 도와주는 도구이다.
+
+<br>
+<br>
+
+# 구코드---------------------
+<br>
+<br>
+<br>
 
 # 글자/폰트 관련 태그
 
