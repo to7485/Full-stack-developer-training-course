@@ -483,5 +483,103 @@ let todoItems = items.length > 0 && (
 }
 ///////////////////////////////////////////////////////////////
 export default App;
+```
+
+## useEffect 훅
+- React의 함수형 컴포넌트에서 사이드 이펙트를 처리하는 데 사용된다.
+- 사이드 이펙트는 컴포넌트의 렌더링과는 직접적으로 관련이 없는 작업들을 말한다.
+- 예를 들어 데이터 fetching, 구독 설정, 타이머 설정 등이 있습니다.
+- useEffect 훅은 컴포넌트가 렌더링된 후에 특정 작업을 수행하거나 컴포넌트가 업데이트되었을 때 실행되는 코드를 작성할 수 있게 해준다.
+
+### useEffect 사용법
+```js
+import React, { useEffect, useState } from 'react';
+
+function MyComponent() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    // 이 부분이 사이드 이펙트 코드입니다.
+    document.title = `You clicked ${count} times`;
+
+    // 클린업 함수 (선택적)
+    return () => {
+      // 컴포넌트가 언마운트되거나 의존성 배열의 값이 변경되기 전에 실행됩니다.
+    };
+  }, [count]); // 의존성 배열
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>Click me</button>
+    </div>
+  );
+}
+```
+### 주요 개념
+1. 첫 번째 인자 : 사이드 이펙트 함수
+    - useEffect의 첫 번째 인자는 사이드 이펙트 로직을 포함한 함수다.
+    - 이 함수는 컴포넌트가 렌더링된 후에 실행된다.
+
+2. 두 번째 인자: 의존성 배열
+    - 이 배열에 포함된 값들이 변경될 때만 사이드 이펙트 함수가 다시 실행된다.
+    - 배열을 생략하면 사이드 이펙트 함수는 매 렌더링마다 실행된다.
+    - 배열이 빈 경우, 사이드 이펙트 함수는 컴포넌트가 처음 마운트될 때만 실행됩니다.
+
+3. 클린업 함수 (선택적)
+    - 사이드 이펙트 함수는 선택적으로 클린업 함수를 반환할 수 있다.
+    - 이 클린업 함수는 컴포넌트가 언마운트되거나 의존성 배열의 값이 변경되기 전에 실행된다.
+    - 예를 들어, 타이머를 설정한 경우 클린업 함수에서 타이머를 정리할 수 있다.
+  
+### 사용 예시
+- 데이터 fetching
+    - 컴포넌트가 마운트될 때 데이터를 가져오고, 컴포넌트가 언마운트될 때 요청을 취소하거나 클린업 작업을 수행할 수 있다.
+```js
+useEffect(() => {
+  const fetchData = async () => {
+    const response = await fetch('https://api.example.com/data');
+    const data = await response.json();
+    // 데이터 상태를 설정
+  };
+
+  fetchData();
+
+  // 클린업 함수 (선택적)
+  return () => {
+    // 예를 들어, 요청 취소 로직
+  };
+}, []); // 빈 배열: 컴포넌트가 처음 마운트될 때만 실행
+```
+### 의존성 배열의 종류
+1. 의존성 배열이 비어 있는 경우 ([])
+- 이 경우, useEffect는 컴포넌트가 처음 마운트될 때만 실행된다.
+- 이후에는 사이드 이펙트가 다시 실행되지 않습니다.
+```js
+useEffect(() => {
+  // 이 사이드 이펙트는 컴포넌트가 처음 마운트될 때만 실행됩니다.
+  console.log('Component mounted');
+
+  // 클린업 함수 (선택적)
+  return () => {
+    console.log('Component will unmount');
+  };
+}, []); // 빈 배열
+```
+2. 의존성 배열에 상태나 프로퍼티를 포함하는 경우
+- 이 경우, 의존성 배열에 포함된 값들이 변경될 때마다 useEffect의 사이드 이펙트 함수가 실행된다.
+```js
+const [count, setCount] = useState(0);
+
+useEffect(() => {
+  console.log(`Count has changed to ${count}`);
+
+  // 클린업 함수 (선택적)
+  return () => {
+    console.log('Cleanup before the next effect or unmount');
+  };
+}, [count]); // count가 변경될 때마다 실행
 
 ```
+3. 의존성 배열이 없는 경우
+- 사이드 이펙트 함수는 컴포넌트가 렌더링될 때마다 실행된다.
+- 이는 의존성 배열을 생략한 경우의 기본 동작입니다.
