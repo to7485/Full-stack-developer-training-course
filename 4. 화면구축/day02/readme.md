@@ -583,3 +583,156 @@ useEffect(() => {
 3. 의존성 배열이 없는 경우
 - 사이드 이펙트 함수는 컴포넌트가 렌더링될 때마다 실행된다.
 - 이는 의존성 배열을 생략한 경우의 기본 동작입니다.
+
+## useRef 훅
+- React에서 DOM 요소나 컴포넌트 인스턴스에 대한 레퍼런스를 유지할 때 사용된다.
+- useState와 달리 렌더링 사이에서 값을 저장할 수 있으며, 컴포넌트가 다시 렌더링되더라도 값이 유지된다.
+- 컴포넌트 렌더링과 관련이 없는 값을 저장하거나, DOM 요소에 직접 접근할 때 유용합니다.
+
+### 생성
+```js
+const 변수명 = useRef(초기값)
+
+함수의 실행 결과로 {current : 초기값}을 지닌 객체가 반환된다.
+```
+
+### 주요 기능
+1. DOM 요소에 접근하기
+    - 컴포넌트가 렌더링된 후 DOM 요소에 접근할 수 있다.
+    - 이 기능은 폼 요소에 포커스를 설정하거나, 스크롤 위치를 조정하는 등의 작업에 유용하다.
+    - 바닐라 자바스크립트의 getElementById, querySelector와 비슷하다.
+```js
+const App = () => {
+
+const countVar = 0;
+
+const increaseVar = () => {
+countVar = countVar +1;
+}
+
+return (
+<div>
+<p>Var: {countVar} </p>
+{/*버튼을 누르고 렌더링을 해주면 var는 몇이 나올까?
+정답은 0이다. 렌더링을 해준다는 것은 함수를 처음부터 다시 실행한다는 것을 의미한다.
+렌더링을 할때마다 App컴포넌트를 나타내는 함수가 다시 불린다. 그러면 함수가 불릴때마다 이 함수 내부에 있는 변수들이 다시 초기화가 된다.
+따라서 렌더링이 될때마다 const countVar = 0; 를 통해서 countVar라는 변수에는 계속해서 0으로 초기화가 된다.
+*/}
+<button onClick={increaseVar}> Var올려 </button>
+</div>
+)
+```
+```JS
+import React, { useRef } from 'react';
+
+function FocusInput() {
+  // useRef를 사용하여 input 요소에 대한 레퍼런스 생성
+  const inputRef = useRef(null);
+
+  const handleClick = () => {
+    // input 요소에 포커스를 설정
+    inputRef.current.focus();
+  };
+
+  return (
+    <div>
+      <input ref={inputRef} type="text" />
+      <button onClick={handleClick}>Focus the input</button>
+    </div>
+  );
+}
+
+export default FocusInput;
+```
+- 실습
+```js
+import React, { useState, useRef } from "react";
+
+const InputSample = () => {
+  const [inputs, setInputs] = useState({
+    이름: "",
+    nickname: "",
+  });
+
+  const nameFocus = useRef();
+
+  const { 이름, nickname } = inputs;
+
+  const onChange = (e) => {
+    const { value, name } = e.target;
+    setInputs({
+      ...inputs,
+      [name]: value,
+    });
+  };
+
+  const onReset = () => {
+    setInputs({
+      이름: "",
+      nickname: "",
+    });
+    nameFocus.current.focus();
+  };
+  return (
+    <div>
+      <input
+        name="이름"
+        placeholder="이름쓰세요"
+        onChange={onChange}
+        value={이름}
+        ref={nameFocus}
+      />
+      <input
+        name="nickname"
+        placeholder="닉네임쓰세요"
+        onChange={onChange}
+        value={nickname}
+      />
+      <button onClick={onReset}>초기화</button>
+      <div>
+        <b>값:</b>
+        {이름}({nickname})
+      </div>
+    </div>
+  );
+};
+
+export default InputSample;
+```
+2. 렌더링 간 값 유지하기
+    - 렌더링 간에 값을 저장할 수 있다.
+    - 이 값은 컴포넌트의 렌더링 사이에서 변경될 수 있지만, 상태 업데이트로 인해 렌더링을 트리거하지 않습니다.
+3. 구독 객체나 타이머 ID를 저장하고, 클린업 함수에서 이러한 값을 활용할 수 있습니다.
+```js
+import React from "react";
+import { useState } from "react";
+import { useRef } from "react";
+
+function AppRef(){
+    const refNum = useRef(0);
+    const [stateNum, setStateNum] = useState(0);
+
+    console.log("렌더링 발생");
+
+    const increaseStateNum = ()=>{
+        setStateNum((stateNum)=>(stateNum+1));
+    }
+    
+    const increaseRefNum = ()=>{
+        refNum.current = refNum.current+1;
+        console.log(`refNum : ${refNum.current}`);
+    }
+    return(
+        <>
+            <h1>refNum:{refNum.current}</h1>
+            <h1>stateNum:{stateNum}</h1>
+            <button onClick={increaseRefNum}>refNum + 1 </button>
+            <button onClick={increaseStateNum}>stateNum + 1 </button>
+        </>
+    )
+}
+
+export default AppRef;
+```
+
+
