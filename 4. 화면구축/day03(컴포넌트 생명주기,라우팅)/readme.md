@@ -423,6 +423,7 @@ export default App;
 
 ### 네비게이션 구현
 - Link 컴포넌트를 사용하여 페이지간 이동할 수 있는 링크를 만든다.
+
 ```js
 // Navbar.js
 
@@ -440,7 +441,96 @@ function Navbar() {
 }
 
 export default Navbar;
+```
+### \<Link> 컴포넌트
+- SPA에서 페이지 전환을 처리하기 위해 사용한다.
+- 일반적인 HTML의 \<a>태그와 유사하지만, 페이지 전체를 다시 로드하지 않고도 URL을 변경하고 해당 경로에 맞는 컴포넌트를 렌더링한다.
 
+### 장점
+- 브라우저 히스토리 관리
+  - Link 컴포넌트를 사용하면 브라우저의 뒤로가기, 앞으로 가기 기능이 정상적으로 동작한다.
+
+### Link 컴포넌트의 주요 속성
+- to속성 : 이동할 경로를 지정한다. 문자열 또는 객체를 전달할 수 있다.
+#### 문자열 형태
+```js
+<Link to="/경로">
+```
+#### 객체 형태
+```js
+<Link
+  to={{
+    pathname: '/search',
+    search: '?query=react',
+    hash: '#top',
+  }}
+>
+  검색
+</Link>
+```
+- replace : true로 설정하면 현재 히스토리 엔트리를 대체한다.
+```js
+<Link to="/login" replace>
+  로그인
+</Link>
+
+```
+- state : 링크를 통해 전달할 추가 상태 정보를 담는다.
+```js
+<Link
+  to={{
+    pathname: '/profile',
+    state: { fromDashboard: true },
+  }}
+>
+  프로필
+</Link>
+
+```
+
+### Link 컴포넌트의 동작 원리
+#### 히스토리 API 활용
+- Link 컴포넌트를 클릭하면 React Router는 브라우저의 히스토리 스택에 새로운 엔트리를 추가한다.
+#### 라우트 매칭
+- URL이 변경되면 React Router는 새로운 경로에 매칭되는 컴포넌트를 찾아서 렌더링한다.
+#### 페이지 리로드 방지
+- 이벤트의 기본 동작을 방지하여 페이지 전체가 다시 로드되는 것을 막는다. 
+
+
+## 동적 라우트
+
+### 동적 라우트의 개념
+- 동적 라우트는 URL의 일부를 변수처럼 사용하여 다양한 경로를 처리할 수 있는 기능이다. 
+- 이를 통해 하나의 라우트 설정으로 여러 유사한 경로를 처리할 수 있다.
+- 예를 들어, 블로그 애플리케이션에서 각 게시글마다 고유한 ID나 슬러그를 사용하여 상세 페이지를 보여줄 때 동적 라우트를 사용한다.
+
+```
+- 정적 라우트 예시: /about, /contact
+- 동적 라우트 예시: /posts/1, /posts/2, /users/username
+```
+
+### 동적 라우트 설정 방법
+- 동적 라우트를 설정하려면 Route 컴포넌트의 path 속성에 콜론(:)을 사용하여 파라미터를 정의한다.
+```js
+<Route path="/posts/:postId" element={<PostDetail />} />
+```
+
+### URL 파라미터 접근 방법
+- 동적 라우트로 설정된 경로에서 컴포넌트는 useParams 훅을 사용하여 URL 파라미터에 접근할 수 있다.
+```js
+import { useParams } from 'react-router-dom';
+
+function PostDetail() {
+  const { postId } = useParams();
+
+  // postId를 사용하여 데이터 가져오기 등 작업 수행
+  return (
+    <div>
+      <h2>게시글 상세 페이지</h2>
+      <p>게시글 ID: {postId}</p>
+    </div>
+  );
+}
 ```
 
 ## useParam
@@ -454,12 +544,6 @@ export default Navbar;
 import { useParams } from 'react-router-dom';
 ```
 - 이 훅을 호출하면 URL 파라미터의 키-값 쌍을 가진 객체를 반환한다.
-
-### 동적 라우트 설정
-- 동적 라우트를 사용하기 위해서는 Route 컴포넌트의 경로에 콜론(:)을 사용하여 파라미터를 정의한다.
-```js
-<Route path="/users/:id" element={<UserProfile />} />
-```
 
 ### UserProfile.js
 - 유저의 프로필이 보여질 컴포넌트 작성하기
@@ -540,35 +624,5 @@ export default App;
 
 ```
 
-## 동적 라우트
-
-### 동적 라우트의 개념
-- 동적 라우트는 URL의 일부를 변수처럼 사용하여 다양한 경로를 처리할 수 있는 기능이다. 
-- 이를 통해 하나의 라우트 설정으로 여러 유사한 경로를 처리할 수 있다.
-- 예를 들어, 블로그 애플리케이션에서 각 게시글마다 고유한 ID나 슬러그를 사용하여 상세 페이지를 보여줄 때 동적 라우트를 사용한다.
-
-### 동적 라우트 설정 방법
-- 동적 라우트를 설정하려면 Route 컴포넌트의 path 속성에 콜론(:)을 사용하여 파라미터를 정의한다.
-```js
-<Route path="/posts/:postId" element={<PostDetail />} />
-```
-
-### URL 파라미터 접근 방법
-- 동적 라우트로 설정된 경로에서 컴포넌트는 useParams 훅을 사용하여 URL 파라미터에 접근할 수 있다.
-```js
-import { useParams } from 'react-router-dom';
-
-function PostDetail() {
-  const { postId } = useParams();
-
-  // postId를 사용하여 데이터 가져오기 등 작업 수행
-  return (
-    <div>
-      <h2>게시글 상세 페이지</h2>
-      <p>게시글 ID: {postId}</p>
-    </div>
-  );
-}
-```
 
 
