@@ -368,22 +368,41 @@ export default AppRef;
 
 # 리액트 라우터
 
-## 1. 리액트 라우터의 개념 및 필요성
+## 1. 리액트 라우터의 개념
 - 리액트는 SPA(Single Page Application)로, 하나의 HTML 페이지에서 여러 컴포넌트를 교체하며 동작한다.
 - 그러나 여러 페이지를 가진 웹사이트처럼 URL에 따라 다른 화면을 보여주고 싶을 때가 있다. 
-- 이때 **리액트 라우터(React Router)**를 사용하면 URL과 컴포넌트를 연결하여 페이지 전환 효과를 줄 수 있다.
+- 사용자가 URL을 변경하거나 네비게이션을 할 때 페이지를 새로고침하지 않고도 URL에 맞는 컴포넌트를 렌더링할 수 있도록 해준다.
+
+
+## 2. 리액트 라우터의 필요성
+### 1. SPA의 특성 유지
+- 리액트 애플리케이션은 기본적으로 하나의 HTML 페이지에서 여러 컴포넌트를 전환하면서 동작한다. 
+- 리액트 라우터를 사용하면 브라우저의 새로고침 없이도 URL을 변경하고 해당 URL에 맞는 컴포넌트를 렌더링할 수 있다.
+
+### 2. 페이지 전환 시 깜빡임 방지
+- 전통적인 멀티 페이지 애플리케이션에서는 사용자가 페이지를 이동할 때마다 전체 페이지를 다시 로드하게 되어 깜빡임 현상이 발생한다. 
+- 리액트 라우터는 클라이언트 사이드 라우팅을 통해 페이지 전환 시 깜빡임 현상을 없애고, 보다 매끄럽고 빠른 사용자 경험을 제공한다.
+
+### 3. 브라우저 히스토리 관리
+- 리액트 라우터는 브라우저의 히스토리 API를 사용하여 뒤로 가기, 앞으로 가기 등의 네비게이션 기능을 정상적으로 동작하게 한다. 
+- 사용자가 페이지를 탐색할 때 히스토리가 관리되므로, 이전 페이지로 쉽게 돌아갈 수 있다.
+
+#### 히스토리 API(History API)
+- 브라우저에서 사용자의 탐색 기록(히스토리)을 조작하고 관리할 수 있는 기능을 제공하는 웹 API이다.
+- 이 API를 사용하면 JavaScript를 통해 브라우저의 주소(URL)를 변경하거나, 사용자의 브라우저 히스토리를 업데이트할 수 있다. 
+
+### 4. 복잡한 애플리케이션 구조 관리
+- 대규모 애플리케이션에서는 여러 개의 페이지와 다양한 경로를 관리해야 한다. 
+- 리액트 라우터는 이러한 복잡한 경로 구조를 컴포넌트 형태로 쉽게 관리할 수 있게 해준다.
 
 ### 설치
 ```JS
 npm install react-router-dom
 ```
 
-### 기본설정
-- BrowerRouter로 애플리케이션을 감싸줘 라우팅 기능을 활성화 한다.
-
+## 라우팅 예제
+### index.js
 ```js
-// index.js
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
@@ -396,11 +415,13 @@ ReactDOM.render(
   document.getElementById('root')
 );
 ```
+- BrowserRouter 
+  - 브라우저 환경에서 HTML5 히스토리 API를 사용하여 클라이언트 사이드 라우팅을 관리한다.
 
-### 라우트 정의
+### App.js에 라우트 정의
 - Route 컴포넌트를 사용하여 경로와 렌더링할 컴포넌트를 지정한다.
 ```js
-// App.js
+
 
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
@@ -420,13 +441,15 @@ function App() {
 
 export default App;
 ```
+- Routes
+  - 모든 라우트를 그룹화하며, URL 경로에 따라 적절한 라우트를 렌더링한다.
+- Route
+  - 개별 경로와 해당 경로에서 렌더링할 컴포넌트를 정의한다.
+- 네비게이션 구현
+  - Link 컴포넌트를 사용하여 페이지간 이동할 수 있는 링크를 만든다.
 
-### 네비게이션 구현
-- Link 컴포넌트를 사용하여 페이지간 이동할 수 있는 링크를 만든다.
-
+### Navbar.js
 ```js
-// Navbar.js
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -442,13 +465,10 @@ function Navbar() {
 
 export default Navbar;
 ```
-### \<Link> 컴포넌트
-- SPA에서 페이지 전환을 처리하기 위해 사용한다.
-- 일반적인 HTML의 \<a>태그와 유사하지만, 페이지 전체를 다시 로드하지 않고도 URL을 변경하고 해당 경로에 맞는 컴포넌트를 렌더링한다.
+- Link: 사용자가 클릭할 때 해당 경로로 이동시키는 링크를 생성한다.
+  - SPA에서 페이지 전환을 처리하기 위해 사용한다.
+  - 일반적인 HTML의 \<a>태그와 유사하지만, 페이지 전체를 다시 로드하지 않고도 URL을 변경하고 해당 경로에 맞는 컴포넌트를 렌더링한다.
 
-### 장점
-- 브라우저 히스토리 관리
-  - Link 컴포넌트를 사용하면 브라우저의 뒤로가기, 앞으로 가기 기능이 정상적으로 동작한다.
 
 ### Link 컴포넌트의 주요 속성
 - to속성 : 이동할 경로를 지정한다. 문자열 또는 객체를 전달할 수 있다.
@@ -624,5 +644,214 @@ export default App;
 
 ```
 
+## 중첩 라우트
+- 우트 내에 또 다른 라우트를 정의하여 계층 구조를 형성하는 방식이다. 
+- 페이지나 컴포넌트의 중첩된 구조를 반영하고, 하나의 라우트 아래에서 다른 라우트를 렌더링하는 경우에 사용된다.
+
+### 라우트 중첩 실습
+### App.js
+```js
+// App.js
+
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Dashboard from './Dashboard';
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/dashboard/*" element={<Dashboard />} />
+    </Routes>
+  );
+}
+
+export default App;
+```
+
+### Dashboard.js
+```js
+import React from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
+import Overview from './Overview';
+import Settings from './Settings';
+
+function Dashboard() {
+  return (
+    <div>
+      <h1>대시보드</h1>
+      <nav>
+        <ul>
+          <li><Link to="overview">개요</Link></li>
+          <li><Link to="settings">설정</Link></li>
+        </ul>
+      </nav>
+      <Routes>
+        <Route path="overview" element={<Overview />} />
+        <Route path="settings" element={<Settings />} />
+      </Routes>
+    </div>
+  );
+}
+
+export default Dashboard;
+```
+
+### Overview.js
+```js
+import React from 'react';
+
+function Overview() {
+  return <h2>대시보드 개요 페이지</h2>;
+}
+
+export default Overview;
+```
+
+### Settings.js
+```js
+import React from 'react';
+
+function Settings() {
+  return <h2>대시보드 설정 페이지</h2>;
+}
+
+export default Settings;
+```
+
+## 리다이렉션
+- 특정 조건에 따라 사용자를 다른 페이지로 자동 이동시키는 기능이다.
+- 로그인 후 홈 페이지로 리다이렉트하거나, 사용자가 존재하지 않는 페이지에 접근할 때 404 페이지로 리다이렉트할 수 있다.
+
+### App.js
+```js
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Home from './Home';
+import NotFound from './NotFound';
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
+export default App;
+```
+
+### Home.js
+```js
+import React from 'react';
+
+function Home() {
+  return <h1>홈 페이지</h1>;
+}
+
+export default Home;
+```
+
+### NotFound.js
+```js
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+
+function NotFound() {
+  // 사용자를 홈 페이지로 리다이렉트
+  return <Navigate to="/" />;
+}
+
+export default NotFound;
+```
+### \<Navigate /> 컴포넌트
+- React Router에서 제공하는 컴포넌트로, 사용자를 특정 경로로 리다이렉트하기 위해 사용된다. 
+- 이 컴포넌트는 페이지를 새로고침하지 않고도 현재 경로를 변경할 수 있다.
+### Navigate 컴포넌트의 주요 기능
+1. 즉시 리다이렉션
+   - 사용자가 특정 경로에 접근할 때 즉시 다른 경로로 이동시킬 수 있다. 
+   - 예를 들어, 인증되지 않은 사용자가 보호된 페이지에 접근하려 할 때 로그인 페이지로 리다이렉트할 수 있다.
+2. 브라우저 히스토리 관리
+   - 브라우저의 히스토리에 새 항목을 추가하거나(push), 현재 항목을 교체(replace)하여 브라우저의 뒤로 가기/앞으로 가기 버튼이 예상대로 작동하도록 관리할 수 있다.
+
+### Navigate 컴포넌트의 주요 속성(props)
+1. to
+   - 사용자를 이동시키려는 경로를 지정한다.
+   - ex) to="/login"은 사용자를 /login 경로로 이동시킨다.
+2. replace
+   - 리다이렉션할 때 현재 히스토리 항목을 새 항목으로 대체할지 여부를 결정한다.
+   - replace={true}로 설정하면 브라우저의 히스토리 스택에서 현재 항목을 새로운 항목으로 교체한다. 
+   - 즉, "뒤로 가기" 버튼을 눌렀을 때 리다이렉트된 경로로 다시 돌아가지 않는다.
+   - 기본값은 false다. 즉, 히스토리 스택에 새로운 항목이 추가된다.
+
+- NotFound 컴포넌트는 사용자가 잘못된 경로에 접근할 때 렌더링되며, 즉시 홈 페이지로 리다이렉트한다.
+
+## 라우트 보호
+- 특정 조건을 만족하는 사용자만 특정 라우트에 접근할 수 있도록 제한하는 기능이다.
+- 주로 인증된 사용자만 접근 가능한 페이지를 만들 때 사용한다.
+- 로그인하지 않은 사용자는 "대시보드" 페이지에 접근할 수 없게 하거나, 관리자 권한이 있는 사용자만 "관리자 페이지"에 접근할 수 있도록 할 수 있다.
+
+### 라우트 보호 실습
+
+### PrivateRoute.js
+- 인증 여부를 확인한 후 접근을 허용하거나 로그인 페이지로 리다이렉트한다.
+```js
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+
+function PrivateRoute({ element, isAuthenticated }) {
+  return isAuthenticated ? element : <Navigate to="/login" />;
+}
+
+export default PrivateRoute;
+```
+
+### App.js
+```js
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Dashboard from './Dashboard';
+import Login from './Login';
+import PrivateRoute from './PrivateRoute';
+
+function App() {
+  const isAuthenticated = false; // 실제로는 사용자 인증 상태를 확인해야 한다.
+
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/dashboard"
+        element={<PrivateRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />}
+      />
+    </Routes>
+  );
+}
+
+export default App;
+```
+- PrivateRoute 컴포넌트는 isAuthenticated가 true일 때는 자식 컴포넌트를 렌더링하고, 그렇지 않으면 로그인 페이지로 리다이렉트한다.
+
+### Login.js
+```js
+import React from 'react';
+
+function Login() {
+  return <h2>로그인 페이지</h2>;
+}
+
+export default Login;
+```
+
+### Dashboard.js
+```js
+import React from 'react';
+
+function Dashboard() {
+  return <h2>대시보드 페이지 (로그인 필요)</h2>;
+}
+
+export default Dashboard;
+```
 
 
