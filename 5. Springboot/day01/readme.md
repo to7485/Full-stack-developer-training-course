@@ -446,16 +446,6 @@ OpenJDK Runtime Environment Corretto-17.0.12.7.1 (build 17.0.12+7-LTS)
 OpenJDK 64-Bit Server VM Corretto-17.0.12.7.1 (build 17.0.12+7-LTS, mixed mode, sharing)
 ```
 
-## 이클립스 설치
-- 책에서는 어떤 버전을 사용하라고 명시가 되어있지는 않았기 때문에 24-06 버전을 사용해보자
-
-https://www.eclipse.org/downloads/packages/release/2024-06/r
-
-
-- Eclipse IDE for Java Developer를 다운받는다.
-
-## 스프링 프레임워크와 의존성 주입
-
 ### 스프링
 - 자바 플랫폼을 위한 오픈 소스 애플리케이션 프레임워크로, 주로 **엔터프라이즈급** 애플리케이션을 개발하는 데 사용된다. 
 - 스프링 프레임워크는 다양한 기능을 제공하여 자바 애플리케이션의 개발을 쉽게 하고, 유지 보수성을 향상시킨다. 
@@ -526,6 +516,58 @@ https://www.eclipse.org/downloads/packages/release/2024-06/r
 - **설명**: 스프링 애플리케이션을 간편하게 설정하고 실행할 수 있도록 도와주는 프레임워크다. 내장 서버(Tomcat, Jetty 등)를 제공하여 빠르게 독립 실행형 애플리케이션을 개발할 수 있다.
 - **주요 기능**: 자동 설정, 내장 웹 서버, 간편한 프로젝트 설정 및 빌드.
 
+## 이클립스 설치
+- 책에서는 어떤 버전을 사용하라고 명시가 되어있지는 않았기 때문에 24-06 버전을 사용해보자
+
+https://www.eclipse.org/downloads/packages/release/2024-06/r
+
+- Eclipse IDE for Java Developer를 다운받는다.
+
+## 스프링부트 프로젝트 만들기
+- 스프링 프로젝트는 스프링 부트가 제공하는 툴인 https://start.spring.io/에서 원하는 라이브러리를 선택 한 후 하단의 Generate버튼을 눌러 생성할 수 있다.
+
+![img](img/프로젝트%20생성.png)
+
+### Project
+- 생성할 프로젝트의 빌드 자동화 툴을 선택한다.
+- 대표적으로 Maven과 Gradle이 있다.
+
+### Language
+- 생성할 프로젝트의 언어를 선택한다.
+
+### Spring Boot
+- 생성할 프로젝트의 스프링 부트 버전을 선택한다.
+- 2.xx은 지원이 종료됐다.
+
+### Project Metadata
+- Group: 조직이나 프로젝트 그룹을 식별하는 네임스페이스 역할. (ex: com.example)
+- Artifact: 프로젝트의 고유 이름으로, 빌드된 결과물의 파일 이름. (ex: my-web-app)
+
+### Packaging
+- **JAR**은 자바 애플리케이션에서 **일반적으로 사용하는 패키지 형식**으로, 자바 클래스를 포함한 라이브러리, 리소스 파일(이미지, XML, properties 등)을 하나의 압축 파일로 묶는 데 사용된다.
+- **WAR**은 웹 애플리케이션을 배포하기 위해 사용되는 패키지 형식이다.
+
+### Dependencies
+- 프로젝트를 만들면서 필요한 라이브러리들을 추가할 수 있다.
+
+## 이클립스에서 프로젝트 import하기
+- 압축 해제한 프로젝트를 이클립스에서 열기 위해 이클립스 실행한 후  File > import를 선택한다.
+
+![img](img/import1.png)
+
+- Browse눌러서 프로젝트의 경로를 설정해준다.
+- Next를 눌러서 Import Option으로 간다.
+
+![img](img/import2.png)
+
+- Override workspace settings를 체크한다.
+- Gradle distribution에서 Gradle wrapper를 선택한다.
+
+![img](img/import3.png)
+
+- 이 작업을 해야 하는 이유는 윈도우에 Gradle을 설치하지 않았기 때문이다.
+- 대신 Spring Initializr에서 프로젝트를 다운로드 할 때 gradlew라는 프로그램을 같이 받았기 때문에 따로 설치할 필요가 없다.
+
 # 스프링의 핵심 개념
 
 ## 1. IoC (Inversion of Control, 제어의 역전)
@@ -565,89 +607,9 @@ https://www.eclipse.org/downloads/packages/release/2024-06/r
    - IoC 컨테이너는 애플리케이션이 실행될 때 모든 빈을 생성하고, 해당 빈의 라이프사이클을 관리한다. 
    - 애플리케이션이 종료되면 필요한 리소스 정리 작업도 수행된다.
 
-## 2. 의존성 주입
-### 기본 개념:
-- **의존성**: 한 객체가 다른 객체의 기능을 사용해야 할 때 이를 의존성이라 한다. 
-  - 예를 들어, `UserService` 클래스가 `UserRepository` 클래스에 의존하면 `UserService`는 `UserRepository`가 있어야만 동작할 수 있다.
-- **주입**: 의존성을 필요로 하는 객체에 외부에서 해당 의존성을 제공하는 것을 말한다. 
-  - 객체가 직접 의존성을 생성하지 않고, 외부에서 주입해 주는 방식이다.
 
-### 전통적인 객체 생성과 의존성 문제:
-- 일반적으로 객체는 필요한 의존성을 내부에서 직접 생성하는 방식으로 처리할 수 있다. 
-- 하지만 이는 객체 간의 결합도가 높아지고, 코드의 재사용성과 유지보수성이 떨어지게 된다.
-
-```
-※ 결합도
-소프트웨어 모듈 간의 의존성을 나타내는 개념으로, 하나의 모듈이 다른 모듈에 얼마나 의존하는지를 측정한다. 
-모듈 간의 결합이 높을수록, 즉 결합도가 높을수록 하나의 모듈을 변경했을 때 다른 모듈에도 영향을 미치기 쉽다. 
-반면, 결합도가 낮을수록 모듈 간의 독립성이 커지며 유지보수와 확장이 쉬워진다.
-```
-
-#### 전통적인 방식 (직접 객체 생성)
-```java
-public class UserService {
-    private UserRepository userRepository = new UserRepository();
-    
-    public void registerUser(String user) {
-        userRepository.save(user);
-    }
-}
-```
-
-#### 1. 생성자 주입 (Constructor Injection)
-- 의존성을 클래스의 생성자를 통해 주입하는 방식이다. 
-- 객체가 생성될 때 반드시 필요한 의존성을 주입해야 할 때 사용된다.
-```java
-public class UserService {
-    private final UserRepository userRepository;
-    
-    // 생성자 주입
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    public void registerUser(String user) {
-        userRepository.save(user);
-    }
-}
-```
-- 장점: 의존성을 변경할 수 없고, 주입된 의존성을 불변하게 유지할 수 있다.
-- 단점: 의존성이 많은 경우 생성자 파라미터가 많아질 수 있다.
-
-#### 2. 세터 주입 (Setter Injection):
-- 의존성을 세터 메서드를 통해 주입하는 방식이다. 
-- 의존성이 선택적이거나 나중에 설정해야 하는 경우에 적합하다.
-```java
-public class UserService {
-    private UserRepository userRepository;
-
-    // 세터 주입
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    public void registerUser(String user) {
-        userRepository.save(user);
-    }
-}
-```
-- 장점: 의존성을 선택적으로 주입할 수 있다.
-- 단점: 객체가 완전히 초기화되지 않았을 때 의존성이 설정되지 않을 수 있다.
-
-#### 3. 필드 주입 (Field Injection)
-- 필드에 직접 의존성을 주입하는 방식으로, 주로 테스트 코드나 스프링 프레임워크와 같은 DI 컨테이너에서 사용된다.
-```java
-public class UserService {
-    @Autowired
-    private UserRepository userRepository;
-
-    public void registerUser(String user) {
-        userRepository.save(user);
-    }
-}
-```
-- 장점: 코드가 간결하며, 별도의 세터나 생성자를 작성할 필요가 없다.
-- 단점: 테스트와 유지보수 시 의존성 관리가 어렵고, 주입된 의존성을 추적하기 어려울 수 있다.
+## 제어역전 실습
+- 자바부터 스프링까지 객체(Bean)을 어떻게 관리하는지 알아보자.
 
 ### 1. 변경에 유리한 코드1 - 다형성,factory method
 ```java
