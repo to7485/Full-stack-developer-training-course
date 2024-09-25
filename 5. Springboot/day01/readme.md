@@ -568,6 +568,28 @@ https://www.eclipse.org/downloads/packages/release/2024-06/r
 - 이 작업을 해야 하는 이유는 윈도우에 Gradle을 설치하지 않았기 때문이다.
 - 대신 Spring Initializr에서 프로젝트를 다운로드 할 때 gradlew라는 프로그램을 같이 받았기 때문에 따로 설치할 필요가 없다.
 
+## 스프링부트 프로젝트의 구성
+
+![img](img/프로젝트의구성.png)
+
+1. src/main/java : 서버단 Java파일
+2. test/main/java : 단위 테스트 Java파일
+3. src/main/resources : 설정 파일 및 View단
+4. src/main/resources/static : css,js,image 등 정적 파일 경로
+5. src/main/resources/templates : html 파일 경로
+6. build.gradle : 라이브러리 의존성 관리
+7. application.yml : 서버 및 DB, 라이브러리 설정파일(properties로 관리를 해도 되지만 yml은 공통적인 부분을 많이 제거할 수 있다.)
+
+![img](img/프로젝트실행.png)
+
+- 패키지 안의 파일에 main메서드가 서버를 돌린다.
+
+### @SpringBootApplication
+- @Configuration, @EnableAutoConfiguration, @ComponentScan 세가지를 하나로 합친것이다.
+    - @Configuration : 해당 클래스가 설정 파일임을 알려주는 용도
+    - @ComponentScan : 자동으로 컴포넌트 클래스를 검색하여 컴포넌트와 빈 클래스를 등록함
+    - @EnableAutoConfiguration : 스프링의 다양한 설정이 자동으로 구성되고 완료됨
+
 # 스프링의 핵심 개념
 
 ## 1. IoC (Inversion of Control, 제어의 역전)
@@ -875,7 +897,7 @@ public class Main2 {
   - 클래스 앞에 @Component 어노테이션을 붙이고 패키지에 컴포넌트 어노테이션이 붙어있는 클래스를 찾아서 객체로 만들어서 맵으로 저장하는 기법
 
 ### com.korea.di.di3패키지 생성
-- Main3클래스 생성하기
+- Main클래스 생성하기
 - mvnrepository.com에서 guava검색
 - Guava: Google Core Libraries For Java » 31.0-jre
 - maven 복사 후 pom.xml에 붙혀넣기
@@ -918,19 +940,44 @@ class AppContext{
 		//2. 반복문으로 클래스를 하나씩 읽어와서 @Component가 붙어있는지 확인
 		//3. @Component가 붙어있으면 객체를 생성해서 map에 저장
 		
-		ClassLoader classLoader = AppContext.class.getClassLoader();
+		// AppContext 클래스의 클래스 로더를 가져옵니다. 클래스 로더는 JVM에서 클래스를 동적으로 로드하고, 
+		// 애플리케이션이 사용할 수 있도록 메모리에 적재하는 역할을 합니다.
+		ClassLoader classLoader = AppContext.class.getClassLoader(); 
+
+		// ClassPath 객체를 생성하여 지정된 클래스 로더에서 클래스 경로를 읽습니다. ClassPath는 구아바(Guava) 라이브러리에서 
+		// 제공하는 기능으로, 클래스 경로 상의 모든 클래스를 탐색하고 사용할 수 있게 도와줍니다.
 		ClassPath classPath = ClassPath.from(classLoader);
-		
-		Set<ClassPath.ClassInfo> set = classPath.getTopLevelClasses("com.korea.dependency.di3");
-		
+
+		// 지정한 패키지("com.example.demo.di3") 내의 최상위 클래스들(탑 레벨 클래스)을 가져옵니다. 이 메서드는 지정된 패키지에서
+		// 상위 레벨 클래스를 탐색하고, 그 결과로 ClassPath.ClassInfo 객체들의 집합(Set)을 반환합니다.
+		Set<ClassPath.ClassInfo> set = classPath.getTopLevelClasses("com.example.demo.di3");
+
+		// 위에서 얻은 클래스 정보를 반복 처리합니다. 각 ClassPath.ClassInfo 객체는 특정 클래스에 대한 정보를 나타냅니다.
 		for(ClassPath.ClassInfo classInfo : set) {
-			Class clazz = classInfo.load();
-			Component component = (Component)clazz.getAnnotation(Component.class);
-			if(component != null) {
-				String id = StringUtils.uncapitalize(classInfo.getSimpleName());
-				map.put(id, clazz.newInstance());
+
+		// 현재의 ClassInfo 객체를 실제로 로드된 클래스(Class)로 변환합니다. 이 메서드는 해당 클래스의 정보를 기반으로
+		// JVM에서 해당 클래스를 로드하여 Class 객체를 반환합니다.
+		Class clazz = classInfo.load();
+
+		// 해당 클래스에 @Component 애노테이션이 있는지 확인합니다. @Component는 스프링에서 자주 사용되는 애노테이션으로,
+		// 빈으로 등록할 클래스에 부여됩니다. 클래스에 @Component 애노테이션이 있는지 확인하기 위해 리플렉션을 사용하여
+		// 애노테이션을 가져옵니다.
+		Component component = (Component)clazz.getAnnotation(Component.class);
+
+		// @Component 애노테이션이 null이 아니면, 즉 해당 클래스가 @Component로 지정된 클래스라면 아래의 로직을 실행합니다.
+		if(component != null) {
+
+			// 클래스 이름의 첫 글자를 소문자로 변환하여 id로 사용합니다. 클래스의 이름을 가져와서 앞 글자를 소문자로
+			// 변환하는 이유는 스프링에서 빈을 생성할 때, 기본적으로 클래스 이름의 첫 글자를 소문자로 사용하기 때문입니다.
+			String id = StringUtils.uncapitalize(classInfo.getSimpleName());
+
+			// 해당 클래스를 인스턴스화(newInstance() 메서드 사용)하여, 생성된 객체를 id와 함께 맵에 저장합니다.
+			// newInstance() 메서드는 기본 생성자를 호출하여 객체를 생성하며, 리플렉션을 사용하여 런타임에 동적으로 객체를 생성할 수 있습니다.
+			// 맵은 주로 의존성 주입 컨테이너의 역할을 수행할 때 사용되며, id는 빈의 이름, clazz.newInstance()는 해당 빈의 인스턴스입니다.
+			map.put(id, clazz.newInstance());
 			}
 		}
+
 		} catch(Exception e) {
 			
 		}
@@ -942,8 +989,7 @@ class AppContext{
 	}
 }
 
-public class Main3 {
-	
+public class Main {
 	public static void main(String[] args)throws Exception {
 		AppContext ac = new AppContext();
 		
