@@ -739,6 +739,8 @@ public class Main1 {
 
 ```
 car=com.korea.study.SportCar
+
+key=value
 ```
 
 ##### 코드를 조금더 유연하게 바꿔보자
@@ -944,12 +946,12 @@ class AppContext{
 		// 애플리케이션이 사용할 수 있도록 메모리에 적재하는 역할을 합니다.
 		ClassLoader classLoader = AppContext.class.getClassLoader(); 
 
-		// ClassPath 객체를 생성하여 지정된 클래스 로더에서 클래스 경로를 읽습니다. ClassPath는 구아바(Guava) 라이브러리에서 
-		// 제공하는 기능으로, 클래스 경로 상의 모든 클래스를 탐색하고 사용할 수 있게 도와줍니다.
+		// ClassPath 객체를 생성하여 지정된 클래스 로더에서 클래스 경로를 읽습니다. 
+		//ClassPath는 구아바(Guava) 라이브러리에서 제공하는 기능으로, 클래스 경로 상의 모든 클래스를 탐색하고 사용할 수 있게 도와줍니다.
 		ClassPath classPath = ClassPath.from(classLoader);
 
-		// 지정한 패키지("com.example.demo.di3") 내의 최상위 클래스들(탑 레벨 클래스)을 가져옵니다. 이 메서드는 지정된 패키지에서
-		// 상위 레벨 클래스를 탐색하고, 그 결과로 ClassPath.ClassInfo 객체들의 집합(Set)을 반환합니다.
+		// 지정한 패키지("com.example.demo.di3") 내의 최상위 클래스들(탑 레벨 클래스)을 가져옵니다. 
+		//이 메서드는 지정된 패키지에서 상위 레벨 클래스를 탐색하고, 그 결과로 ClassPath.ClassInfo 객체들의 집합(Set)을 반환합니다.
 		Set<ClassPath.ClassInfo> set = classPath.getTopLevelClasses("com.example.demo.di3");
 
 		// 위에서 얻은 클래스 정보를 반복 처리합니다. 각 ClassPath.ClassInfo 객체는 특정 클래스에 대한 정보를 나타냅니다.
