@@ -230,3 +230,237 @@ public class DemoModel {
 
 - +버튼을 누르면 새요청을 작성할 수 있다.
 - 우리의 부트 어플리케이션을 실행한 후 포스트맨을 이용해 localhost:9090을 요청하고 결과를 보자.
+
+# 백엔드 서비스 아키텍처
+
+## 레이어드 아키텍처 패턴
+- 애플리케이션을 구성하는 요소들을 수평으로 나눠 관리하는 것이다.
+
+![img](img/레이어드.png)
+
+- 레이어로 나눈다는 것은 메서드를 클래스 또는 인터페이스로 쪼개는 것이다.
+- 이 레이어는 작게는 클래스를 여러 레이어로 나누는 것부터 아주 다른 애플리케이션으로 분리하는 경우까지 범위가 다양하다.
+- 레이어 사이에는 계층이 있다.
+- 레이어는 자기보다 한 단계 하위의 레이어만 사용한다.
+- 중간 레이어를 섞어 사용하는 경우도 있지만 기본적안 레이어드 아키텍처에서는 상위 레이어가 자신의 바로 하위 레이어를 사용한다.
+
+```java
+public class TodoService{
+    public List<Todo> getTodos(String userId){
+        List<Todo> todos = new ArrayList<>();
+
+        //... 비즈니스로직
+
+        return todos;
+    }
+}
+
+public class WebController{
+
+    private TodoService todoService;
+
+    public String getTodos(Request request){
+        if(request.userId == null){
+            JSONObject json = new JSONObject();
+            json.put("error","missing user id");
+            return json.toString();
+        }
+
+        //서비스레이어
+        List<Todo> todos = todoService.getTodos(request.userId);
+
+        return this.getResponse(todos);
+    }
+
+}
+```
+
+## 모델,엔티티,DTO
+
+![img](img/model.png)
+
+- 보통 자바로 된 비즈니스 애플리케이션의 클래스는 두 가지 종류로 나눌 수 있다.
+- 첫 번재는 일을 하는 클래스, 즉 기능을 수행하는 클래스이다.
+- 두 번재는 데이터를 담는 클래스이다.
+- 일을 하는 클래스는 컨트롤러,서비스,퍼시스턴스 처럼 로직을 수행하는 클래스이다.
+- 우리는 대부분의 시간을 컨트롤러, 서비스, 퍼시스선스 로직을 구현하는데 사용한다.
+- 데이터를 담는 클래스란 말 그대로 데이터만 가지고 있는 클래스이다.
+- 위 예제에서  TodoService는 List를 반환한다.
+- 이는 Todo객체를 담고있는 리스트이다.
+- Todo객체는 기능이 없고 DB에서 반환된 정보를 갖고 있을 뿐이다.
+- 이렇게 아무 기능 없이 DB에서 반환된 데이터를 담기 위한 클래스를 엔티티,모델, DTO라고 부른다.
+- 이름에 큰 의미를 둘 필요는 없고 무엇을 위한 클래스인지가 중요하다.
+
+## 모델과 엔티티
+- 모델은 데이터를 담는 역할과 DB의 테이블과 스키마를 표현하는 두 역할을 한다.
+- com.example.demo아래 model 패키지를 생성한다.
+- 패키지 아래 TodoEntity클래스를 생성한다.
+
+```java
+package com.example.demo.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class TodoEntity {
+	private String id; //이 객체의 id
+	private String userId;//이 객체를 생성한 유저의 아이디
+	private String title;//Todo 타이틀 예)운동 하기
+	private boolean done;//true - todo를 완료한 경우(checked)
+}
+
+```
+### @Builder
+- 객체 생성을 위한 디자인 패턴 중 하나이다.
+- 롬복이 제공하는 @Builder 어노테이션을 사용하면 우리가 Builder클래스를 따로 개발하지 않고도 Builder패턴을 사용해 객체를 생성할 수 있다.
+
+```java
+TodoEntity todo = TodoEntity.builder()
+                .id("t-10328373")
+                .userId("developer")
+                .title("Implement Model")
+                .build()
+```
+
+### @NoArgsConstructor
+- 매개변수가 없는 생성자를 구현해준다.
+
+```java
+public TodoEntity(){
+
+}
+```
+
+### @AllArgsConstructor
+- 클래스의 모든 멤버를 매개변수로받는 생성자를 구현해준다.
+
+```java
+public TodoEntity(String id, String userId, String title, boolean done){
+    this.id = id;
+    this.userId = userId;
+    this.title = title;
+    this.done = done;
+}
+```
+
+### @Data
+- 멤버 변수의 Setter와 Getter 메서드를 구현해준다.
+```java
+public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getUserId() {
+		return userId;
+	}
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public boolean isDone() {
+		return done;
+	}
+	public void setDone(boolean done) {
+		this.done = done;
+	}
+```
+
+## DTO(Data Transition Object)
+- 서비스가 요청을 처리하고 클라이언트로 반환할 때, 모델 자체를 그래도 반환하는 경우는 별로 없다.
+- 보통은 데이터를 전달하기 위해 사용하는 객체인 DTO로 변환해 반환한다.
+
+### DTO로 변환하여 반환하는 이유
+1. 비즈니스 로직을 캡슐화 하기 위함이다.
+    - 대부분의 회사들은 외부인이 자사의 DB의 스키마를 아는 것을 원치 않는다.
+    - 이때 DTO처럼 다른 객체로 바꿔 반환하면 외부 사용자에게 서비스 내부의 로직, DB 구조등을 숨길 수 있다.
+2. 클라이언트가 필요한 정보를 모델이 전부 포함하지 않는 경우가 많다.
+   - 대표적으로 에러 메시지가 있다.
+   - 만약 서비스 실행 도중 유저 에러가 나면 이 에러 메시지를 어디에 포함해야 하는가?
+   - 모델은 서비스 로직과는 관련이 없기 때문에 모델에 담기는 애매하다.
+   - 이런 경우 DTO에 에러 메시지 필드를 선언하고 DTO에 포함하면 된다.
+
+### com.example.demo아래에 dto패키지 생성하기
+- 패키지 아래 TodoDTO클래스를 생성한다.
+```java
+package com.example.demo.dto;
+
+import com.example.demo.model.TodoEntity;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class TodoDTO {
+	private String id;
+	private String title;
+	private boolean done;
+	
+	public TodoDTO(final TodoEntity entity) {
+		this.id = entity.getId();
+		this.title = entity.getTitle();
+		this.done = entity.isDone();
+	}
+	
+}
+```
+- TodoDTO에는 userId가 없다.
+- 이 프로젝트에서는 이후 스프링 시큐리티를 이용해 인증을 구현한다.
+- 따라서 유저가 자기 아이디를 넘겨주지 않아도 인증이 가능하다.
+- userId는 애플리케이션과 DB에서 사용자를 구별하기 위한 고유 식별자로 사용하기 때문에 숨길 수 있다면 숨기는 것이 보안상 맞다.
+- 따라서 DTO에서는 userId를 포함하지 않았다.
+
+### ResponseDTO 클래스 생성하기
+- http응답으로 사용할 DTO를 만들어보자
+
+```java
+package com.example.demo.dto;
+
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class ResponseDTO<T> {
+
+	private String error;
+	private List<T> data;
+}
+```
+- TodoDTO 뿐만 아니라 이후 다른 모델의 DTO도 ResponseDTO를 이용해 반환할 수 있도록 제네릭을 사용했다.
+- 이 프로젝트의 경우는 Todo객체를 하나만 반환하기 보다는 리스트를 반환하는 경우가 많으므로 리스트로 반환하도록 구성을 했다.
+
+
+
+
+## REST 아키텍처
+- 클라이언트가 우리 서비스를 이용하려면 어떤 형식으로 요청을 보내고 응답을 받는지에 대한 이야기이다.
+- 클라이언트는 정해진 메서드로 우리 서비스를 이용할 예정이다.
+- REST 아키텍처 스타일을 따라 설계하고 구현된 서비스를 RESTful 서비스라고 한다.
+```
+- 스프링은 우리가 레이어드 아키텍처 패턴이나 REST 아키텍처 스타일을 이용하는데 도움을 주는 어노테이션을 제공한다.
+- 우리는 이 어노테이션을 이용해 테스팅용 API를 구현하고, 전체적인 틀을 이해한 후 본격적으로 Todo 서비스를 만들어보자.
+```
