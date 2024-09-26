@@ -620,7 +620,7 @@ public class TestController {
 
 }
 ```
-### @RestController
+## @RestController
 1. REST API 개발에 최적화
    - 웹 페이지가 아닌 데이터를 반환하는 컨트롤러로 사용된다.
    - HTML 같은 뷰 페이지를 반환하는 대신, JSON이나 XML 형식의 데이터를 반환하는 RESTful API를 제공하는 데 적합하다.
@@ -629,3 +629,537 @@ public class TestController {
    - 즉, 클래스에 @RestController를 붙이면 모든 메서드에 자동으로 **@ResponseBody**가 적용된다.
    - **@ResponseBody**는 메서드의 반환 값을 HTTP 응답 바디로 직렬화해 클라이언트에게 전달한다. 
    - 따라서 데이터를 JSON, XML 형식으로 변환해 반환한다.
+
+## @ResponseBody
+- 컨트롤러 메서드의 반환 값을 HTTP 응답의 바디에 직접 포함시키는 데 사용된다.
+-  뷰(HTML 파일) 같은 템플릿을 반환하지 않고, 주로 JSON 또는 XML 같은 데이터를 클라이언트에게 직접 반환하는 데 사용된다.
+
+### 주요기능
+1. 데이터 직접 반환
+   - HTTP 응답 바디로 직렬화해서 클라이언트에 전송한다. 
+   - 반환되는 데이터는 보통 JSON 형식으로 변환된다.
+   - 주로 REST API에서 데이터를 클라이언트에 반환할 때 사용되며, JSON 또는 XML 형식의 응답을 쉽게 처리할 수 있다.
+2. 자동직렬화
+   - 스프링은 내부적으로 Jackson 라이브러리를 사용해 자바 객체를 JSON으로 변환한다.
+   - 메서드에서 자바 객체를 반환하면 스프링은 이를 JSON으로 자동 직렬화하여 클라이언트에게 전송한다.
+   - 별도의 변환 작업 없이 자바 객체를 반환하면 스프링이 알아서 JSON 응답으로 만들어준다.
+
+## @GetMapping
+- 스프링 프레임워크에서 HTTP GET 요청을 처리하기 위한 애노테이션이다.
+- 특정 URL 경로로 들어오는 GET 요청을 처리하고, 그 요청에 대한 응답을 반환하는 데 사용된다.
+
+#### 주요 기능
+1. HTTP GET 요청 처리
+   - **@GetMapping**은 HTTP GET 요청을 처리하는 데 사용된다
+   - GET 요청은 주로 데이터를 조회하는 용도로 사용되며, 서버에서 데이터를 가져와 클라이언트에 반환하는 역할을 한다.
+   - 예를 들어, 브라우저에서 URL을 입력하고 엔터를 누르면, 브라우저는 서버에 GET 요청을 보내 해당 URL에 해당하는 자원을 요청하게 된다.
+2. 간편한 URL 매핑
+	- @GetMapping 애노테이션은 특정 URL 경로와 컨트롤러의 메서드를 쉽게 매핑시켜준다. 
+	- 이렇게 하면 해당 URL로 들어오는 GET 요청이 해당 메서드에 의해 처리된다.
+![img](img/컨트롤러%20테스트.png)
+
+- 포스트맨을 이용해 테스팅 하면 HTTP Method를 확실히 구분할 수 있다.
+
+![img](img/포스트맨.png)
+
+## @GetMapping에 경로 지정하기
+```java
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("test")//리소스
+public class TestController {
+
+	@GetMapping("/testGetMapping")
+	public String testController() {
+		return "Hello World testGetMapping";
+	}
+}
+```
+- /test/testGetMapping가 메서드에 연결되야 한다는 사실을 안다.
+
+![img](img/getMapping.png)
+
+### @RequestMapping이 없는 경우
+```java
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class TestController {
+
+	@GetMapping("/testGetMapping")
+	public String testController() {
+		return "Hello World testGetMapping";
+	}
+}
+```
+- localhost:9090/testGetMapping으로 접근하면 된다.
+
+## @PathVariable
+- 스프링 프레임워크에서 URL 경로의 일부를 변수로 사용할 수 있도록 지원하는 애노테이션이다.
+- 주로 RESTful API에서 사용되며, URL에 포함된 값을 동적으로 받아와 메서드의 매개변수로 사용할 수 있게 해준다.
+
+### 주요기능
+1. 동적 경로 처리
+   - URL 경로의 일부분을 변수로 받아올 수 있어서 동적 URL을 처리할 수 있다. 예를 들어, /users/1과 같은 경로에서 1을 변수로 받아서 해당 사용자에 대한 정보를 처리할 수 있다.
+   - 이를 통해 RESTful API 설계에서 리소스 식별자(ID) 같은 정보를 URL 경로에 포함시켜 처리할 수 있다.
+2. 매개변수와 URL 매핑
+   - 컨트롤러 메서드의 매개변수에 @PathVariable을 붙여 URL 경로와 일치하는 값을 받아올 수 있다. 이는 GET, POST, PUT, DELETE 등의 요청에서 유용하게 사용된다.
+
+### 사용방법
+- 기본 사용방법
+```java
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class UserController {
+
+    @GetMapping("/users/{id}")//{id}가 경로변수로 동작한다.
+	//@PathVariable("id")는 {id} 부분을 받아서 메서드의 매개변수 userId에 할당한다.
+	//예를 들어, GET /users/5 요청을 보내면, userId에 5가 할당되고 "User ID: 5"라는 응답을 반환한다.
+    public String getUserById(@PathVariable("id") Long userId) {
+        return "User ID: " + userId;
+    }
+}
+```
+- @PathVariable과 여러 경로 변수 사용
+```java
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class OrderController {
+
+    @GetMapping("/users/{userId}/orders/{orderId}")
+    public String getOrderByUserAndOrderId(@PathVariable("userId") Long userId,
+                                           @PathVariable("orderId") Long orderId) {
+        return "User ID: " + userId + ", Order ID: " + orderId;
+    }
+}
+
+```
+- 예를 들어, GET /users/1/orders/100 요청을 보내면 **"User ID: 1, Order ID: 100"**이라는 응답이 반환된다.
+
+### 주요 속성
+- value: 경로 변수의 이름을 지정한다. 
+  - 만약 메서드 매개변수 이름과 경로 변수 이름이 동일하면 생략할 수 있다.
+- required: 기본값은 true이며, 경로 변수 값이 반드시 있어야 한다는 의미다. 
+  - 단, @PathVariable은 경로에 있는 값을 매핑하는 것이므로, 일반적으로 required = false를 잘 사용하지 않는다.
+```java
+//이 경우 @PathVariable("id")에서 value 속성을 생략할 수 있다. 
+//메서드 매개변수 이름과 경로 변수 이름이 동일하기 때문에 스프링이 자동으로 매핑한다.
+
+@GetMapping("/users/{id}")
+public String getUserById(@PathVariable(required=false) Long id) {
+    return "User ID: " + id;
+}
+```
+
+## TestController에 코드 추가하기
+```java
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("test")
+public class TestController {
+
+	@GetMapping("/testGetMapping")
+	public String testControllerWithPath() {
+		return "Hello World testGetMapping";
+	}
+	
+	@GetMapping("/{id}")
+	public String testControllerWidthPathVariables(@PathVariable(required=false)int id) {
+		return "Hello world! ID"+id;
+	}
+}
+```
+- 이제 localhost:9090/test/123 같은 요청을 날릴 수 있다.
+
+![img](img/Path.png)
+
+
+## @RequestParam
+-  HTTP 요청의 쿼리 파라미터나 폼 데이터를 처리하기 위해 사용되는 애노테이션이다.
+-  클라이언트가 서버에 요청을 보낼 때, URL 뒤에 붙이는 쿼리 스트링이나 폼 데이터를 받아서 메서드의 파라미터로 전달할 수 있게 해준다.
+
+### 주요기능
+1. 쿼리 파라미터 처리
+	- @RequestParam은 URL 뒤에 붙는 쿼리 파라미터(예: ?key=value)를 메서드의 파라미터로 매핑할 수 있게 해준다.
+	- 클라이언트가 요청을 보낼 때 특정 데이터를 쿼리 스트링으로 전달하면, 해당 데이터를 서버에서 쉽게 처리할 수 있다.
+2. 폼 데이터 처리
+	- POST 요청의 폼 데이터도 @RequestParam을 통해 처리할 수 있다. 
+	- 사용자가 폼을 통해 입력한 데이터를 서버에서 받는 방식이다.
+### 사용방법
+#### 1. 기본 사용법 (쿼리 파라미터)
+```java
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class UserController {
+
+    @GetMapping("/users")
+    public String getUserById(@RequestParam("id") Long userId) {
+        return "User ID: " + userId;
+    }
+}
+```
+- 클라이언트가 GET /users?id=1로 요청을 보낼 때, 쿼리 파라미터 id 값을 받아서 userId 변수에 할당한다.
+- 예를 들어, GET /users?id=1 요청을 보내면 "User ID: 1"이라는 응답이 반환된다.
+
+#### 2. 기본값 설정
+- @RequestParam의 파라미터가 선택적일 때, 기본값을 설정할 수 있다.
+- 클라이언트가 해당 파라미터를 생략했을 때 기본값이 적용된다.
+```java
+@GetMapping("/users")
+public String getUserById(@RequestParam(value = "id", defaultValue = "0") Long userId) {
+    return "User ID: " + userId;
+}
+```
+- defaultValue를 사용하면, 파라미터가 제공되지 않았을 때 기본값이 사용된다.
+- 이 예시에서는 GET /users로 요청할 때, 기본값인 0이 userId에 할당된다.
+
+#### 3. 파라미터가 필수인지 설정(required)
+- 기본적으로 @RequestParam은 필수다.
+- 쿼리 파라미터가 포함되지 않으면 400 Bad Request 오류가 발생한다. 
+- 하지만 required = false로 설정하면 해당 파라미터가 선택적으로 처리된다.
+```java
+@GetMapping("/users")
+public String getUserById(@RequestParam(value = "id", required = false) Long userId) {
+    if (userId == null) {
+        return "No user ID provided";
+    }
+    return "User ID: " + userId;
+}
+```
+- required = false로 설정하면, 파라미터가 제공되지 않아도 오류가 발생하지 않는다.
+- 이 경우 userId가 null이 될 수 있다.
+#### 4. 여러 파라미터 처리
+```java
+@GetMapping("/search")
+public String search(@RequestParam("query") String query, 
+                     @RequestParam("page") int page) {
+    return "Search query: " + query + ", Page: " + page;
+}
+```
+- GET /search?query=spring&page=2로 요청을 보내면 "Search query: spring, Page: 2"라는 응답이 반환된다.
+
+#### 5. 폼 데이터 처리(POST요청)
+- @RequestParam은 GET 요청뿐만 아니라 POST 요청에서 폼 데이터를 처리하는 데도 사용할 수 있다.
+- 이 경우, 클라이언트가 HTML 폼을 통해 입력한 데이터를 서버에서 받을 수 있다.
+```java
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class FormController {
+
+    @PostMapping("/submitForm")
+    public String submitForm(@RequestParam("name") String name, 
+                             @RequestParam("email") String email) {
+        return "Form submitted: Name = " + name + ", Email = " + email;
+    }
+}
+```
+- 클라이언트가 POST 요청을 통해 name과 email을 보내면, 서버는 해당 데이터를 @RequestParam을 통해 받아 처리할 수 있다.
+
+### 주요 속성
+- required: 파라미터의 필수 여부를 지정한다. 
+  - 기본값은 true로, 필수 파라미터가 제공되지 않으면 오류가 발생한다
+  - required = false로 설정하면 선택적으로 받을 수 있다.
+
+- defaultValue: 파라미터가 제공되지 않을 때 사용할 기본값을 지정한다
+  - 기본값이 설정된 경우 required = false로 처리된다.
+
+## @RequestParam과 @PathVariable의 차이점
+### @RequestParam 
+- 주로 쿼리 파라미터(URL의 ? 뒤에 오는 값)를 처리한다. 
+- 또한, POST 요청에서 폼 데이터도 처리할 수 있다.
+- 예: /users?id=1
+### @PathVariable
+- URL 경로의 일부로 전달되는 변수를 처리한다. 
+- 주로 RESTful API에서 리소스를 식별하기 위해 사용된다.
+- 예: /users/1
+
+## TestController에 코드 추가하기
+```java
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("test")
+public class TestController {
+
+	@GetMapping("/testGetMapping")
+	public String testControllerWithPath() {
+		return "Hello World testGetMapping";
+	}
+	
+	@GetMapping("/{id}")
+	public String testControllerWidthPathVariables(@PathVariable(required=false)int id) {
+		return "Hello world! ID"+id;
+	}
+	
+	@GetMapping("/testRequestParam")
+	public String testControllerRequestParam(@RequestParam(required=false)int id) {
+		return "Hello World! ID" + id;
+	}
+}
+```
+
+## @RequestBody
+- HTTP 요청의 본문(body)에 담긴 데이터를 자바 객체로 변환하여 컨트롤러 메서드의 매개변수로 전달하는 데 사용하는 애노테이션이다. 
+- 주로 POST, PUT, PATCH 요청에서 사용되며, 클라이언트가 전송한 JSON, XML, 또는 폼 데이터 등을 자바 객체로 변환하는 역할을 한다.
+
+### 주요기능
+1. HTTP 요청 본문 처리
+   - @RequestBody는 클라이언트가 보낸 HTTP 요청의 본문을 읽어와 이를 자바 객체로 변환한다.
+   - 요청 본문은 주로 JSON이나 XML 형식으로 보내지며, 스프링이 이를 자동으로 역직렬화(deserialize)하여 자바 객체로 변환한다.
+2. JSON ↔ 자바 객체 변환
+   - 스프링은 Jackson 라이브러리를 사용하여 JSON 데이터를 자동으로 자바 객체로 변환할 수 있다. 
+   - 클라이언트가 JSON 데이터를 전송하면, @RequestBody가 이 데이터를 자바 객체로 변환하고, 그 객체를 메서드의 인자로 전달한다.
+
+## TestRequestBodyDTO 생성하기
+```java
+package com.example.demo.dto;
+
+import lombok.Data;
+
+@Data
+public class TestRequestBodyDTO {
+
+	private int id;
+	private String message;
+}
+```
+
+## TestController에 코드 추가하기
+```java
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.dto.TestRequestBodyDTO;
+
+@RestController
+@RequestMapping("test")
+public class TestController {
+
+	@GetMapping("/testGetMapping")
+	public String testControllerWithPath() {
+		return "Hello World testGetMapping";
+	}
+	
+	@GetMapping("/{id}")
+	public String testControllerWidthPathVariables(@PathVariable(required=false)int id) {
+		return "Hello world! ID"+id;
+	}
+	
+	@GetMapping("/testRequestParam")
+	public String testControllerRequestParam(@RequestParam(required=false)int id) {
+		return "Hello World! ID" + id;
+	}
+	
+	@GetMapping("/testRequestBody")
+    //@RequestBody TestRequestBodyDTO testRequestBodyDTO
+    //RequestBody로 날아오는 JSON을 TestRequestBody객체로 변환해서 가져와라
+    //날아오는 JSON의 형식은 TestRequestBody의 형태와 같아야 할 것이다.
+	public String testControllerRequestBody(@RequestBody TestRequestBodyDTO testRequestBodyDTO) {
+		return "Hello World! ID"+testRequestBodyDTO.getId() + " Message : " + testRequestBodyDTO.getMessage();
+	}
+}
+```
+- 포스트맨에서 요청을 던져볼 수 있다.
+
+![img](img/RequestBody.png)
+- Body탭을 클릭하고 raw를 체크합니다.
+- 아래 json형태의 데이터를 요청합니다.
+- localhost:9090/test/testRequestBody로 요청하고 결과를 확인합니다.
+
+
+## @ResponseBody
+- 컨트롤러 메서드의 반환 값을 HTTP 응답의 본문(body)에 직접 포함시킬 때 사용된다.
+- 뷰(HTML) 같은 템플릿을 반환하는 대신, 주로 JSON, XML, 문자열과 같은 데이터를 클라이언트에게 반환하는 데 사용된다.
+## TestController에 코드 추가하기
+```java
+package com.example.demo.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.dto.ResponseDTO;
+import com.example.demo.dto.TestRequestBodyDTO;
+
+@RestController
+@RequestMapping("test")
+public class TestController {
+
+	@GetMapping("/testGetMapping")
+	public String testControllerWithPath() {
+		return "Hello World testGetMapping";
+	}
+	
+	@GetMapping("/{id}")
+	public String testControllerWidthPathVariables(@PathVariable(required=false)int id) {
+		return "Hello world! ID"+id;
+	}
+	
+	@GetMapping("/testRequestParam")
+	public String testControllerRequestParam(@RequestParam(required=false)int id) {
+		return "Hello World! ID" + id;
+	}
+	
+	@GetMapping("/testRequestBody")
+	public String testControllerRequestBody(@RequestBody TestRequestBodyDTO testRequestBodyDTO) {
+		return "Hello World! ID"+testRequestBodyDTO.getId() + " Message : " + testRequestBodyDTO.getMessage();
+	}
+	
+	@GetMapping("/testResponseBody")
+	public ResponseDTO<String> testControllerResponseBody(){
+		List<String> list = new ArrayList<>();
+		list.add("Hellow World! I'm ResponseDTO");
+		ResponseDTO<String>response = ResponseDTO.<String>builder().data(list).build();
+		return response;
+	}
+}
+```
+- 컴파일 후에 localhost:9090/test/testResponseBody를 요청하면 다음과 같은JSON이 반환된다.
+
+![img](img/ResponseBody.png)
+
+
+## ResponseEntity
+- 스프링 프레임워크에서 제공하는 클래스로 HTTP 응답을 보다 세밀하게 제어할 수 있는 방법을 제공한다.
+- HTTP 상태 코드, 헤더, 그리고 응답 본문을 포함한 전체 HTTP 응답을 구성할 수 있으며, 주로 REST API에서 많이 사용된다.
+
+### 주요기능
+1. HTTP 상태 코드 제어
+   - ResponseEntity를 사용하면 클라이언트에 응답할 때, HTTP 상태 코드를 명시적으로 설정할 수 있다. 
+   - 예를 들어, 200 OK, 201 Created, 404 Not Found, 500 Internal Server Error 등의 상태 코드를 쉽게 설정할 수 있다.
+2. HTTP 헤더 제어
+   - 응답에 HTTP 헤더를 추가하거나 수정할 수 있다. 
+   - 이를 통해 캐시 제어, 인증 정보, 콘텐츠 타입 등을 제어할 수 있다.
+3. 응답 본문 제어
+   - ResponseEntity는 응답 본문(body)에 객체나 JSON 데이터를 포함할 수 있다. 
+   - 이 객체는 스프링에서 JSON 또는 XML로 직렬화되어 클라이언트에게 반환된다.
+### 주요 메서드
+- ResponseEntity.ok(): 200 OK 상태 코드로 응답하는 빌더 메서드.
+
+- ResponseEntity.status(HttpStatus status): 특정 상태 코드를 반환하는 빌더 메서드.
+
+- ResponseEntity.noContent(): 204 No Content 응답을 반환하는 메서드.
+
+- ResponseEntity.badRequest(): 400 Bad Request 응답을 반환하는 메서드.
+
+- ResponseEntity.notFound(): 404 Not Found 응답을 반환하는 메서드.
+```
+우리가 작성할 컨트롤러는 모두 ResponseEntity를 반환할 예정이다.
+```
+
+## TestController에 코드 작성하기
+```java
+package com.example.demo.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.dto.ResponseDTO;
+import com.example.demo.dto.TestRequestBodyDTO;
+
+@RestController
+@RequestMapping("test")
+public class TestController {
+
+	@GetMapping("/testGetMapping")
+	public String testControllerWithPath() {
+		return "Hello World testGetMapping";
+	}
+	
+	@GetMapping("/{id}")
+	public String testControllerWidthPathVariables(@PathVariable(required=false)int id) {
+		return "Hello world! ID"+id;
+	}
+	
+	@GetMapping("/testRequestParam")
+	public String testControllerRequestParam(@RequestParam(required=false)int id) {
+		return "Hello World! ID" + id;
+	}
+	
+	@GetMapping("/testRequestBody")
+	public String testControllerRequestBody(@RequestBody TestRequestBodyDTO testRequestBodyDTO) {
+		return "Hello World! ID"+testRequestBodyDTO.getId() + " Message : " + testRequestBodyDTO.getMessage();
+	}
+	
+	@GetMapping("/testResponseBody")
+	public ResponseDTO<String> testControllerResponseBody(){
+		List<String> list = new ArrayList<>();
+		list.add("Hellow World! I'm ResponseDTO");
+		ResponseDTO<String>response = ResponseDTO.<String>builder().data(list).build();
+		return response;
+	}
+	
+	@GetMapping("/testResponseEntity")
+	public ResponseEntity<?> testControllerResponseEntity(){
+		List<String> list = new ArrayList<>();
+		list.add("Hellow World! I'm ResponseEntity. And you got 400");
+		ResponseDTO<String>response = ResponseDTO.<String>builder().data(list).build();
+		//http status를 400으로 설정
+		return ResponseEntity.badRequest().body(response);
+	}
+}
+```
+
+![img](img/400badrequest.png)
+
+- 포스트맨에서 확인을 해보면 400Bad Request가 반환된 것을 확인할 수 있다.
+- RequestEntity를 반환하는것과 ResponseDTO를 반환하는 것을 비교했을 때 차이가 없다.
+- 단지 헤더와 HTTP Status를 조작할 수 있다는 점이 다르다.
+
+```java
+정상적으로 응답을 반환한다면
+return ResponseEntity.ok().body(response);
+```
