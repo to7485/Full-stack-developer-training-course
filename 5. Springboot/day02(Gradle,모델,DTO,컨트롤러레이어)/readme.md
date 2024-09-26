@@ -1163,3 +1163,17 @@ public class TestController {
 정상적으로 응답을 반환한다면
 return ResponseEntity.ok().body(response);
 ```
+
+## TodoController클래스 생성하기
+```java
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("todo")
+public class TodoController {
+
+}
+```
