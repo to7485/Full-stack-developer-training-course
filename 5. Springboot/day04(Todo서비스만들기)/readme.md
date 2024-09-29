@@ -416,6 +416,73 @@ public class TodoService {
 	}	
 }
 ```
+## 표현계층 구현
+- TodoController에 GET요청으로 retrieveTodoList()메서드를 작성한다.
+```java
+package com.example.demo.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.dto.ResponseDTO;
+import com.example.demo.dto.TodoDTO;
+import com.example.demo.model.TodoEntity;
+import com.example.demo.service.TodoService;
+
+@RestController
+@RequestMapping("todo")
+public class TodoController {
+
+	@Autowired
+	private TodoService service;
+	
+	@GetMapping("/test")
+	public ResponseEntity<?> testTodo(){
+		String str = service.testService();//테스트 서비스 사용
+		List<String> list = new ArrayList<>();
+		list.add(str);
+		ResponseDTO<String>response = ResponseDTO.<String>builder().data(list).build();
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@PostMapping
+	public ResponseEntity<?> createTodo(@RequestBody TodoDTO dto){
+		...
+	}
+	
+	public ResponseEntity<?> retrieveTodoList(){
+		String temporaryUserId = "temporary-user";
+		
+		//서비스레이어의 retrieve메서드를 이용해 Todo리스트를 반환받아 entities에 저장한다.
+		List<TodoEntity> entities = service.retrieve(temporaryUserId);
+		
+		//자바 스트림을 이용해 반환된 엔티티 리스트를 TodoDTO 리스트로 변환한다.
+		List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+		
+		//변환된 TodoDTO 리스트를 이용해 ResponseDTO를 초기화한다.
+		ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+		
+		return ResponseEntity.ok().body(response);
+	}	
+}
+```
+
+## 테스팅
+- 프로그램을 재시작하고 포스트맨에서 테스트를 해보자.
+- H2 데이터베이스를 사용하고 있으니 이전에 생성했던 Todo 아이템은 없어졌다.
+- HTTP POST메서드로 새 Todo 아이템을 생성한 후, HTTP GET메서드로 리스트를 받아보자.
+
+![img](img/todo_select.png)
+
+- 마찬가지로 JSON 형태의 HTTP응답이 반환된 것을 확인할 수 있다.
 
 
