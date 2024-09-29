@@ -169,7 +169,43 @@ try{
 6. 빠른 성능
    1. H2는 메모리 기반으로 동작할 때 매우 빠른 성능을 제공하며, 디스크 기반에서도 경량화된 구조로 효율적인 성능을 제공한다.
 
-## JPA
+## Hibernate
+- Java 기반의 ORM(Object-Relational Mapping) 프레임워크로, 객체지향 프로그래밍 언어인 자바에서 데이터베이스를 다룰 때 객체와 관계형 데이터베이스 간의 매핑을 자동으로 처리해주는 도구다.
+- 이를 통해 개발자는 SQL을 직접 작성할 필요 없이, 자바 객체를 통해 데이터베이스 작업을 쉽게 수행할 수 있다.
+
+### 주요 기능과 개념
+1. HQL(Hibernate Query Language)
+   - Hibernate는 SQL을 직접 사용하지 않고, HQL이라는 Hibernate 전용 쿼리 언어를 제공한다. 
+   - HQL은 SQL과 유사하지만, 테이블이 아니라 객체를 대상으로 쿼리를 작성한다.
+   - 예를 들어, HQL에서 FROM User WHERE id = 1이라고 작성하면, Hibernate는 이를 SQL로 변환하여 SELECT * FROM users WHERE id = 1과 같은 SQL을 실행한다.
+2. 자동 테이블 생성 및 관리
+   - Hibernate는 애플리케이션 실행 시 자바 엔티티 클래스와 대응하는 데이터베이스 테이블을 자동으로 생성하거나 업데이트할 수 있다.
+   - Hibernate가 제공하는 DDL(Data Definition Language) 기능을 통해 이루어진다.
+   - 설정에 따라 테이블 생성, 수정, 삭제 등 다양한 작업을 자동으로 처리할 수 있다.
+
+### 장점
+1. 생산성 향상
+    - 개발자가 SQL 쿼리를 직접 작성하지 않고 객체 지향 방식으로 데이터베이스를 다룰 수 있게 하여, 개발 시간을 단축하고 코드의 가독성을 높여준다.
+2. 데이터베이스 독립성
+    - 데이터베이스에 의존하지 않고 동작하기 때문에, 데이터베이스 독립적으로 사용할 수 있다.
+    - 애플리케이션이 MySQL에서 Oracle로 변경되더라도 별도의 SQL 수정 없이 쉽게 전환할 수 있다.
+3. 자동화된 테이블 관리
+    - 애플리케이션의 엔티티 클래스를 분석하여 데이터베이스의 테이블을 자동으로 생성, 업데이트, 삭제할 수 있다.
+    - 개발자는 데이터베이스 스키마를 관리하는 수고를 덜 수 있다.
+4. 복잡한 관계 매핑 지원
+    - 1대1(One-to-One), 1대N(One-to-Many), **N대M(Many-to-Many)**와 같은 복잡한 엔티티 간의 관계를 쉽게 매핑할 수 있도록 한다.
+
+### 단점
+1. 학습 곡선
+    - 복잡한 쿼리나 성능 최적화를 위한 설정은 처음 사용자가 이해하기 어려울 수 있다.
+2. 성능 문제
+    - 잘못된 설정이나 비효율적인 지연 로딩 사용은 성능 문제를 일으킬 수 있다.
+    - SQL을 자동으로 생성하지만, 이를 충분히 이해하지 않고 사용할 경우 예상치 못한 성능 저하가 발생할 수 있다.
+3. ORM과 SQL 간의 불일치
+    - 객체 지향적인 자바의 모델링 방식과 데이터베이스의 관계형 모델링 방식은 서로 다르다.
+    - 복잡한 관계의 매핑에서는 여전히 ORM과 SQL 간의 불일치 문제가 존재할 수 있다.
+
+## JPA(Java Persistence API)
 - 자바에서 객체와 관계형 데이터베이스 간의 데이터를 매핑(ORM: Object-Relational Mapping)하기 위한 표준 API다.
 - JPA는 자바 객체를 데이터베이스의 테이블과 매핑하고, 데이터베이스의 데이터를 자바 객체로 변환하여 쉽게 다룰 수 있게 해준다.
 - 이를 통해 개발자는 데이터베이스의 세부 사항에 구애받지 않고 객체 지향적으로 데이터베이스를 처리할 수 있다.
@@ -177,6 +213,7 @@ try{
 ### 주요 개념
 1. ORM(Object-Relation Mapping)
     - JPA는 자바 객체와 데이터베이스의 테이블을 매핑한다.
+    - JPA 자체는 인터페이스와 명세만 제공하며, 실제 기능을 수행하는 구현체는 포함되어 있지 않다.
     - 자바 객체를 데이터베이스의 테이블로, 객체의 필드를 테이블의 컬럼으로 매핑함으로써, 객체 지향적인 방식으로 데이터베이스 작업을 수행할 수 있다.
     - 예를 들어, 데이터베이스의 사용자 테이블을 User 객체와 매핑할 수 있으며, 데이터베이스에 쿼리를 작성하지 않고도 자바 코드로 데이터를 처리할 수 있다.
 2. Persistence Context
@@ -189,7 +226,8 @@ try{
    - 엔티티 클래스는 @Entity 애노테이션을 통해 정의된다.
 
 ## Spring DAta JPA
--  Spring Data 프로젝트의 일부로, **JPA(Java Persistence API)**를 쉽게 사용할 수 있도록 도와주는 Spring 기반의 데이터 액세스 프레임워크다.
+-  Spring Data JPA는 데이터베이스 작업을 더 쉽게 할 수 있도록 돕는 Spring Framework의 모듈이다.
+-  Hibernate를 기반으로 사용하며, 데이터베이스 작업을 자동화하고, 데이터 액세스 로직을 단순화하는 데 중점을 둔다.
 - Spring Data JPA는 Repository 패턴을 기반으로 하여, 데이터베이스와 상호작용할 때 개발자가 반복적으로 작성해야 하는 코드들을 자동으로 처리해준다.
 
 ```java
@@ -203,9 +241,6 @@ public interface UserRepository {
     User save(User user);
     void deleteById(Long id);
 }
-
-
-
 
 //UserRepository 인터페이스를 구현하는 구현 클래스다.
 //여기서 데이터를 저장하거나 조회하는 로직을 캡슐화한다.
@@ -246,7 +281,12 @@ public class UserRepositoryImpl implements UserRepository {
     - 이 인터페이스를 확장함으로써 복잡한 데이터 액세스 코드를 작성하지 않고도 CRUD(Create, Read, Update, Delete) 작업을 자동으로 처리할 수 있다.
 2. 자동화된 CRUD 작업
     - Spring Data JPA는 기본적인 CRUD 메서드를 자동으로 제공한다. 
-    - findAll(), save(), delete()와 같은 메서드를 별도의 구현 없이 바로 사용할 수 있다.
+    - JPA 인터페이스(JpaRepository)에서 제공하는 추상메서드들을 구현클래스에 Override할 필요없이 기본적인 데이터 베이스 작업을 처리할 수 있다.
+    - #### JPARepository에서 제공하는 메서드
+      - save(): 엔티티를 저장하거나 업데이트한다.
+      - findById(): 기본 키를 사용해 엔티티를 조회한다.
+      - deleteById(): 기본 키를 사용해 엔티티를 삭제한다.
+      - findAll(): 모든 엔티티를 조회한다.
 3. 쿼리 메서드(Query Method)
     - JPA 쿼리 메서드를 작성할 때 메서드 이름만으로 SQL 쿼리를 자동 생성할 수 있다. 
     - 메서드 이름을 분석하여 해당 메서드에 맞는 SQL 문을 실행한다.
@@ -262,7 +302,7 @@ public class UserRepositoryImpl implements UserRepository {
 - 이런 데이터베이스 테이블 스키마에 대한 정보는 javax.persistence가 제공하는 JPA 관련 어노테이션을 사영혼다.
 
 ### 주의할 점
-1. 클래스에는 매개변수가 없는 생성자가 필요핟.
+1. 클래스에는 매개변수가 없는 생성자가 필요하다.
 2. Getter/Setter가 필요하다.
 3. 세번째는 기본키를 지정해줘야 한다.
 
@@ -285,14 +325,16 @@ import lombok.NoArgsConstructor;
 //자바 클래스를 엔티티로 지정하기 위해 사용한다.
 //이름을 부여하고 싶다면 @Entity("TodoEntity") 처럼 매개변수를 넣을 수 있다.
 @Entity
-//테이블이름을 지정하기 위해 @Table 어노테이션을 사용한다.
-//이 엔티티는 데이터베이스의 Todo테이블에 매핑된다는 뜻이다.
-//만약 @Table을 추가하지 않거나, 추가해도 name을 명시하지 않는다면 @Entity의 이름을 테이블로 간주한다.
-//만약 @Entity에 이름을 지정하지 않는 경우 클래스의 이름을 테이블 이름으로 간주한다.
+
 @Table(name="Todo")
 public class TodoEntity {
-    @Id//기본키가 될 필드에 지정한다.
-    @
+    @Id/
+	//@GeneratedValue(generator="system-uuid")
+	//id값을 자동으로 생성해 넣어준다. system-uuid는 @GenericGenerator의 이름이다
+	@GeneratedValue(generator="system-uuid")
+	//@GenericGenerator
+	//Hibernate가 제공하는 기본 Generator가 아닌 나만의 Generator를 사용하고 싶을 때 사용한다.
+	@GenericGenerator(name="system-uuid", strategy="uuid")
 	private String id; //이 객체의 id
 	private String userId;//이 객체를 생성한 유저의 아이디
 	private String title;//Todo 타이틀 예)운동 하기
@@ -300,3 +342,176 @@ public class TodoEntity {
 }
 ```
 
+
+## @Entity
+- 테이블이름을 지정하기 위해 @Table 어노테이션을 사용한다.
+- 이 엔티티는 데이터베이스의 Todo테이블에 매핑된다는 뜻이다.
+- 만약 @Table을 추가하지 않거나, 추가해도 name을 명시하지 않는다면 @Entity의 이름을 테이블로 간주한다.
+- 만약 @Entity에 이름을 지정하지 않는 경우 클래스의 이름을 테이블 이름으로 간주한다.
+
+### 테이블이 자동으로 생성되는 원리
+1. Hibernate가 엔티티 분석
+    - 애플리케이션이 실행되면, Hibernate가 @Entity 어노테이션이 붙은 모든 클래스를 자동으로 검색하고 분석한다.
+    - JPA는 각 엔티티 클래스의 필드, 애노테이션, 타입 등을 바탕으로 SQL DDL(데이터 정의 언어) 명령어를 생성하여 데이터베이스 테이블을 정의한다.
+2. Hibernate가 테이블 생성
+    - Hibernate는 이러한 정보를 바탕으로 **CREATE TABLE**과 같은 SQL 명령어를 생성하고, 데이터베이스에 테이블을 자동으로 생성한다.
+3. spring.jpa.hibernate.ddl-auto 설정
+    - Spring Boot와 같은 프레임워크에서는 **spring.jpa.hibernate.ddl-auto**라는 설정을 통해 테이블을 자동 생성, 업데이트 또는 삭제할 수 있다.
+    - 이 설정이 없으면 Hibernate는 애플리케이션 실행 시 엔티티에 해당하는 테이블을 자동으로 생성하거나 업데이트한다.
+<br>
+
+- 이 기본 동작으로 인해, @Entity만 붙여도 데이터베이스에 대응하는 테이블이 자동 생성되는 것이다.
+
+## @Id
+- 기본키가 될 필드에 지정한다.
+
+## @GeneratedValue(generator="system-uuid")
+- @GeneratedValue는 JPA에서 기본 키 값을 자동으로 생성할 때 사용되는 어노테이션이다.
+- generator="system-uuid"는 특정 키 생성 전략을 참조하겠다는 의미로, 주로 Hibernate에서 제공하는 커스텀 생성 전략을 사용할 때 사용된다.
+- **@GeneratedValue**는 기본 키 값을 자동으로 생성하도록 하고, generator 속성은 커스텀 생성기를 참조하게 한다.
+- 이 경우, **"system-uuid"**라는 이름의 생성기를 사용하여 UUID를 기본 키로 자동 생성하는 것이다.
+## @GenericGenerator(name="system-uuid", strategy="uuid")
+- **"system-uuid"**라는 이름의 커스텀 생성기를 정의하고, 그 생성 전략으로 UUID를 사용하도록 설정한다.
+- 이로 인해, UUID 형식의 고유한 식별자가 기본 키로 자동 생성된다.
+
+### UUID 생성방식
+- Hibernate는 이 설정을 통해 UUID 4 방식을 사용하여 랜덤 UUID를 생성한다.
+- 이는 128비트 크기의 고유 식별자로, 각 엔티티가 고유한 식별자를 가질 수 있게 해준다.
+```
+550e8400-e29b-41d4-a716-446655440000
+```
+
+
+# com.example.demo.persistence 패키지 생성하기
+- 영속계층을 관리하기 위한 패키지를 생성한다.
+
+## TodoRepository인터페이스 생성하기
+```java
+package com.example.demo.persistence;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.model.TodoEntity;
+
+@Repository
+public interface TodoRepository extends JpaRepository<TodoEntity, String>{
+
+}
+
+```
+
+## @Repository
+- 이 애노테이션은 주로 데이터베이스와 상호작용하는 클래스에서 사용되며, CRUD(Create, Read, Update, Delete)와 같은 데이터베이스 작업을 처리하는 데 사용된다.
+- @Repository가 붙은 클래스는 자동으로 **Spring의 빈(bean)**으로 등록된다.
+- 이 빈은 애플리케이션의 다른 계층(서비스 계층 등)에서 주입받아 사용할 수 있다.
+- JpaRepository를 상속받는것과 같이 Spring Data JPA를 사용할 때는 @Repository는 자동으로 적용되기 때문에 생략할 수 있다.
+
+## JpaRepository<T, ID>
+- Spring Data JPA에서 제공하는 기본 인터페이스로, **JPA(Java Persistence API)**를 사용하여 데이터베이스 작업을 쉽게 처리할 수 있도록 도와주는 역할을 한다.
+- 이 인터페이스는 CRUD(Create, Read, Update, Delete) 기능과 페이징, 정렬 같은 데이터 처리 기능을 기본적으로 제공한다.
+- 데이터베이스와 상호작용하는 데 필요한 대부분의 작업을 자동으로 처리해준다.
+- T는 엔티티 클래스(즉, 데이터베이스 테이블과 매핑되는 클래스)를 의미한다.
+- ID는 엔티티 클래스의 기본 키 타입을 의미한다.
+
+### 주요 메서드
+- save(S entity) : 엔티티를 데이터베이스에 저장하거나 업데이트한다.
+- findById(ID id): 기본 키를 이용하여 엔티티를 조회한다.
+- findAll(): 데이터베이스의 모든 엔티티를 조회한다.
+- deleteById(ID id): 기본 키를 이용하여 엔티티를 삭제한다.
+
+## TodoService클래스에 의존성 주입하기
+- TodoService클래스에서 TodoRepository인터페이스 의존성 주입하기
+
+```java
+package com.example.demo.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.TodoEntity;
+import com.example.demo.persistence.TodoRepository;
+
+@Service
+public class TodoService {
+	
+	@Autowired
+	private TodoRepository repository;
+
+	public String testService() {
+		//엔티티 생성
+		TodoEntity entity = TodoEntity.builder().title("My first todo item").build();
+		//TodoEntity 저장
+		repository.save(entity);
+		//TodoEntity 검색
+        //findById(entity.getId()) : SELECT * FROM Todo WHERE id = ?;
+		TodoEntity savedEntity = repository.findById(entity.getId()).get();
+		return  savedEntity.getTitle();
+	}
+}
+```
+## Optional<T>
+- findById()의 반환형이다.
+- **Optional<T>**는 Java 8에 도입된 클래스로, null 값을 안전하게 처리하기 위해 사용된다.
+- findById() 메서드는 조회 결과가 존재할 수도 있고, 존재하지 않을 수도 있기 때문에, null을 반환하는 대신 Optional을 사용하여 결과를 감싸서 반환한다.
+- **Optional<T>**는 해당 엔티티가 존재하는지 여부를 확인하고, 존재하면 그 값을 반환하며, 존재하지 않을 경우에 대해 추가적인 처리를 할 수 있는 다양한 메서드를 제공한다.
+
+### Optional<T>의 주요 메서드
+1. isPresent() : 반환된 Optional 객체 안에 값이 존재하면 true, 존재하지 않으면 false를 반환한다.
+```java
+if (optionalTodo.isPresent()) {
+    // 엔티티가 존재할 때 처리
+}
+```
+2. get() : Optional 안에 값이 존재할 때, 그 값을 반환한다. 만약 값이 없는데 get()을 호출하면 NoSuchElementException이 발생할 수 있다.
+```java
+TodoEntity todo = optionalTodo.get();  // 값이 있을 때만 호출 가능
+```
+3. orElse(T other): 값이 존재하지 않을 때, 기본값을 반환한다.
+```java
+TodoEntity todo = optionalTodo.orElse(new TodoEntity());  // 없으면 새로운 엔티티 반환
+```
+4. orElseThrow(Supplier<? extends X> exceptionSupplier): 값이 없을 때, 예외를 던집니다.
+```java
+TodoEntity todo = optionalTodo.orElseThrow(() -> new RuntimeException("Todo not found"));
+```
+### 반환형이 Optional인 이유
+- findById() 메서드의 반환형이 Optional<T>인 이유는 조회하려는 ID가 존재하지 않을 수 있기 때문이다.
+- 데이터베이스에서 해당 ID로 엔티티를 찾을 수 없는 경우에도 Optional을 사용하면 null 값 처리로 인해 발생할 수 있는 **NullPointerException**을 방지할 수 있다.
+
+## 테스트하기
+- 수정된 서비스를 실행하고 포스트맨을 이용해 GET localhost:9090/todo/test 요청을 날려 보면 다음과 같은 응답을 돌려받는다.
+```js
+{
+    "error":null,
+    "data":[
+        "My first todo item"
+    ]
+}
+```
+
+## 기본 쿼리와 작성 방법
+- 기본적인 쿼리가 이는 쿼리는 어떻게 작성해야 할까?
+
+## TodoRepository인터페이스에 추상메서드 추가하기
+```java
+package com.example.demo.persistence;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.model.TodoEntity;
+
+@Repository
+public interface TodoRepository extends JpaRepository<TodoEntity, String>{
+
+    @
+	List<TodoEntity> findByUserIdQuery(String userId);
+}
+```
+
+- 이 메서드를 작성하면 Spring Data JPA가  메서드의 이름을 파싱해서 SELECT * FROM Todo WHERE userid=?1"와 같은 쿼리를 작성해 실행한다.
+- 메서드의 이름은 쿼리, 매개변수는 쿼리의 Where문에 들어갈 값을 의미한다.
+- 더 복잡한 쿼리는 @Query어노테이션을 이용해 지정할 수 있다.
