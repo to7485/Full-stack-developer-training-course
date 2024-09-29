@@ -136,3 +136,286 @@ public class TodoService {
 	}
 }
 ```
+- 유효성 검사의 경우 다른 메서드에서도 쓰일 예정이므로 private method로 리팩토링한다.
+
+```java
+package com.example.demo.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.TodoEntity;
+import com.example.demo.persistence.TodoRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class TodoService {
+	
+	@Autowired
+	private TodoRepository repository;
+
+	public String testService() {
+		//엔티티 생성
+		TodoEntity entity = TodoEntity.builder().title("My first todo item").build();
+		//TodoEntity 저장
+		repository.save(entity);
+		//TodoEntity 검색
+		TodoEntity savedEntity = repository.findById(entity.getId()).get();
+		return  savedEntity.getTitle();
+	}
+	
+	
+	public List<TodoEntity> create(TodoEntity entity){
+		//매개변수로 넘어온 Entity가 유효한지 검사한다.
+		validate(entity);
+		
+		//Spring Data JPA의 리포지토리 메서드로, 전달된 entity를 데이터베이스에 저장한다.
+		//이 메서드는 JPA에서 제공하는 CRUD 기능 중 하나로, 기본적으로 엔티티가 데이터베이스에 존재하지 않으면 INSERT, 존재하면 UPDATE 쿼리를 실행한다.
+		repository.save(entity);
+		
+		//여기서 SLF4J의 플레이스홀더 {}가 사용되어, 로그 메시지에 엔티티의 ID가 삽입한다.
+		log.info("Entity Id : {} is saved",entity.getId());
+		
+		//특정 사용자 ID에 속한 모든 TodoEntity 목록을 반환한다.
+		return repository.findByUserId(entity.getUserId());
+	}
+	
+	
+	private void validate(TodoEntity entity) {
+		//전달된 TodoEntity가 null인지 확인합니다. 만약 null이면 RuntimeException을 발생시키고, 경고 로그를 기록한다.
+		if(entity == null) {
+			log.warn("Entity cannot be null.");
+			throw new RuntimeException("Entity cannot be null");
+		}
+		
+		//TodoEntity 객체가 userId를 가지고 있는지 확인한다.
+		if(entity.getUserId() == null) {
+			log.warn("Unknown user");
+			throw new RuntimeException("Unknown user");
+		}
+	}	
+}
+```
+
+## 컨트롤러 구현
+- HTTP응답을 반환할 때, 비즈니스 로직을 캡슐화하거나 추가적인 정보를 함께 반환하기 위해 DTO를 사용했었다.
+- 컨트롤러는 유저에게서 TodoDTO를 바디로 넘겨받고, 이를 TodoEntity로 변환해 저장해야한다.
+- 그 다음 TodoService의 create()이 반환하는 TodoEntity를 TodoDTO로 변환헤 반환해야 한다.
+
+### 클라이언트로부터 요청을 받았을 때
+```
+Request     >      TodoController        > TodoService
+                 TodoDTO > TodoEntity
+```
+
+### 클라이언트에게 응답을 보낼 때
+```
+Response    <      TodoController        < TodoService
+                 TodoDTO < TodoEntity
+```
+
+
+## TodoEntity클래스에 코드 작성하기
+- DTO를 Entity로 변환하기 위한 코드 작성하기
+```java
+package com.example.demo.dto;
+
+import com.example.demo.model.TodoEntity;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class TodoDTO {
+	private String id;
+	private String title;
+	private boolean done;
+	
+	public TodoDTO(final TodoEntity entity) {
+		this.id = entity.getId();
+		this.title = entity.getTitle();
+		this.done = entity.isDone();
+	}
+	
+	public static TodoEntity toEntity(TodoDTO dto) {
+		return TodoEntity.builder()
+				.id(dto.getId())
+				.title(dto.getTitle())
+				.done(dto.isDone())
+				.build();
+	}
+}
+```
+
+## Controller에 코드 추가하기
+```java
+package com.example.demo.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.dto.ResponseDTO;
+import com.example.demo.dto.TodoDTO;
+import com.example.demo.model.TodoEntity;
+import com.example.demo.service.TodoService;
+
+@RestController
+@RequestMapping("todo")
+public class TodoController {
+
+	@Autowired
+	private TodoService service;
+	
+	@GetMapping("/test")
+	public ResponseEntity<?> testTodo(){
+		String str = service.testService();//테스트 서비스 사용
+		List<String> list = new ArrayList<>();
+		list.add(str);
+		ResponseDTO<String>response = ResponseDTO.<String>builder().data(list).build();
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@PostMapping
+	public ResponseEntity<?> createTodo(@RequestBody TodoDTO dto){
+		try {
+			String tempraryUserId = "temporary-user"; //임시 유저id
+			
+			//TodoDTO객체를 TodoEntity객체로 변환한다.
+			TodoEntity entity = TodoDTO.toEntity(dto);
+			System.out.println(entity);
+			
+			//id 값을 명시적으로 null로 설정하여, 엔티티가 새로운 데이터임을 보장합니다.
+			entity.setId(null);
+			
+			//임시 유저id를 설정해준다. 이 부분은 4장 인증과 인가에서 수정할 예정이다.
+			//지금은 인증과 인가 기능이 없으므로 한 유저(temporary-user)만 로그인 없이 사용 가능한
+			//애플리케이션인 셈이다.
+			entity.setUserId(tempraryUserId);
+			
+			//서비스 레이어의 create 메서드를 호출하여, TodoEntity를 데이터베이스에 저장하는 작업을 수행한다.
+			//이 메서드는 저장된 TodoEntity 객체들을 저장한 리스트를 반환한다.
+			List<TodoEntity> entities = service.create(entity);
+			
+			//자바 스트림을 이용해 반환된 엔티디 리스트를 TodoDTO리스트로 변환한다.
+            //entities.stream().map(TodoDTO::new): TodoEntity 객체의 리스트를 TodoDTO 리스트로 변환하는 과정이다.
+            //.collect(Collectors.toList()): 스트림으로 변환된 객체들을 리스트로 다시 수집한다.
+			List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+			
+			//변환된 TodoDTO 리스트를 이용해 ResponseDTO를 초기화한다.
+            //builder() 패턴을 사용하여 ResponseDTO 객체를 생성한다.
+			ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+			
+			//ResponseDTO를 반환한다.
+			return ResponseEntity.ok().body(response);
+		} catch (Exception e) {
+			// 혹시 예외가 나는 경우 dto 대신 error에 메시지를 넣어 반환한다.
+			String error = e.getMessage();
+			
+			//에러 메시지를 포함한 ResponseDTO 객체를 생성한다.
+			ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().error(error).build();
+			
+			//ResponseEntity.badRequest(): 400 Bad Request 상태 코드를 가진 응답을 반환한다.
+			//이는 클라이언트가 잘못된 요청을 했음을 나타낸다.
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+}
+```
+- IDE의 메인메서드를 실행시키고 포스트맨을 이용해 HTTP POST localhost:9090/todo 요청을 작성한다.
+
+![img](img/todo_create.png)
+
+- Body탭을 누르고, raw버튼을 선택 후 Text를 Json으로 바꾼다.
+- 아래와 같은 데이터를 작성하여 요청한다.
+
+```json
+{
+    "title":"새 포스트 1"
+}
+```
+- 결과
+- id는 자동생성되므로 예제와 다를 수 있다.
+```json
+{
+    "error": null,
+    "data": [
+        {
+            "id": "402880e4923e6f2f01923e70347e0000",
+            "title": "새 포스트1",
+            "done": false
+        }
+    ]
+}
+```
+
+# Todo 리스트를 검색하는 기능
+
+## Retrieve Todo구현
+- Todo 리스트를 검색하기 위한 리포지터리, 서비스, 컨트롤러를 구현해보자
+
+## 영속레이어 구현
+- 마찬가지로 TodoRepository를 사용한다.
+- createTodo에서 했던 것처럼 새 Todo 리스트 반환을 위해 findByUserId()메서드를 사용하자
+
+## 서비스레이어 구현
+- repository의 findByUserId()를 이용해 TodoService에 retrieve메서드를 작성하자.
+```java
+package com.example.demo.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.TodoEntity;
+import com.example.demo.persistence.TodoRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class TodoService {
+	
+	@Autowired
+	private TodoRepository repository;
+
+	public String testService() {
+		... 
+	}
+	
+	
+	public List<TodoEntity> create(TodoEntity entity){
+        ...
+	}
+	/////////////////////작성하기////////////////////////////
+	public List<TodoEntity> retrieve(String userId){
+		return repository.findByUserId(userId);
+	}
+	/////////////////////작성하기////////////////////////////
+	
+	private void validate(TodoEntity entity) {
+        ...
+	}	
+}
+```
+
+
+

@@ -507,11 +507,25 @@ import com.example.demo.model.TodoEntity;
 @Repository
 public interface TodoRepository extends JpaRepository<TodoEntity, String>{
 
-    @
+    @Query("SELECT t FROM TodoEntity t where t.userId=?1")
 	List<TodoEntity> findByUserIdQuery(String userId);
 }
 ```
-
 - 이 메서드를 작성하면 Spring Data JPA가  메서드의 이름을 파싱해서 SELECT * FROM Todo WHERE userid=?1"와 같은 쿼리를 작성해 실행한다.
 - 메서드의 이름은 쿼리, 매개변수는 쿼리의 Where문에 들어갈 값을 의미한다.
 - 더 복잡한 쿼리는 @Query어노테이션을 이용해 지정할 수 있다.
+
+### JPQL (Java Persistence Query Language)
+- JPA에서 사용하는 객체지향 쿼리 언어이다.
+- 데이터베이스 테이블이 아닌 JPA 엔티티 객체를 대상으로 CRUD(생성, 조회, 수정, 삭제) 작업을 수행하는 쿼리를 작성할 수 있도록 설계되었다.
+
+### JPQL의 특징
+1. 객체 지향적
+    - JPQL은 데이터베이스 테이블 대신 JPA 엔티티 객체를 대상으로 쿼리를 실행합니다.
+    - 테이블 이름이나 컬럼 대신 **엔티티 클래스 이름과 필드를 사용**하여 쿼리를 작성한다.
+    - 이 때문에, JPQL 쿼리는 데이터베이스 독립적이며, 데이터베이스의 스키마에 의존하지 않는다.
+2. SQL과 유사한 구문
+    - JPQL은 SQL과 매우 유사한 문법을 사용하지만, 엔티티 객체를 다룬다는 점에서 차이가 있다.
+    - 예를 들어, SQL에서 SELECT * FROM users는 JPQL에서는 SELECT u FROM User u로 표현된다. 
+    - 여기서 User는 데이터베이스 테이블이 아닌 엔티티 클래스를 의미한다.
+
