@@ -486,3 +486,223 @@ public class TodoController {
 - 마찬가지로 JSON 형태의 HTTP응답이 반환된 것을 확인할 수 있다.
 
 
+## Update Todo 구현
+- Todo를 업데이트 하는 기능을 만들어보자
+
+## 영속계층
+- TodoRepository를 사용한다.
+- 업데이트 하기 위해 save(), findByUserId()를 사용한다.
+
+## 서비스계층
+- TodoService에 update메서드를 작성하자
+
+```java
+package com.example.demo.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.TodoEntity;
+import com.example.demo.persistence.TodoRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class TodoService {
+	
+	@Autowired
+	private TodoRepository repository;
+
+	public String testService() {
+		...
+	}
+	
+	
+	public List<TodoEntity> create(TodoEntity entity){
+		...
+	}
+	///////////////////////코드 추가//////////////////////////////////
+	public List<TodoEntity> update(TodoEntity entity){
+		//저장할 엔티티가 유효한지 확인한다.
+		validate(entity);
+		
+		//넘겨받은 엔티티 id를 이용해 TodoEntity를 가져온다.
+		//존재하지 않는 엔티티는 업데이트 할 수 없기 때문이다.
+		Optional<TodoEntity> original = repository.findById(entity.getId());
+		
+		original.ifPresent(todo -> {
+			//반환된 TodoEntity가 존재하면 값을 새 Entity값으로 덮어씌운다.
+			todo.setTitle(entity.getTitle());
+			todo.setDone(entity.isDone());
+			
+			//데이터베이스에 새 값을 저장한다.
+			repository.save(todo);
+		});
+		
+		return retrieve(entity.getUserId());
+	}
+	///////////////////////코드 추가//////////////////////////////////
+	
+	private void validate(TodoEntity entity) {
+		...
+}
+
+```
+
+## 표현계층
+- TodoController에 PUT 요청을 하는 updateTodo메서드를 작성한다.
+
+```java
+package com.example.demo.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.service.annotation.PutExchange;
+
+import com.example.demo.dto.ResponseDTO;
+import com.example.demo.dto.TodoDTO;
+import com.example.demo.model.TodoEntity;
+import com.example.demo.service.TodoService;
+
+@RestController
+@RequestMapping("todo")
+public class TodoController {
+
+	@Autowired
+	private TodoService service;
+	
+	@GetMapping("/test")
+	public ResponseEntity<?> testTodo(){
+		...
+	}
+	
+	@PostMapping
+	public ResponseEntity<?> createTodo(@RequestBody TodoDTO dto){
+		...
+	}
+	
+	@GetMapping
+	public ResponseEntity<?> retrieveTodoList(){
+		...
+	}	
+	
+	@PutMapping
+	public ResponseEntity<?> updateTodo(@RequestBody TodoDTO dto){
+		String temporaryUserId = "temporary-user";
+		
+		//dto를 Entity로 변환한다.
+		TodoEntity entity = TodoDTO.toEntity(dto);
+		
+		entity.setUserId(temporaryUserId);
+		
+		//서비스레이어의 update메서드를 이용해 entity를 업데이트한다.
+		List<TodoEntity> entities = service.update(entity);
+		
+		//자바 스트림을 이용해 반환된 엔티티 리스트를 TodoDTO 리스트로 변환한다.
+		List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+		
+		//변환된 TodoDTO 리스트를 이용해 ResponseDTO를 초기화한다.
+		ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+		
+		return ResponseEntity.ok().body(response);
+	}
+}
+```
+- 프로그램을 재시작하고 포스트맨에서 테스팅을 해보자
+- h2 데이터베이스를 사용하고 있으니 이전에 생성했던 Todo 아이템은 없어졌다.
+- POST메서드로 새 Todo아이템을 생성하자
+
+![img](img/todo추가.png)
+
+- put 메서드로 Todo아이템을 수정해보자
+
+![img](img/Todo_update.png)
+
+## Delete Todo 구현
+- Todo를 삭제하기 위한 기능을 구현해보자
+
+## 영속 계층
+- TodoRepository를 사용한다.
+- 삭제 후 상태를 조회하기 위해 delete(), findByuserId()메서드를 사용한다.
+
+## 서비스 계층
+- delete기능을 구현하기 위해 TodoService에 delete메서드 작성하기
+
+```java
+public List<TodoEntity> delete(TodoEntity entity){
+	//저장할 엔티티가 유효한지 확인한다.
+	validate(entity);
+	
+	try {
+		//엔티티를 삭제한다.
+		repository.delete(entity);
+	} catch (Exception e) {
+		// 예외 발생 시 id와 exception을 로깅한다.
+		log.error("error deleting entity ",entity.getId(),e);
+		
+		//컨트롤러로 exception을 날린다. 데이터베이스 내부 로직을 캡슐화 하기 위해 e를 반환하지 않고 새로 exception 객체를 반환한다.
+		throw new RuntimeException("error deleting entity "+entity.getId());
+	}
+	
+	return retrieve(entity.getUserId());
+}
+```
+
+## 표현 계층
+- TodoController에 DELETE메서드를 사용하는 deleeTodo메서드를 만든다.
+
+```java
+@DeleteMapping
+public ResponseEntity<?> deleteTodo(@RequestBody TodoDTO dto){
+	try {
+		
+		String tempraryUserId = "temporary-user"; //임시 유저id
+		
+		//TodoDTO객체를 TodoEntity객체로 변환한다.
+		TodoEntity entity = TodoDTO.toEntity(dto);
+	
+		
+		//임시 유저id를 설정해준다. 이 부분은 4장 인증과 인가에서 수정할 예정이다.
+		//지금은 인증과 인가 기능이 없으므로 한 유저(temporary-user)만 로그인 없이 사용 가능한
+		//애플리케이션인 셈이다.
+		entity.setUserId(tempraryUserId);
+		
+		//서비스 레이어의 create 메서드를 호출하여, TodoEntity를 데이터베이스에 저장하는 작업을 수행한다.
+		//이 메서드는 저장된 TodoEntity 객체들을 저장한 리스트를 반환한다.
+		List<TodoEntity> entities = service.delete(entity);
+		
+		//자바 스트림을 이용해 반환된 엔티디 리스트를 TodoDTO리스트로 변환한다.
+		List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+		
+		//변환된 TodoDTO 리스트를 이용해 ResponseDTO를 초기화한다.
+		ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+		
+		//ResponseDTO를 반환한다.
+		return ResponseEntity.ok().body(response);
+	} catch (Exception e) {
+		// 혹시 예외가 나는 경우 dto 대신 error에 메시지를 넣어 반환한다.
+		String error = e.getMessage();
+		
+		//에러 메시지를 포함한 ResponseDTO 객체를 생성한다.
+		ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().error(error).build();
+		
+		//ResponseEntity.badRequest(): 400 Bad Request 상태 코드를 가진 응답을 반환한다.
+		//이는 클라이언트가 잘못된 요청을 했음을 나타낸다.
+		return ResponseEntity.badRequest().body(response);
+	}
+}
+```
