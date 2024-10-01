@@ -310,3 +310,54 @@ export default App;
 - 백엔드의 데이터베이스에서 Todo 리스트를 가져오므로 새로고침을 해도 사라지지 않는다.
 - 또는 프론트엔드 애플리케이션을 완전히 종료했다가 다시 켜도, 당연히 사라지지 않는다.
 
+## Todo Update 수정
+- 사용자가 키보드 키를 입력하면 item 객체를 수정했기 때문에 우리가 할 일은 App.js의 editItem() 함수 내에서 items 리스트를 새 배열로 옮김으로써 재렌더링 하는 작업을 했다.
+- 따로 수정한 item을 editItem()으로 넘기지 않아도 잘 동작했다.
+- 하지만 API를 이용해 item을 수정하기 위해서는 몇가지를 수정해야 한다.
+
+### 1. Service API를 이용해 서버 데이터를 업데이트 한다.
+### 2. 변경된 내용을 화면에 다시 출력해야 한다.
+
+### App.js코드 수정하기
+```js
+//내용 수정
+const editItem = (item) => {
+   call("/todo","PUT",item)
+   .then(result => setItems(result.data))
+}
+```
+- 우리가 수정한 editItem() 함수는 매개변수를 받는다.
+- 따라서 Todo.js에서 editItem()함수를 호출할 때 매개변수에 값을 전달해줘야한다.
+
+### 주의사항
+- 타이틀 변경을 위해 input의 필드에서 사용자의 입력을 받아올 때 editEventHandler()에서 item을 바로 넘겨버리면 한 글자 한 글자 입력할 때마다 HTTP요청을 보내게 된다.
+- 이는 매우 낭비기 때문에 수정을 완료한 시점에서 HTTP 요청을 보내고 싶다.
+- 수정을 완료한 시점은 입력이 끝나 수정이 불가능한 상태로 바뀌는 시점이다.
+
+### Todo.js코드 수정하기
+```js
+const editEventHandler = (e) => {
+   setItem({...item,title:e.target.value});//변경만 해서는 렌더링이 안된다.
+}
+
+//turnOnReadOnly함수
+const turnOnReadOnly = (e) =>{
+   if(e.key === 'Enter' && readOnly === false){
+      setReadOnly(true);
+      editItem(item);
+   }
+}
+```
+
+## 체크박스 수정
+- 체크 상태가 업데이트 될 때마다 editItem()을 호출해 백엔드 HTTP요청을 보내면 된다.
+### Todo.js코드 수정하기
+```js
+//체크박스변경
+const checkboxEventHandler = (e) =>{
+   item.done = e.target.checked;
+   editItem(item);//App.js의 editItem의 매개변수에 전달된다.
+}
+```
+- 브라우저를 새로고침 한 후 업데이트 부분을 테스트해보자.
+- 리액트 애플리케이션을 재시작하거나 이미 실행중인 경우 브라우저를 새로고침한다.
