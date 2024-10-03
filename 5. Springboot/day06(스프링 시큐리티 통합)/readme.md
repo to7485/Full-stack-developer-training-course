@@ -174,6 +174,7 @@ public class UserController {
 	}
 }
 ```
+- 포스트맨을 켜고 회원가입을 한후 로그인을 해서 token필드가 반환되는지 확인해보자.
 
 # 스프링 시큐리티(Spring Security)
 
