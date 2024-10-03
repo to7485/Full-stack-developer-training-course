@@ -11,7 +11,169 @@
 - 우리는 스프링 시큐리티를 이용해 코드를 한번만 작성하고, 이 코드가 모든 API를 수행하기 바로 전에 실행되도록 설정하고 구현할 것이다.
 
 ## JWT 생성 및 반환 구현
-- 유저 정보를 바탕으로 헤더와 페이로드
+- 유저 정보를 바탕으로 헤더와 페이로드를 작성하고 전자 서명을 한 후 토큰을 반환할것이다.
+- 구현을 위해서 JWT관련 라이브러리를 디펜던시에 추가해야 한다.
+- build.gradle의 dependencies 부분에 Jjwt라이브러리를 추가해주자.
+
+```groovy
+	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
+	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl
+	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
+	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-gson
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-gson', version: '0.11.5'
+```
+
+### com.example.demo.security패키지 만들기
+- security패키지에서 인증과 인가를 위한 모든 클래스를 관리할 것이다.
+- TokenProvider클래스를 만들어 유저 정보를 받아 JWT를 생성하자.
+```java
+package com.example.demo.security;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.UserEntity;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class TokenProvider {
+	private static final String SECRET_KEY = "eyJhbGciOiJIUzUxMiJ9eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyNzk3NzQ2OSwiaWF0IjoxNzI3OTc3NDY5fQ3WUk1X983GsejnQZJSNQKjZBfBeSzOK4cAxpndz0G3pSItFPDiDVnSfD0ZsQzVCSkSMKQozyMVDjt9VYTcJw";
+
+	public String create(UserEntity userEntity) {
+		// 기한 지금으로부터 1일로 설정
+		Date expiryDate = Date.from(
+						Instant.now()
+						.plus(1, ChronoUnit.DAYS));
+
+		/*
+		{ // header
+		  "alg":"HS512"
+		}.
+		{ // payload
+		  "sub":"40288093784915d201784916a40c0001",
+		  "iss": "demo app",
+		  "iat":1595733657,
+		  "exp":1596597657
+		}.
+		// SECRET_KEY를 이용해 서명한 부분
+		Nn4d1MOVLZg79sfFACTIpCPKqWmpZMZQsbNrXdJJNWkRv50_l7bPLQPwhMobT4vBOG6Q3JYjhDrKFlBSaUxZOg
+		 */
+		// JWT Token 생성
+		return Jwts.builder()
+						// header에 들어갈 내용 및 서명을 하기 위한 SECRET_KEY
+						.signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+						// payload에 들어갈 내용
+						.setSubject(userEntity.getId()) // sub
+						.setIssuer("demo app") // iss
+						.setIssuedAt(new Date()) // iat
+						.setExpiration(expiryDate) // exp
+						.compact();
+	}
+
+	public String validateAndGetUserId(String token) {
+		// parseClaimsJws메서드가 Base 64로 디코딩 및 파싱.
+		// 즉, 헤더와 페이로드를 setSigningKey로 넘어온 시크릿을 이용 해 서명 후, token의 서명 과 비교.
+		// 위조되지 않았다면 페이로드(Claims) 리턴
+		// 그 중 우리는 userId가 필요하므로 getBody를 부른다.
+		Claims claims = Jwts.parser()
+						.setSigningKey(SECRET_KEY)
+						.parseClaimsJws(token)
+						.getBody();
+
+		return claims.getSubject();
+	}
+}
+```
+- create()는 JWT라이브러리를 이용해 JWT토큰을 생성한다.
+- 토큰을 생성하는 과정에서 우리가 임의로 지정한 SECRET_KEY를 개인키로 사용한다.
+- 두 번째 메서드 validateAndGetUserId()는 토큰을 디코딩, 파싱 및 위조여부를 확인한다.
+- 이후 우리가 원하는 유저의 아이디를 반환한다.
+- 라이브러리 덕에 우리가 굳이 JSON을 생성, 서명, 인코딩, 디코딩, 파싱하는 작업을 하지 않아도 된다.
+- TokenProvider를 작성했다면, 이제 로그인 부분에서 TokenProvider를 이용해 토큰을 생성 후 UserDTO에 이를 반환해야 한다.
+
+## UserController에 코드 수정하기
+```java
+package com.example.demo.controller;
+
+@Slf4j
+@RestController
+@RequestMapping("/auth")
+public class UserController {
+
+	@Autowired
+	private UserService userService;
+
+///////////////////Token Provider 주입////////////////
+	@Autowired
+	private TokenProvider tokenProvider;
+///////////////////Token Provider 주입////////////////
+
+
+	@PostMapping("/signup")
+	public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
+		try {
+			// 리퀘스트를 이용해 저장할 유저 만들기
+			UserEntity user = UserEntity.builder()
+							.email(userDTO.getEmail())
+							.username(userDTO.getUsername())
+							.password(passwordEncoder.encode(userDTO.getPassword()))
+							.build();
+			// 서비스를 이용해 리파지토리에 유저 저장
+			UserEntity registeredUser = userService.create(user);
+			UserDTO responseUserDTO = UserDTO.builder()
+							.email(registeredUser.getEmail())
+							.id(registeredUser.getId())
+							.username(registeredUser.getUsername())
+							.build();
+			// 유저 정보는 항상 하나이므로 그냥 리스트로 만들어야하는 ResponseDTO를 사용하지 않고 그냥 UserDTO 리턴.
+			return ResponseEntity.ok(responseUserDTO);
+		} catch (Exception e) {
+			// 예외가 나는 경우 bad 리스폰스 리턴.
+			ResponseDTO responseDTO = ResponseDTO.builder().error(e.getMessage()).build();
+			return ResponseEntity
+							.badRequest()
+							.body(responseDTO);
+		}
+	}
+
+	@PostMapping("/signin")
+	public ResponseEntity<?> authenticate(@RequestBody UserDTO userDTO) {
+		UserEntity user = userService.getByCredentials(
+						userDTO.getUsername(),
+						userDTO.getPassword());
+
+		if(user != null) {
+			///////////////////토큰 생성////////////////
+			final String token = tokenProvider.create(user);
+         ///////////////////토큰 생성////////////////
+			final UserDTO responseUserDTO = UserDTO.builder()
+							.username(user.getUsername())
+							.id(user.getId())
+                     //////토큰 주입///////
+							.token(token)
+                     //////토큰 주입///////
+							.build();
+			return ResponseEntity.ok().body(responseUserDTO);
+		} else {
+			ResponseDTO responseDTO = ResponseDTO.builder()
+							.error("Login failed.")
+							.build();
+			return ResponseEntity
+							.badRequest()
+							.body(responseDTO);
+		}
+	}
+}
+```
 
 # 스프링 시큐리티(Spring Security)
 
