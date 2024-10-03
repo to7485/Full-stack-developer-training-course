@@ -545,4 +545,148 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 
 ### Signature
 - 토큰을 발행한 주체 Isuuer가 발행한 서명
-- 토큰의 유효성 검사에 사용된다.
+- 토큰의 헤더와 페이로드를 각각 Base64로 인코딩한 뒤, 비밀키(Secret Key)와 함께 선택한 알고리즘(HMAC, RSA 등)을 사용하여 해싱한 값이다.
+- 시그니처(Signature)는 토큰이 위변조되지 않았는지 검증하는 역할을 한다.
+- 시그니처가 중요한 이유는, 클라이언트가 JWT 토큰을 서버에 보낼 때 서버는 시그니처를 다시 계산하고, 클라이언트가 보낸 시그니처와 비교해서 토큰이 변조되었는지 확인할 수 있기 때문이다.
+
+## User 레이어 구현
+- 사용자를 관리하기 위해서는 유저에 관려된 모델,서비스,레포지토리,컨트롤러가 필요하다
+
+## UserEntity
+- com.example.demo.model패키지에 UserEntity클래스 만들기
+```java
+@Data // Lombok을 사용하여 getter, setter, toString, equals, hashCode 등을 자동 생성해준다.
+@Entity // JPA에서 엔티티 클래스임을 나타낸다. 이 클래스는 데이터베이스 테이블과 매핑된다.
+@Builder // Lombok의 Builder 패턴을 사용하여 객체를 생성할 수 있도록 한다.
+@NoArgsConstructor // 기본 생성자를 자동으로 생성해준다.
+@AllArgsConstructor // 모든 필드를 인자로 받는 생성자를 자동으로 생성해준다.
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames="username")}) 
+// 테이블에서 username 컬럼이 유니크하도록 설정한다. 즉, 동일한 username을 가진 유저는 중복으로 생성될 수 없다.
+public class UserEntity {
+
+    @Id // JPA에서 이 필드가 테이블의 Primary Key임을 나타낸다.
+    @GeneratedValue(generator="system-uuid") // id 필드는 자동으로 생성된다. 여기서는 UUID 전략을 사용한다.
+    @GenericGenerator(name="system-uuid", strategy="uuid") 
+    // Hibernate에서 제공하는 UUID를 생성하는 커스텀 전략을 사용한다. system-uuid라는 이름으로 UUID를 생성하는 방식이다.
+    private String id; // 유저에게 고유하게 부여되는 ID. UUID로 생성되며 고유한 값이다.
+
+    @Column(nullable=false) // username 컬럼은 null 값을 허용하지 않는다.
+    private String username; // 아이디로 사용할 유저네임. 이메일일 수도 있고, 그냥 문자열일 수도 있다.
+
+    private String password; // 유저의 패스워드.
+
+    private String role; // 유저의 권한. 예를 들어 "관리자", "일반사용자"와 같은 값이 들어갈 수 있다.
+
+    private String authProvider; // 이후 OAuth에서 사용할 유저 정보 제공자 : github
+}
+```
+- 보통의 경우는 무조건 값이 들어가야 하는게 맞지만 password에 null값이 허용이 된다.
+- sso을 이용해 로그인 하는 경우에는 비밀번호가 필요 없기 때문이다.
+- 반드시 비밀번호를 입력하도록 규제하면 SSO 구현시 문제가 생기므로 처음부터 null을 입력할 수 있도록 했다.
+- 대신 회원가입을 구현하는 컨트롤러에서 password를 반드시 입력하도록 하는 방법이 있다.
+
+# SSO(Single Sign-On)란?
+
+SSO(Single Sign-On)는 **한 번의 로그인**으로 여러 개의 애플리케이션이나 시스템에 접근할 수 있게 해주는 인증 방식이다. 즉, 사용자가 한 번 로그인하면 이후 다른 시스템이나 서비스에도 추가로 로그인할 필요 없이 자동으로 접근할 수 있다.
+
+## SSO의 주요 개념
+
+1. **중앙 인증 시스템**
+   - SSO는 사용자의 인증 정보를 중앙에서 관리하는 시스템이 있어야 한다. 이 중앙 인증 시스템에서 사용자가 인증되면, 그 정보가 다른 시스템에 전달되어 사용자는 추가 로그인을 요구받지 않는다.
+
+2. **토큰 기반 인증**
+   - SSO는 보통 인증이 완료된 후 사용자에게 **토큰**을 발급한다. 이 토큰을 가지고 사용자는 다양한 서비스에 접근할 수 있게 된다. 일반적으로 SAML(Security Assertion Markup Language), OAuth, JWT(JSON Web Token) 같은 기술이 사용된다.
+
+3. **편리성**
+   - 사용자는 여러 번 로그인할 필요가 없기 때문에 사용자 경험이 크게 향상된다. 특히 대규모 시스템에서는 다양한 애플리케이션에 접속할 때마다 로그인하는 번거로움이 없어지기 때문에 매우 유용하다.
+
+4. **보안**
+   - SSO는 보안 관점에서 유리하다. 사용자 비밀번호를 여러 시스템에 저장하지 않고 중앙에서만 관리하므로, 보안 위험이 줄어든다. 또한 SSO 시스템에서 강력한 인증 방식을 적용하면, 여러 시스템에 걸쳐 강화된 보안이 적용된다.
+
+## SSO의 작동 방식
+1. **사용자 로그인 요청**: 사용자가 애플리케이션 A에 접근하려고 하면, 로그인 화면으로 리디렉션된다. 이 로그인 화면은 SSO 서버로부터 제공된다.
+   
+2. **인증 요청**: SSO 서버는 사용자에게 인증을 요구하고, 사용자는 ID와 비밀번호를 입력한다.
+
+3. **토큰 발급**: 인증이 성공하면 SSO 서버는 사용자에게 인증 토큰(예: SAML, JWT)을 발급해준다.
+
+4. **접근 허용**: 애플리케이션 A는 SSO 서버로부터 받은 토큰을 확인하고, 해당 사용자가 인증되었음을 확인한 후 애플리케이션에 접근을 허용한다.
+
+5. **다른 애플리케이션에 접근**: 이후 사용자가 애플리케이션 B에 접근하려고 할 때, SSO 서버는 사용자가 이미 인증된 상태임을 인식하고 자동으로 접근을 허용한다. 사용자는 다시 로그인할 필요가 없다.
+
+## SSO의 장점
+
+- **사용자 편의성**: 한 번 로그인으로 여러 시스템에 접근할 수 있어, 사용자 입장에서 매우 편리하다.
+- **보안 관리 강화**: 비밀번호를 여러 시스템에 저장할 필요가 없고, 중앙에서 일관된 보안 정책을 적용할 수 있다.
+- **효율성**: 사용자가 여러 번 로그인을 할 필요가 없어 로그인 절차에서 오는 중복된 작업을 제거할 수 있다.
+
+## SSO의 단점
+
+- **단일 실패 지점**: 만약 SSO 시스템에 문제가 발생하거나 해킹당하면, 모든 서비스에 대한 접근이 차단되거나 보안이 취약해질 수 있다.
+- **복잡한 설정**: 여러 시스템과의 통합 및 보안 관리가 복잡할 수 있다. 또한 각 서비스와의 연동을 신중하게 설정해야 한다.
+
+## SSO를 사용하는 대표적인 예시
+
+- **Google 계정으로 로그인**: 한 번 구글 계정에 로그인하면, Gmail, Google Drive, YouTube 등 여러 구글 서비스에 자동으로 로그인된다.
+- **기업 내 SSO**: 대기업에서는 직원들이 한 번의 로그인을 통해 사내 여러 시스템(메일, 문서 관리, 인사 시스템 등)에 접근할 수 있도록 SSO를 활용하는 경우가 많다.
+
+SSO는 사용자 경험을 개선하고, 보안 및 관리 측면에서 큰 장점을 제공하는 인증 방식이다.
+
+## UserRepository
+- com.eaxmple.demo.persistence에 UserRepository인터페이스 만들기
+```java
+package com.example.demo.persistence;
+@Repository
+public interface UserRepository extends JpaRepository<UserEntity, String>{
+    UserEntity findByUsername(String username);// username 값으로 UserEntity를 찾아 반환한다.
+    Boolean existsByUsername(String username);//해당 username이 존재하면 true, 존재하지 않으면 false를 반환한다.
+    UserEntity findByUsernameAndPassword(String username, String password);//username과 password를 기준으로 UserEntity를 조회하는 메서드다.
+    //And가 사용되었으므로, 두 필드를 모두 만족하는 데이터를 찾는 조건으로 쿼리가 자동 생성된다.
+}
+```
+
+## UserService
+- com.example.demo.service패키지에 UserService클래스 만들기
+```java
+package com.example.demo.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.UserEntity;
+import com.example.demo.persistence.UserRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Service // 이 클래스가 스프링의 서비스 계층에 속하는 빈(Bean)임을 나타낸다.
+@Slf4j // Lombok을 사용하여 로깅 기능을 자동으로 추가한다. log 객체를 통해 로그를 기록할 수 있다.
+public class UserService {
+
+    @Autowired // 스프링이 UserRepository 타입의 빈을 자동으로 주입해준다.
+    private UserRepository repository; // UserRepository를 통해 데이터베이스에 접근하는 역할을 한다.
+
+    public UserEntity create(UserEntity userEntity) {
+        // 주어진 UserEntity가 null이거나 username이 null인 경우, 예외를 던진다.
+        if(userEntity == null || userEntity.getUsername() == null) {
+            throw new RuntimeException("Invalid arguments"); // 유효하지 않은 인자에 대해 예외를 발생시킨다.
+        }
+
+        final String username = userEntity.getUsername(); // UserEntity에서 username을 가져온다.
+        
+        // 주어진 username이 이미 존재하는 경우, 경고 로그를 남기고 예외를 던진다.
+        if(repository.existsByUsername(username)) {
+            log.warn("Username already exists {}", username); // 이미 존재하는 username에 대해 로그를 기록한다.
+            throw new RuntimeException("Username already exists"); // 중복된 username인 경우 예외를 던진다.
+        }
+        
+        // username이 중복되지 않았다면 UserEntity를 데이터베이스에 저장하고 반환한다.
+        return repository.save(userEntity); // UserRepository의 save 메서드를 통해 userEntity를 저장한다.
+    }
+
+    // 주어진 username과 password로 UserEntity를 조회한다.
+    public UserEntity getByCredentials(String username, String password) {
+        // UserRepository의 findByUsernameAndPassword 메서드를 사용하여 유저 정보를 조회한다.
+        return repository.findByusernameAndPassword(username, password);
+    }
+}
+```
