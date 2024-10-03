@@ -647,6 +647,8 @@ public interface UserRepository extends JpaRepository<UserEntity, String>{
 
 ## UserService
 - com.example.demo.service패키지에 UserService클래스 만들기
+- UserService는 TodoService처럼 유저 데이터베이스에 저장된 윶를 가져올 때 사용한다.
+- UserRepository를 이용해 사용자를 생성하고, 로그인 시 인증에 사용할 메서드를 작성한다.
 ```java
 package com.example.demo.service;
 
@@ -690,3 +692,139 @@ public class UserService {
     }
 }
 ```
+## UserDTO
+- com.example.demo.dto에 UserDTO 클래스 만들기
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserDTO {
+
+	private String token;
+	private String username;
+	private String password;
+	private String id;
+}
+```
+
+## UserController
+- com.example.demo.controller패키지에 UserController클래스 생성하기
+- 유저 서비를 이용해 현재 유저를 가져오는 기능과 회원가입 기능을 구현한다.
+```java
+package com.example.demo.controller;
+
+import com.example.demo.dto.ResponseDTO;
+import com.example.demo.dto.UserDTO;
+import com.example.demo.model.UserEntity;
+import com.example.demo.service.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Slf4j // Lombok을 사용하여 로그를 남길 수 있는 log 객체를 자동으로 생성한다.
+@RestController // 이 클래스가 RESTful 웹서비스의 컨트롤러 역할을 한다는 것을 나타낸다.
+@RequestMapping("/auth") // 이 컨트롤러의 기본 URI 경로가 "/auth"로 설정된다.
+public class UserController {
+
+    @Autowired // UserService 타입의 빈을 자동으로 주입받는다.
+    private UserService userService; // 사용자 관련 비즈니스 로직을 처리하는 서비스 클래스.
+
+    @PostMapping("/signup") // POST 요청을 처리하는 메서드로, 경로는 "/auth/signup"이다.
+    public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) { 
+        // 요청 본문에 포함된 UserDTO 객체를 수신하여 처리한다.
+        try {
+            // UserDTO를 기반으로 UserEntity 객체를 생성한다.
+            UserEntity user = UserEntity.builder()
+                            .username(userDTO.getUsername()) // UserDTO에서 username 값을 가져온다.
+                            .password(userDTO.getPassword()) // UserDTO에서 password 값을 가져온다.
+                            .build(); // UserEntity 객체를 빌드한다.
+
+            // UserService를 이용해 새로 만든 UserEntity를 데이터베이스에 저장한다.
+            UserEntity registeredUser = userService.create(user);
+
+            // 등록된 UserEntity 정보를 UserDTO로 변환하여 응답에 사용한다.
+            UserDTO responseUserDTO = UserDTO.builder()
+                            .id(registeredUser.getId()) // 등록된 유저의 ID를 가져온다.
+                            .username(registeredUser.getUsername()) // 등록된 유저의 username을 가져온다.
+                            .build(); // UserDTO 객체를 빌드한다.
+
+            // 성공적으로 저장된 유저 정보를 포함한 HTTP 200 응답을 반환한다.
+            return ResponseEntity.ok(responseUserDTO);
+        } catch (Exception e) {
+            // 예외가 발생한 경우, 에러 메시지를 포함한 ResponseDTO 객체를 만들어서 응답한다.
+            ResponseDTO responseDTO = ResponseDTO.builder().error(e.getMessage()).build();
+
+            // HTTP 400 상태 코드를 반환하고, 에러 메시지를 응답 본문에 포함시킨다.
+            return ResponseEntity
+                            .badRequest() // HTTP 400 응답을 생성한다.
+                            .body(responseDTO); // 에러 메시지를 포함한 응답 본문을 반환한다.
+        }
+    }
+
+    @PostMapping("/signin") // POST 요청을 처리하는 메서드로, 경로는 "/auth/signin"이다.
+    public ResponseEntity<?> authenticate(@RequestBody UserDTO userDTO) {
+        // 요청 본문으로 전달된 UserDTO의 username과 password를 기반으로 유저를 조회한다.
+        UserEntity user = userService.getByCredentials(
+                        userDTO.getUsername(), // UserDTO에서 username 값을 가져온다.
+                        userDTO.getPassword()); // UserDTO에서 password 값을 가져온다.
+
+        // 사용자가 존재하면
+        if (user != null) {
+            // 인증에 성공한 경우 유저 정보를 UserDTO로 변환하여 응답에 사용한다.
+            final UserDTO responseUserDTO = UserDTO.builder()
+                            .id(user.getId()) // 유저의 ID를 UserDTO에 설정한다.
+                            .username(user.getUsername())
+                            .build(); // UserDTO 객체를 빌드한다.
+
+            // 성공적으로 인증된 유저 정보를 포함한 HTTP 200 응답을 반환한다.
+            return ResponseEntity.ok().body(responseUserDTO);
+        } else {
+            // 유저가 존재하지 않거나 인증 실패 시 에러 메시지를 포함한 ResponseDTO를 반환한다.
+            ResponseDTO responseDTO = ResponseDTO.builder()
+                            .error("Login failed.") // 에러 메시지를 설정한다.
+                            .build(); // ResponseDTO 객체를 빌드한다.
+
+            // HTTP 400 상태 코드를 반환하고, 에러 메시지를 응답 본문에 포함시킨다.
+            return ResponseEntity
+                            .badRequest() // HTTP 400 응답을 생성한다.
+                            .body(responseDTO); // 에러 메시지를 포함한 응답 본문을 반환한다.
+        }
+    }
+}
+```
+- 포스트맨을 열고 post로 요청을 해본다.
+- request에 아이디와 비밀번호를 실어서 보낸다.
+- 응답에는 비밀번호를 보낼 이유가 없어서 뺐다.
+- 하지만 추가할 때 비밀번호가 잘 들어왔는지 검증은 해야 한다.
+![img](img/회원추가.png)
+
+- 추가가 잘되었다면 로그인 요청도 해보자
+
+![img](img/로그인.png)
+
+### 주의점
+- 회원가입과 로그인이 잘 작동하는 것을 알 수 있다.
+- 하지만 이렇게 구성했을 때의 문제점은 무엇일까?
+
+1. 로그인만 되고 로그인 상태가 유지되지 않는다.
+    - 로그인을 구현했지만 이 다른 API는 이 유저가 로그인 했는지 아닌지 모른다.
+    - 우리의 REST API는 상태가 없으므로 로그인 상태를 기억하지 않기 때문이다.
+2. 우리가 지금까지 작성한 API는 유저의 로그인 여부 자체를 확인하지 않는다.
+     - createTodo API에서는 임의로 유저 아이디를 정해줬다.
+     - 따라서 현재 로그인 기능이 있어도, 내가 로그인하든 여러분이 로그인 하든 같은 Todo 리스트를 보게 되는 셈이다.
+3. 패스워드를 암호화 하지 않는다.
+     - 이것은 보안 규정에 위배되는 사항이다.
+
+### 정리
+- 사용자를 관리하는 데 필요한 API를 구성해봤다.
+- 근본적으로는 Todo기능을 구현할 때 했던 작업과 같은 작업이고, 스프링 시큐리티와는 상관없는, 즉 우리 애플리케이션이 유저를 관리하기 위해 자체 개발한 서비스이다.
+- 우리는 User관련 레이어를 구현한 후 현재 구현의 문제점을 알아봤다.
+- 기본적으로 로그인 상태가 유지되지 않는다는 점이 가장 큰 문제였다.
+
+
+
