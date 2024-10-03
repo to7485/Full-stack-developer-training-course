@@ -542,3 +542,7 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 - iss : Issuer를 줄인말. 이 토큰을 발행한 주체를 의미한다.
 - iat : issued at를 줄인말. 토큰이 발행된 날짜와 시간을 의미한다.
 - exp : expiration을 의미한다. 토큰이 만료되는 시간을 의미한다.
+
+### Signature
+- 토큰을 발행한 주체 Isuuer가 발행한 서명
+- 토큰의 유효성 검사에 사용된다.
