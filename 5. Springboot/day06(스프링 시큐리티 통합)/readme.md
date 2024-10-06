@@ -337,11 +337,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 				String userId = tokenProvider.validateAndGetUserId(token);
 				log.info("Authenticated user ID : " + userId);
 
+				//사용자 인증 완료 후, SecurityContext에 인증 정보를 등록
 				//인증 완료; SecurityContextHolder에 등록해야 인증된 사용자라고 생각한다.
-				AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null,AuthorityUtils.NO_AUTHORITIES);
+
+				//AbstractAuthenticationToken :스프링 시큐리티에서 인증된 사용자 정보를 표현하는 Authentication 객체의 추상 클래스다.
+				//인증된 사용자와 그 사용자의 **권한 정보(Authorities)**를 담는 역할을 한다.
+
+				//UsernamePasswordAuthenticationToken
+				//사용자 이름과 비밀번호를 사용하여 인증을 처리할 때 사용하는 구현 클래스다.
+				AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, 
+																									null,
+																									AuthorityUtils.NO_AUTHORITIES// 현재 권한 정보는 제공하지 않음
+																									);
+
+				//WebAuthenticationDetailsSource: 스프링 시큐리티에서 제공하는 클래스다. 
+				//HttpServletRequest 객체로부터 인증 세부 정보(Authentication Details)를 생성하는 역할을 한다.
+
+				//buildDetails(request) 메서드는 HttpServletRequest 객체에서 인증과 관련된 추가적인 정보를 추출해 WebAuthenticationDetails 객체를 생성한다.
+				//일반적으로 사용자의 세션 ID, 클라이언트 IP 주소 등의 메타데이터를 포함한다.
 				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+				// SecurityContext를 생성하고 인증된 정보를 저장
+				//SecurityContextHolder는 스프링 시큐리티에서 사용자의 인증 정보와 보안 컨텍스트를 관리하는 중심 클래스다.
+				// 애플리케이션 내에서 현재 인증된 사용자의 정보를 저장하고 제공하는 역할을 한다.
 				SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+
+				//securityContext.setAuthentication(authentication)
+				//현재 요청에 대한 인증 정보를 SecurityContext에 저장하여 스프링 시큐리티가 
+				//해당 사용자를 인증된 사용자로 인식하게 하는 메서드다.
 				securityContext.setAuthentication(authentication);
+
+				//인증을 완료한 후, 이 메서드를 사용하여 인증된 사용자 정보를 저장할 수 있다.
 				SecurityContextHolder.setContext(securityContext);
 			}
 		} catch (Exception e) {
@@ -354,12 +380,459 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 		//Http 요청의 헤더를 파싱해 Barer 토큰을 반환한다.
 		String bearerToken = request.getHeader("Authorization");
 		
+		// Bearer 토큰 형식일 경우 토큰 값만 반환
 		if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
 			return bearerToken.substring(7);
 		}
 		return null;
 	}
+
+}
+```
+- OncePerRequestFilter를 상속한다는 점, doFilterInternal를 오버라이딩을 한다는 점 이외에는 위의 예제와 다른점이 없다.
+
+# 스프링부트 시큐리티를 이용한 토큰 인증 과정
+- 스프링부트 시큐리티를 사용하여 **JWT(JSON Web Token)** 기반의 토큰 인증을 처리하는 과정은 다음과 같다
+
+## 1. 사용자 로그인 (토큰 발급)
+- **클라이언트**가 사용자 이름과 비밀번호를 포함한 인증 요청을 서버로 보낸다. (예: `/login` 엔드포인트)
+- 서버는 **사용자 정보**를 검증하고, 인증 성공 시 **JWT 토큰**을 발급한다.
+- 이 JWT 토큰은 인증된 사용자임을 나타내며, **Access Token**으로 클라이언트에게 반환된다.
+
+## 2. 클라이언트가 요청에 토큰 포함
+- 이후 클라이언트는 보호된 자원에 접근하기 위해 HTTP 요청의 **Authorization 헤더**에 발급받은 JWT 토큰을 포함한다.
+- 요청 예시:
+    ```http
+    GET /api/protected-resource
+    Authorization: Bearer <JWT 토큰>
+    ```
+
+## 3. JWT 인증 필터에서 요청 가로채기
+- **스프링 시큐리티**는 요청이 들어올 때 필터 체인을 통해 요청을 처리한다.
+- **`JwtAuthenticationFilter`** 같은 커스텀 필터를 사용하여 **Authorization 헤더**에서 JWT 토큰을 추출하고 검증한다:
+    ```java
+    String token = request.getHeader("Authorization");
+    if (token != null && token.startsWith("Bearer ")) {
+        token = token.substring(7);
+    }
+    ```
+
+## 4. JWT 토큰 검증
+- 필터에서 추출한 토큰을 **`TokenProvider`** 같은 클래스를 사용해 검증한다.
+- 이 과정에서 다음 사항을 확인한다
+  - 토큰의 서명이 올바른지
+  - 토큰이 만료되지 않았는지
+  - 토큰의 사용자 정보가 유효한지
+- 유효하지 않으면 **401 Unauthorized** 응답을 반환한다.
+
+## 5. 사용자 인증 정보 설정
+- 토큰이 유효하면, 토큰에서 **사용자 ID**나 **이름**을 추출하여 스프링 시큐리티의 **`SecurityContext`**에 인증 정보를 설정한다:
+    ```java
+    Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    ```
+
+## 6. 보안 컨텍스트를 통해 권한 확인
+- 스프링 시큐리티는 **`SecurityContextHolder`**에 저장된 인증 정보를 사용해 사용자가 요청한 자원에 접근할 수 있는 권한이 있는지 확인한다.
+- 필요한 권한이 없으면 **403 Forbidden** 응답을 반환한다.
+
+## 7. 요청 처리 후 응답 반환
+- 모든 검증이 완료되면 스프링 시큐리티는 요청을 **컨트롤러**로 전달하여 비즈니스 로직을 처리한다.
+- 컨트롤러가 요청을 처리하고, 결과를 클라이언트에 반환한다.
+
+---
+
+## 전체 흐름 요약
+
+1. **클라이언트 로그인**: 사용자 정보로 로그인 후, 서버가 **JWT 토큰**을 발급한다.
+2. **JWT 토큰 포함 요청**: 클라이언트가 **JWT 토큰**을 포함한 요청을 보낸다.
+3. **JWT 필터에서 요청 가로채기**: 스프링 시큐리티의 **필터**가 요청을 가로채서 JWT 토큰을 검증한다.
+4. **JWT 검증**: 서버에서 토큰의 유효성을 확인하고, 서명과 만료 여부 등을 검증한다.
+5. **사용자 인증 정보 설정**: 토큰이 유효하면 **사용자 정보**를 추출하고, 스프링 시큐리티의 **SecurityContext**에 인증 정보를 설정한다.
+6. **권한 확인**: 설정된 인증 정보를 통해 사용자의 권한을 확인한다.
+7. **요청 처리 후 응답**: 권한이 확인되면 요청을 처리하고, 결과를 클라이언트에 반환한다.
+
+# 스프링 시큐리티 설정
+- 이제 우리가 작성한 서블릿 필터를 스프링 시큐리티에게 사용하라고 알려줘야 한다.
+- com.example.demo.config패키지에 WebSecurityConfig클래스 생성하기
+
+```java
+package com.example.demo.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.filter.CorsFilter;
+
+import com.example.demo.security.JwtAuthenticationFilter;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Configuration
+@EnableWebSecurity
+@Slf4j
+public class WebSecurityConfig {
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    
+	//스프링 시큐리티 6.x 버전에 맞춰 메서드를 최신화 해야한다.
+	//스프링 시큐리티 6.x 버전에서는 몇 가지 주요 메서드들이 Deprecated 되었기 때문에, 새로운 방식으로 수정할 필요가 있다.
+	//authorizeRequests() → authorizeHttpRequests()
+	//csrf() → 람다 표현식 기반으로 변경
+	//httpBasic() → 람다 표현식 기반으로 변경
+
+    @Bean
+    protected DefaultSecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // HttpSecurity 설정
+        http
+            .cors(corsConfigurer -> corsConfigurer.disable()) // WebMvcConfig에서 이미 설정했으므로 기본 CORS 설정 사용
+            .csrf(csrfConfigurer -> csrfConfigurer.disable()) // CSRF 비활성화 (새로운 방식)
+            .httpBasic(httpBasicConfigurer -> httpBasicConfigurer.disable()) // JWT를 사용하므로 Basic 인증 비활성화
+            .sessionManagement(sessionManagementConfigurer ->
+                sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션을 사용하지 않으므로 Stateless로 설정
+				//sessionCreationPolicy() 메서드는 세션 생성 정책을 설정하는 메서드
+				//SessionCreationPolicy.STATELESS: 세션을 생성하지 않고 완전히 stateless한 방식으로 동작하도록 설정하는 값.
+            .authorizeHttpRequests(authorizeRequestsConfigurer -> // 요청에 대한 인증/인가 설정
+                authorizeRequestsConfigurer
+                    .requestMatchers("/", "/auth/**").permitAll() // 특정 경로는 인증 없이 허용
+                    .anyRequest().authenticated() // 그 외의 요청은 인증 필요
+            );
+
+        //filter 등록
+        //매 요청마다
+        //CorsFilter 실행한 후에
+        //jwtAuthenticationFilter를 실행한다.
+        http.addFilterAfter(jwtAuthenticationFilter, CorsFilter.class);
+
+		//addFilterAfter()
+		//필터 체인에서 첫번째 인자로 제공한 필터를 두번째 인자로 제공한 필터 뒤에 추가하겠다는 의미이다.
+		//필터가 A, B, C 순서로 실행되길 원한다면:
+		//http.addFilterAfter(B, A.class) → A 다음에 B 실행
+		//http.addFilterAfter(C, B.class) → B 다음에 C 실행
+        
+        return http.build();
+    }
+}
+
+
+```
+- HttpSecurity는 시큐리티 설정을 위한 객체이다.
+- 빌더 패턴을 사용해 cors, csrf, httpbasic, session, authorizeRequest 등 다양한 설정을 할 수 있다.
+- 우리는 web.xml이 없기 때문에 HttpSecurity를 이용해 시큐리티 관련 설정을 하는 것이다.
+
+## 테스팅
+- 포스트맨을 이용해 회원가입 후 로그인 요청을 날려보자.
+- 로그인 하면 응답에 토큰이 함게 오는것을 확인할 수 있다.
+
+![img](../day05(백엔드실습,%20서비스통합)/img/회원추가.png)
+
+![img](img/로그인.png)
+
+- 이 토큰을 복사해놓는다.
+- /todo에 GET 요청을 작성하면서 토큰을 전달한다.
+- 포스트맨 주소창 아래에서 Authorization을 선택하고 바로 아래 타입에서 Bearer Token을 선택한다.
+- Bearer Token을 선택하면 오른쪽에 토큰을 입력할 수 있는 창이 나온다.
+- 여기에 복사한 토큰을 넣고 send를 눌렀을 때 error와 data가 날아오면 정상적으로 인증된 것이다.
+![img](img/인증요청.png)
+
+- 정확하게 보는법은 이클립스에서 로그를 보면 알 수 있다.
+
+![img](img/로그출력.png)
+
+- 토큰의 맨 마지막에 아무 문자열이나 넣고 다시 요청을 보내보자.
+- status 부번에서 403 Forbidden이 반환되는 것을 확인할 수 있다.
+
+![img](img/위조된%20토큰%20로그.png)
+
+- 현재 Todo 컨트롤러는 모두 디폴트로 "Temporary-user"아이디를 사용하고 있다.
+- 이제 토큰에서 가져온 사용자 아이디로 Todo 컨트롤러에서 올바른 사용자를 지정해주자.
+
+## TodoController에서 인증된 유저 사용하기
+- 각 메서드들이 인증된 유저 아이디를 사용할 수 있도록 각 메서드에 userId 매개변수를 추가해주자.
+
+```java
+package com.example.demo.controller;
+
+import com.example.demo.dto.ResponseDTO;
+import com.example.demo.dto.TodoDTO;
+import com.example.demo.model.TodoEntity;
+import com.example.demo.service.TodoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("todo")
+public class TodoController {
+
+	@Autowired
+	private TodoService service;
+
+	@GetMapping("/test")
+	public ResponseEntity<?> testTodo() {
+		String str = service.testService(); // 테스트 서비스 사용
+		List<String> list = new ArrayList<>();
+		list.add(str);
+		ResponseDTO<String> response = ResponseDTO.<String>builder().data(list).build();
+		// ResponseEntity.ok(response) 를 사용해도 상관 없음
+		return ResponseEntity.ok().body(response);
+	}
+
+	@PostMapping
+	public ResponseEntity<?> createTodo(@AuthenticationPrincipal String userId, @RequestBody TodoDTO dto) {
+		try {
+
+			// (1) TodoEntity로 변환한다.
+			TodoEntity entity = TodoDTO.toEntity(dto);
+
+			// (2) id를 null로 초기화 한다. 생성 당시에는 id가 없어야 하기 때문이다.
+			entity.setId(null);
+
+			// (3) 임시 유저 아이디를 설정 해 준다. 이 부분은 4장 인증과 인가에서 수정 할 예정이다. 지금은 인증과 인가 기능이 없으므로 한 유저(temporary-user)만 로그인 없이 사용 가능한 어플리케이션인 셈이다
+			entity.setUserId(userId);
+
+			// (4) 서비스를 이용해 Todo엔티티를 생성한다.
+			List<TodoEntity> entities = service.create(entity);
+
+			// (5) 자바 스트림을 이용해 리턴된 엔티티 리스트를 TodoDTO리스트로 변환한다.
+
+			List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+			// (6) 변환된 TodoDTO리스트를 이용해ResponseDTO를 초기화한다.
+			ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+
+			// (7) ResponseDTO를 리턴한다.
+			return ResponseEntity.ok().body(response);
+		} catch (Exception e) {
+			// (8) 혹시 예외가 나는 경우 dto대신 error에 메시지를 넣어 리턴한다.
+
+			String error = e.getMessage();
+			ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().error(error).build();
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+
+	@GetMapping
+	public ResponseEntity<?> retrieveTodoList(@AuthenticationPrincipal String userId) {
+		
+		// (1) 서비스 메서드의 retrieve메서드를 사용해 Todo리스트를 가져온다
+		List<TodoEntity> entities = service.retrieve(userId);
+
+		// (2) 자바 스트림을 이용해 리턴된 엔티티 리스트를 TodoDTO리스트로 변환한다.
+		List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+		// (6) 변환된 TodoDTO리스트를 이용해ResponseDTO를 초기화한다.
+		ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+
+		// (7) ResponseDTO를 리턴한다.
+		return ResponseEntity.ok().body(response);
+	}
+
+
+	@PutMapping
+	public ResponseEntity<?> updateTodo(@AuthenticationPrincipal String userId,@RequestBody TodoDTO dto) {
+		
+
+		// (1) dto를 entity로 변환한다.
+		TodoEntity entity = TodoDTO.toEntity(dto);
+
+		// (2) id를 temporaryUserId로 초기화 한다. 여기는 4장 인증과 인가에서 수정 할 예정이다.
+		entity.setUserId(userId);
+
+		// (3) 서비스를 이용해 entity를 업데이트 한다.
+		List<TodoEntity> entities = service.update(entity);
+
+		// (4) 자바 스트림을 이용해 리턴된 엔티티 리스트를 TodoDTO리스트로 변환한다.
+		List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+		// (5) 변환된 TodoDTO리스트를 이용해ResponseDTO를 초기화한다.
+		ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+
+		// (6) ResponseDTO를 리턴한다.
+		return ResponseEntity.ok().body(response);
+	}
+
+	@DeleteMapping
+	public ResponseEntity<?> deleteTodo(@AuthenticationPrincipal String userId, @RequestBody TodoDTO dto) {
+		try {
+
+			// (1) TodoEntity로 변환한다.
+			TodoEntity entity = TodoDTO.toEntity(dto);
+
+			// (2) 임시 유저 아이디를 설정 해 준다. 이 부분은 4장 인증과 인가에서 수정 할 예정이다. 지금은 인증과 인가 기능이 없으므로 한 유저(temporary-user)만 로그인 없이 사용 가능한 어플리케이션인 셈이다
+			entity.setUserId(userId);
+
+			// (3) 서비스를 이용해 entity를 삭제 한다.
+			List<TodoEntity> entities = service.delete(entity);
+
+			// (4) 자바 스트림을 이용해 리턴된 엔티티 리스트를 TodoDTO리스트로 변환한다.
+			List<TodoDTO> dtos = entities.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+			// (5) 변환된 TodoDTO리스트를 이용해ResponseDTO를 초기화한다.
+			ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().data(dtos).build();
+
+			// (6) ResponseDTO를 리턴한다.
+			return ResponseEntity.ok().body(response);
+		} catch (Exception e) {
+			// (8) 혹시 예외가 나는 경우 dto대신 error에 메시지를 넣어 리턴한다.
+			String error = e.getMessage();
+			ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder().error(error).build();
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+
+}
+```
+
+## @AuthenticationPrincipal
+- 스프링 시큐리티에서 사용자의 Principal 객체를 컨트롤러 메서드의 파라미터로 주입하기 위해 사용된다.
+
+### Principal
+- **Principal**은 스프링 시큐리티에서 현재 인증된 사용자를 나타내는 객체
+- 주로 **SecurityContextHolder**에 저장된 Authentication 객체를 통해 접근할 수 있다.
+- Authentication 객체의 getPrincipal() 메서드는 인증된 사용자의 정보를 담고 있으며, 이 정보는 @AuthenticationPrincipal 어노테이션을 통해 컨트롤러 메서드에 자동으로 주입된다.
+
+### 주된 역할
+1. 현재 인증된 사용자의 정보를 가져옴
+	- @AuthenticationPrincipal을 사용하면 **SecurityContext**에 저장된 인증된 사용자의 정보를 쉽게 가져올 수 있다.
+	- 이 정보는 보통 사용자 이름, 이메일, ID, 권한 정보 등을 포함한다.
+2. 간편한 주입
+	- 직접적으로 **SecurityContextHolder**에서 Authentication 객체를 가져오는 번거로운 과정 없이, 어노테이션 하나로 해당 정보를 메서드 파라미터에 자동으로 주입받을 수 있다.
+
+```java
+AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+    userId, //인증된 사용자의 정보(Principal)로, @AuthenticationPrincipal을 통해 접근할 수 있는 주체(Principal) 역할을 한다.
+    null, //JWT 기반 인증에서는 비밀번호와 같은 자격 증명을 더 이상 사용하지 않기 때문에 null로 설정된다.
+    AuthorityUtils.NO_AUTHORITIES//사용자의 권한(Authorities)을 설정하는 부분이지만, 여기서는 권한이 없음을 나타낸다.
+);
+
+authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//setDetails()는 인증 객체에 추가적인 요청 관련 세부 정보(예: IP 주소, 세션 ID 등)를 설정한다.
+//new WebAuthenticationDetailsSource().buildDetails(request)는 현재 HTTP 요청의 세부 정보를 추출하여 설정한다.
+
+SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+//SecurityContext는 스프링 시큐리티의 보안 컨텍스트로, 현재 요청에 대한 인증 정보를 관리하는 역할을 한다.
+//SecurityContextHolder.createEmptyContext()는 빈 보안 컨텍스트를 생성한다.
+
+securityContext.setAuthentication(authentication);
+SecurityContextHolder.setContext(securityContext);
+//securityContext.setAuthentication(authentication)는 생성된 SecurityContext에 인증된 사용자 정보(Authentication 객체)를 설정한다.
+//SecurityContextHolder.setContext(securityContext)는 이 컨텍스트를 현재 스레드와 연관된 전역 보안 컨텍스트로 설정한다.
+```
+- 이 과정이 끝나면, 스프링 시큐리티는 현재 요청을 인증된 사용자로 간주하고, 이후에 @AuthenticationPrincipal을 사용해 인증된 사용자 정보를 가져올 수 있다.
+
+## 테스팅
+- 사용자 두 명이 독립적으로 애플리케이션을 사용할 수 있는지 확인해보자
+
+### 1. 계정 2개 생성하기
+- 첫 번째 사용자로 hello@world.com
+- 두 번째 사용자로 hello2@world.com을 생성한다.
+
+### 2. 각 사용자별로 Todo 추가하기
+- 첫 번째 사용자로 로그인한 후 토큰을 복사한다.
+- 그리고 /todo에 POST메서드를 사용해 TODO 리스트를 하나 추가해보자.
+- 두 번째 사용자도 위와 같이 반복한다.
+- 첫번째 사용자가 추가한 Todo 아이템은 보이지 않는 것을 알 수 있다.
+
+## 패스워드 암호화
+- 패스워드 암호화 부분은 스프링 시큐리티가 제공하는 BCryptPasswordEncoder를 사용한다.
+- UserService를 수정하자
+
+```java
+package com.example.demo.service;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Service // 이 클래스가 스프링의 서비스 계층에 속하는 빈(Bean)임을 나타낸다.
+@Slf4j // Lombok을 사용하여 로깅 기능을 자동으로 추가한다. log 객체를 통해 로그를 기록할 수 있다.
+public class UserService {
+
+    @Autowired // 스프링이 UserRepository 타입의 빈을 자동으로 주입해준다.
+    private UserRepository repository; // UserRepository를 통해 데이터베이스에 접근하는 역할을 한다.
+
+    public UserEntity create(UserEntity userEntity) {
+		... 중략
+    }
+ 
+    // 주어진 username과 password로 UserEntity를 조회한다.
+    public UserEntity getByCredentials(String username, String password, final PasswordEncoder encoder) {
+    	final UserEntity originalUser = repository.findByUsername(username);
+    	//matches메서드를 이용해 패스워드가 같은지 확인
+    	if(originalUser != null && encoder.matches(password, originalUser.getPassword())) {
+    		return originalUser;
+    	}
+        // UserRepository의 findByUsernameAndPassword 메서드를 사용하여 유저 정보를 조회한다.
+        return null;
+    }
+}
+```
+- 보통 암호화된 패스워드를 비교해야 하는 경우, 사용자에게 받은 패스워드를 같은 방법으로 암호화한 후, 그 결과를 데이터베이스의 값과 비교하는것이 자연스러운 흐름이다.
+- 하지만 BCryptPasswordEncoder는 같은 값을 인코딩 할 때마다 다른 값이 나온다.
+- 패스워드에 랜덤하게 의미 없는 값을 붙여 결과를 생성하기 때문이다.
+- 이런 의미없는 값을 보안용어로 Salt라고 하고, Salt를 붙여 인코딩하는 것을 Salting이라고 한다.
+- 따라서 사용자에게 받은 패스워드를 인코딩해도 데이터베이스에 저장된 패스워드와는 다를 확률이 높다.
+- 대신 BCryptPasswordEncoder는 두 값이 일치하는지 여부를 알려주는 matcher()메서드를 제공한다.
+- 이 메서드는 Salt를 고려해 두 값을 비교해준다.
+
+### UserController수정하기
+```java
+package com.example.demo.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.dto.ResponseDTO;
+import com.example.demo.dto.UserDTO;
+import com.example.demo.model.UserEntity;
+import com.example.demo.security.TokenProvider;
+import com.example.demo.service.UserService;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RestController
+@RequestMapping("/auth")
+public class UserController {
+
+	... 중략
+	
+	private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+
+		... 중략
 	
 
+	@PostMapping("/signin")
+	public ResponseEntity<?> authenticate(@RequestBody UserDTO userDTO) {
+		UserEntity user = userService.getByCredentials(
+						userDTO.getUsername(),
+						userDTO.getPassword(),
+						passwordEncoder);
+
+		... 중략
+	}
 }
 ```
