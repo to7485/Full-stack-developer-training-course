@@ -178,7 +178,8 @@ public class UserController {
 
 # 스프링 시큐리티(Spring Security)
 
-스프링 시큐리티는 스프링 기반 애플리케이션에서 **인증**(Authentication)과 **인가**(Authorization)를 처리하기 위한 강력한 보안 프레임워크다. 스프링 애플리케이션에서 보안과 관련된 다양한 요구 사항을 손쉽게 구현할 수 있도록 돕는다.
+- 스프링 시큐리티는 스프링 기반 애플리케이션에서 **인증**(Authentication)과 **인가**(Authorization)를 처리하기 위한 강력한 보안 프레임워크다. 
+- 스프링 애플리케이션에서 보안과 관련된 다양한 요구 사항을 손쉽게 구현할 수 있도록 돕는다.
 
 ## 주요 개념
 
@@ -191,100 +192,174 @@ public class UserController {
    - 사용자에게 주어진 역할(Role)과 권한(Authority)에 따라 리소스에 대한 접근 권한을 부여한다.
 
 3. **필터 기반 아키텍처**
-   - 스프링 시큐리티는 필터 체인을 기반으로 동작한다. HTTP 요청이 들어오면 여러 보안 필터들이 순차적으로 실행되어 요청을 처리하고, 보안 관련 로직을 적용한다.
+   - 스프링 시큐리티는 필터 체인을 기반으로 동작한다.
+   - HTTP 요청이 들어오면 여러 보안 필터들이 순차적으로 실행되어 요청을 처리하고, 보안 관련 로직을 적용한다.
 
-### 필터
+## 스프링 시큐리티와 서블릿 필터
+- API가 실행될 때마다 사용자를 인증해주는 부분을 구현해야 한다.
+- 스프링 시큐리티를 이용해서 해결한다고 했는데 어떤원리로 해결을 해주는걸까?
 - HTTP 요청과 응답을 가로채어, 요청이 컨트롤러에 도달하기 전 또는 응답이 클라이언트에 전달되기 전에 필요한 전처리 또는 후처리를 수행하는 데 사용된다. 
 - 주로 보안, 로깅, 인증, 인코딩 설정, 데이터 압축 등의 작업을 처리하는 데 유용하다.
+- 우리는 서블릿 필터를 구현하고 서블릿 필터를 서블릿 컨테이너가 실행하도록 설정해주기만 하면 된다.
 
+![img](img/스프링부트작동원리.jpg)
 
-   
-4. **SecurityContext**
-   - 사용자의 인증 정보를 저장하는 객체.
-   - 인증된 사용자의 세션에 `SecurityContext`가 저장되며, 이 컨텍스트를 통해 현재 사용자에 대한 정보를 언제든지 참조할 수 있다.
-
-## 동작 원리
-
-스프링 시큐리티는 주로 다음과 같은 단계로 동작한다:
-
-### 1. **필터 체인(Filter Chain)**
-스프링 시큐리티의 핵심은 **필터 체인**(Filter Chain)이다. 필터 체인은 들어오는 HTTP 요청에 대해 여러 필터들이 순차적으로 작동하며, 각각의 필터가 특정 보안 관련 작업을 수행한다.<br>
-
-   - 스프링 시큐리티는 여러 보안 필터로 구성된 필터 체인을 사용하여 HTTP 요청을 처리한다.
-   - 가장 중요한 필터 중 하나는 `UsernamePasswordAuthenticationFilter`로, 로그인 요청을 처리하고 사용자 인증을 담당한다.
-   - 필터 체인은 순차적으로 요청을 가로채어 인증과 인가 과정을 수행한다.
-
-#### 필터의 종류
- - **`UsernamePasswordAuthenticationFilter`**: 기본적인 로그인 요청을 처리하는 필터로, 사용자가 제출한 자격 증명(아이디/비밀번호)을 검증한다.
- - **`BasicAuthenticationFilter`**: HTTP Basic 인증을 처리하는 필터로, Authorization 헤더에 포함된 자격 증명을 검증한다.
- - **`SecurityContextPersistenceFilter`**: `SecurityContext`를 세션에서 불러오거나 저장하는 역할을 한다. 사용자의 인증 정보를 보존하는 데 사용된다.
- - **`ExceptionTranslationFilter`**: 인증 또는 인가 과정에서 발생한 예외를 처리하는 필터다. 접근이 거부되었을 때 적절한 응답을 반환한다.
- - **`FilterSecurityInterceptor`**: 최종 필터로, 모든 요청에 대한 보안 처리를 완료한 후 접근 권한을 확인한다.
-
-#### **필터 체인의 실행 순서**
-- HTTP 요청이 애플리케이션으로 들어오면 스프링 시큐리티의 필터 체인에 의해 첫 번째 필터가 실행된다.
-- 각 필터는 요청을 처리한 후 다음 필터로 넘기며, 요청 처리의 흐름이 필터 체인 전체를 거친다.
-- 필터 체인의 마지막에 도달하면 최종적으로 컨트롤러가 요청을 처리하게 된다.
-
-### 2. **인증(Authentication)**
-   - 사용자가 로그인 요청을 하면, `AuthenticationManager`가 인증을 처리한다.
-   - `AuthenticationManager`는 실제로 인증을 수행하는 `AuthenticationProvider`에게 인증을 위임한다.
-   - 사용자가 입력한 자격 증명(예: 사용자명, 비밀번호)을 `UserDetailsService`와 같은 서비스에서 가져온 사용자 정보와 비교하여 인증 여부를 결정한다.
-   - 인증이 성공하면, `Authentication` 객체가 생성되고, `SecurityContext`에 저장된다. 이 정보는 이후에 사용자의 세션에 저장된다.
-
-### 3. **인가(Authorization)**
-   - 사용자가 인증된 후, 스프링 시큐리티는 사용자가 요청한 리소스에 접근할 권한이 있는지 확인한다.
-   - 이 과정에서 사용자의 역할(Role)과 권한(Authority)을 기반으로 접근 제어를 수행한다.
-   - 특정 URL, 메서드, 리소스에 대한 접근 권한이 없으면 접근이 거부되고, `AccessDeniedException`이 발생한다.
-
-### 4. **SecurityContextHolder**
-   - 스프링 시큐리티는 `SecurityContextHolder`를 사용하여 현재 사용자의 보안 정보를 저장하고 관리한다.
-   - `SecurityContextHolder`는 `SecurityContext`를 통해 인증된 사용자의 정보를 유지하며, 이 정보는 애플리케이션 어디서나 참조할 수 있다.
-
-### 5. **세션과 토큰 관리**
-   - 스프링 시큐리티는 세션 기반 인증뿐만 아니라, JWT 토큰을 활용한 인증 방식도 지원한다.
-   - JWT와 같은 토큰 기반 인증을 사용할 경우, 사용자는 로그인 시 발급받은 토큰을 헤더에 포함하여 요청을 보낸다. 스프링 시큐리티는 이 토큰을 검증하여 인증 및 인가를 처리한다.
-
-## 주요 컴포넌트
-
-1. **`AuthenticationManager`**
-   - 인증 요청을 처리하는 인터페이스로, `AuthenticationProvider`에게 인증을 위임한다.
-
-2. **`AuthenticationProvider`**
-   - 실제 인증 로직을 수행하는 클래스. 예를 들어, 사용자 자격 증명(아이디/비밀번호)을 검증한다.
-
-3. **`UserDetailsService`**
-   - 사용자 정보를 불러오는 서비스로, 인증 과정에서 사용자 정보를 조회하는 데 사용된다.
-
-4. **`SecurityContext`**
-   - 현재 인증된 사용자의 정보를 저장하는 객체. 세션에 저장되며, 언제든 참조 가능하다.
-
-5. **`GrantedAuthority`**
-   - 사용자가 가진 권한을 나타낸다. 사용자의 역할(Role)과 연관되어 접근 권한을 제어하는 데 사용된다.
-
-## 스프링 시큐리티 설정
-
-스프링 시큐리티는 크게 두 가지 방식으로 설정할 수 있다:
-
-1. **XML 설정**: 과거 방식으로, 보안 설정을 XML 파일에 정의한다.
-2. **Java Config 설정**: 현재는 주로 Java 기반 설정을 사용한다. `@EnableWebSecurity` 어노테이션을 사용하여 보안 설정을 활성화하고, `WebSecurityConfigurerAdapter`를 상속받아 보안 관련 설정을 커스터마이징한다.
-
+### 서블릿 필터예제
 ```java
-@EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+package com.example.demo.security;
+
+//서블릿 필터란 HttpFilter또는 Filter를 상속하는 클래스이다.
+// HttpFilter 클래스를 상속받아 서블릿 필터 구현
+public class ExampleServletFilter extends HttpFilter {
+
+    // TokenProvider 객체를 이용해 토큰을 검증하고 사용자 정보를 가져오는 역할
+    private TokenProvider tokenProvider;
+
+    // 필터의 주요 로직을 처리하는 메서드로, 요청이 필터를 거칠 때마다 실행됨
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-            .authorizeRequests()
-                .antMatchers("/public/**").permitAll() // 특정 경로는 인증 없이 접근 가능
-                .anyRequest().authenticated() // 그 외의 경로는 인증을 요구함
-            .and()
-            .formLogin() // 기본 로그인 페이지 사용
-                .loginPage("/login") // 커스텀 로그인 페이지 경로
-                .permitAll()
-            .and()
-            .logout() // 로그아웃 설정
-                .permitAll();
+    protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        try {
+            // HTTP 요청에서 Bearer 토큰을 파싱하여 가져옴
+            final String token = parseBearerToken(request);
+            
+            // 토큰이 존재하고 값이 유효할 때
+            if (token != null && !token.equalsIgnoreCase("null")) {
+                // 토큰을 검증하여 사용자 ID를 가져옴 (유효하지 않은 토큰일 경우 예외 발생)
+                String userId = tokenProvider.validateAndGetUserId(token);
+                
+                // 사용자 인증 후, 필터 체인의 다음 필터를 실행 (인증된 사용자 요청 처리)
+                chain.doFilter(request, response);
+            }
+        } catch (Exception e) {
+            // 예외가 발생하면 HTTP 응답을 403 Forbidden으로 설정
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        }
     }
+
+    // Authorization 헤더에서 Bearer 토큰을 파싱하는 메서드
+    private String parseBearerToken(HttpServletRequest request) {
+        // HTTP 요청의 헤더에서 Authorization 값을 가져옴
+        String bearerToken = request.getHeader("Authorization");
+        
+        // Bearer 토큰 형식일 경우에만 토큰 값을 반환
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7); // 'Bearer ' 문자열을 제거하고 토큰만 반환
+        }
+        return null; // Bearer 토큰이 없을 경우 null 반환
+    }
+}
+```
+- 이렇게 필터를 구현하고 나면 서블릿 컨테이너(톰캣)가 ExampleServletFilter를 사용하도록 어딘가에 설정해야 한다.
+```xml
+<filter>
+	<filter-name>ExampleServletFilter</filter-name>
+	<filter-class>com.example.demo.security.ExampleServletFilter </filter-class>
+</filter>
+
+<filter-mapping>
+	<filter-name>ExampleServletFilter</filter-name>
+	<url-pattern>/todo</url-pattern>
+</filter-mapping>
+```
+- 스프링부트를 사용하지 않는 웹 서비스의 경우 web.xml과 같은 설정 파일에 이 필터를 어느 경로(/todo)에 적용해야 하는지 알려줘야 한다.
+- 서블릿 컨테이너가 서블릿 필터 실행시 xml에 설정된 필터를 실행시켜준다.
+![img](img/필터의개수.jpg)
+- 서블릿 필터가 꼭 한 개일 필요는 없다.
+- 걸러내고 싶은 모든 것을 하나의 클래스에 담으면 그 크기가 매우 커질것이다.
+- 그래서 기능에 따라 다른 서블릿 필터를 작성할 수 있고 이 서블릿 필터들을 FilterChain을 이용해 연쇄적으로 순서대로 실행할 수 있다.
+- doFilter()메서드가 다음으로 부를 필터를 FilterChain안에 갖고 있어 다음 필터를 실행할 수 있다.
+
+![img](img/시큐리티적용.jpg)
+
+- 스프링 시큐리티 프로젝트를 추가하면 스프링 시큐리티가 FilterChainProxy라는 필터를 서블릿 필터에 끼워넣어준다.
+- FilterChainProxy클래스 안에는 내부적으로 필터를 실행시키는데 이 필터들이 스프링이 관리하는 스프링 빈 필터다.
+- Filter를 만들기 위해 HttpFilter 대신 OncePerRequestFilter를 상속한다.
+- web.xml이 없기 때문에 WebSecurityConfigurerAdapter클래스를 상속해 필터를 설정한다.
+
+## JWT를 이용한 인증 구현
+- 스프링 시큐리티를 사용해서 본격적으로 구현을 해보자.
+
+### 1. 스프링 시큐리티 의존성 추가하기
+```groovy
+// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security
+implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '3.2.4'
+```
+
+### 2. JwtAuthenticationFilter 클래스 만들기
+- com.example.demo.security에 만들기
+```java
+package com.example.demo.security;
+
+import java.io.IOException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter{
+
+	@Autowired
+	private TokenProvider tokenProvider;
+	
+	
+	//doFilterInternal() : 스프링 시큐리티의 OncePerRequestFilter를 상속받은 메서드로, 한 요청에 대해 한 번만 실행되도록 보장된다.
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+		try {
+			//parseBearerToken 메서드:
+			//HTTP 요청 헤더에서 Authorization 값을 가져와 Bearer 토큰 형식인지 확인한 후, 토큰 값을 반환한다.
+			//토큰이 없거나 유효하지 않으면 null을 반환한다.
+			String token = parseBearerToken(request);
+			log.info("Filter is running...");
+
+			//토큰 검사하기. JWT이므로 인가 서버에 요청하지 않고도 검증 가능.
+			if(token != null && !token.equalsIgnoreCase("null")) {
+
+				//userId 가져오기. 위조된 경우 예외처리한다.
+				//TokenProvider에서 토큰을 검증하고 userId를 가져옴
+				String userId = tokenProvider.validateAndGetUserId(token);
+				log.info("Authenticated user ID : " + userId);
+
+				//인증 완료; SecurityContextHolder에 등록해야 인증된 사용자라고 생각한다.
+				AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null,AuthorityUtils.NO_AUTHORITIES);
+				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+				securityContext.setAuthentication(authentication);
+				SecurityContextHolder.setContext(securityContext);
+			}
+		} catch (Exception e) {
+			logger.error("Could not set user authentication in security context", e);
+		}
+		filterChain.doFilter(request, response);
+	}
+	
+	private String parseBearerToken(HttpServletRequest request) {
+		//Http 요청의 헤더를 파싱해 Barer 토큰을 반환한다.
+		String bearerToken = request.getHeader("Authorization");
+		
+		if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+			return bearerToken.substring(7);
+		}
+		return null;
+	}
+	
+
 }
 ```
