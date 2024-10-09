@@ -491,11 +491,14 @@ export default AddProduct;
 ```
 
 ## 주문기능 만들기
+
+### 1. 주문내역 조회
 ### OrderEntity만들기
 - com.korea.product.model 패키지에 OrderEntity클래스 만들기
 - productId가 PK와 FK로 연결되어있다.
 - 라디오버튼을 만들고 주문할 개수를 입력할 수 있게 한다.
 - 개수를 입력하고 주문버튼을 누르면 주문테이블에 등록이 되게 한다.
+
 ### 속성
 - 주문번호
 - 상품번호
@@ -504,20 +507,6 @@ export default AddProduct;
 
 ```java
 package com.korea.product.model;
-
-import java.time.LocalDateTime;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Builder
 @NoArgsConstructor
@@ -536,9 +525,10 @@ public class OrderEntity {
     private ProductEntity product;
 
 	private int productCount;
-	private String orderDate;
+	
+	@CreationTimestamp
+	private LocalDateTime orderDate;
 }
-
 ```
 
 ### OrderDTO만들기
@@ -547,11 +537,6 @@ public class OrderEntity {
 ```java
 package com.korea.product.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -559,12 +544,15 @@ import lombok.NoArgsConstructor;
 public class OrderDTO {
     
     private int orderId;         // 주문 ID
+    private int productId;		//상품Id
     private String productName;  // 상품 이름
     private int productCount;    // 주문 개수
     private int productPrice;    // 상품 가격
     private int totalPrice;      // 총 가격 (주문 개수 * 상품 가격)
-    private String orderDate;	//주문날짜
+    private LocalDateTime orderDate;	//주문날짜
+   
 }
+
 ```
 
 ### OrderRepository만들기
@@ -591,21 +579,13 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Integer> {
 ```java
 package com.korea.product.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.korea.product.dto.OrderDTO;
-import com.korea.product.persistence.OrderRepository;
-
 @Service
 public class OrderService {
 
 	@Autowired
     private OrderRepository orderRepository;
 
+	//주문내역 조회하기
     public List<OrderDTO> getAllOrderTotalPrices() {
         // JPQL 쿼리로 반환된 List<Object[]> 데이터를 받아옴
         List<Object[]> results = orderRepository.findAllOrderTotalPrices();
@@ -613,14 +593,132 @@ public class OrderService {
         // Object[] 데이터를 OrderDTO로 변환
         return results.stream()
                 .map(result -> OrderDTO.builder()
-                        .orderId((int) result[0])                          // orderId
-                        .productName((String) result[1])                   // productName
-                        .productCount((int) result[2])                     // productCount
-                        .productPrice((int) result[3])                     // productPrice
-                        .totalPrice((int) result[4])                       // totalPrice
-                        .orderDate((String) result[5])                     // orderDate
+                        .orderId(((Number) result[0]).intValue())                        // orderId
+                        .productName((String) result[1])                                 // productName
+                        .productCount(((Number) result[2]).intValue())                  // productCount
+                        .productPrice(((Number) result[3]).intValue())                  // productPrice
+                        .totalPrice(((Number) result[4]).intValue())                    // totalPrice
+                        .orderDate(((Timestamp) result[5]).toLocalDateTime())            // orderDate 변환
                         .build())
                 .collect(Collectors.toList());
     }
 }
+
 ```
+### 명시적으로 형변환이 필요한 이유
+- List는 Object[]를 요소로서 가지고 있다.
+- 그러므로 result에서는 하나의 Object[]배열을 꺼내게 된다.
+- Object를 int로 직접 변환할 수 없기 때문에 Integer로 변환한후 언박싱이 이루어진다.
+- (Object) -> (Integer) -> (int)
+
+### OrderController생성하기
+```java
+package com.korea.product.controller;
+
+@RestController
+@RequestMapping("orders")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @GetMapping("total")
+    public List<OrderDTO> getAllOrderTotals() {
+        return orderService.getAllOrderTotalPrices();
+    }
+}
+```
+
+## 주문하기 기능
+- 고객에게 어떤 제품을 몇개 구매할것인지 전달받아 주문내역을 db에 기록해보자
+
+### OrderService에 코드 추가하기
+- 주문내역을 DB에 추가하고 주문내역을 반환합니다.
+```java
+package com.korea.product.service;
+
+@Service
+public class OrderService {
+
+	@Autowired
+    private OrderRepository orderRepository;
+	
+	@Autowired
+	private ProductRepository productRepository;
+
+	//주문내역 조회하기
+    public List<OrderDTO> getAllOrderTotalPrices() {
+        // JPQL 쿼리로 반환된 List<Object[]> 데이터를 받아옴
+        List<Object[]> results = orderRepository.findAllOrderTotalPrices();
+        
+        // Object[] 데이터를 OrderDTO로 변환
+        return results.stream()
+                .map(result -> OrderDTO.builder()
+                        .orderId((int) result[0])                       // orderId
+                        .productName((String) result[1])                                 // productName
+                        .productCount((int) result[2])                  // productCount
+                        .productPrice((int) result[3])                 // productPrice
+                        .totalPrice((int) result[4])                   // totalPrice
+                        .orderDate((String) result[5])         // orderDate 변환
+                        .build())
+                .collect(Collectors.toList());
+    }
+    
+    //주문하기
+    public List<OrderDTO> save(OrderDTO dto) {
+    	
+    	// 상품 존재 여부 확인
+        ProductEntity product = productRepository.findById(dto.getProductId()).get();
+        
+        // 재고 확인
+        if (product.getProductStock() < dto.getProductCount()) {
+            throw new RuntimeException("재고가 부족합니다. 현재 재고: " + product.getProductStock());
+        }
+
+        // 재고 감소
+        product.setProductStock(product.getProductStock() - dto.getProductCount());
+        productRepository.save(product);
+        	
+        // 주문 생성
+        OrderEntity order = OrderEntity.builder()
+                .product(product)
+                .productCount(dto.getProductCount())
+                .build();
+
+        //DB에 주문내역 저장하기
+        orderRepository.save(order);
+        
+        //주문내역 리스트 돌려주기
+        return getAllOrderTotalPrices();
+    }
+}
+```
+
+### OrderController에 코드 추가하기
+- HTTP메서드 : post
+- 메서드명 : saveOrder
+```java
+package com.korea.product.controller;
+
+@RestController
+@RequestMapping("orders")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @GetMapping
+    public ResponseEntity<?>  getAllOrderTotals() {
+    	List<OrderDTO> list = orderService.getAllOrderTotalPrices();
+        return ResponseEntity.ok().body(list); 
+    }
+    
+    //상품id, 주문개수
+    @PostMapping
+    public ResponseEntity<?> saveOrder(@RequestBody OrderDTO dto){
+    	List<OrderDTO> list = orderService.save(dto);
+    	return ResponseEntity.ok().body(list);
+    }
+}
+```
+
