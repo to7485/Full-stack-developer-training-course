@@ -21,6 +21,7 @@
 - 상품가격
 - 등록날짜
 - 수정날짜
+- 
 ```java
 package com.korea.product.model;
 
@@ -487,4 +488,139 @@ function AddProduct(props){
 }
 
 export default AddProduct;
+```
+
+## 주문기능 만들기
+### OrderEntity만들기
+- com.korea.product.model 패키지에 OrderEntity클래스 만들기
+- productId가 PK와 FK로 연결되어있다.
+- 라디오버튼을 만들고 주문할 개수를 입력할 수 있게 한다.
+- 개수를 입력하고 주문버튼을 누르면 주문테이블에 등록이 되게 한다.
+### 속성
+- 주문번호
+- 상품번호
+- 주문개수
+- 주문날짜
+
+```java
+package com.korea.product.model;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Entity
+@Table(name = "Order")
+public class OrderEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+	private int orderId;
+    
+    // ProductEntity와 다대일 관계 설정
+    @ManyToOne
+    @JoinColumn(name = "productId", nullable = false)
+    private ProductEntity product;
+
+	private int productCount;
+	private String orderDate;
+}
+
+```
+
+### OrderDTO만들기
+- 주문 내역을 조회할 때 총 결제금액을 보여줄것이다.
+- 총 결제금액을 담는 필드를 가진 OrderDTO를 만들자
+```java
+package com.korea.product.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class OrderDTO {
+    
+    private int orderId;         // 주문 ID
+    private String productName;  // 상품 이름
+    private int productCount;    // 주문 개수
+    private int productPrice;    // 상품 가격
+    private int totalPrice;      // 총 가격 (주문 개수 * 상품 가격)
+    private String orderDate;	//주문날짜
+}
+```
+
+### OrderRepository만들기
+- 모든 주문내역을 조회하는 쿼리를 만들어보자
+- 총 결제내역(주문개수 x 상품의 가격)도 조회가 되야 한다.
+```java
+package com.korea.product.persistence;
+
+@Repository
+public interface OrderRepository extends JpaRepository<OrderEntity, Integer> {
+
+    @Query("SELECT o.orderId, o.product.productName, o.productCount, o.product.productPrice, (o.productCount * o.product.productPrice) AS totalPrice " +
+           "FROM OrderEntity o")
+    List<Object[]> findAllOrderTotalPrices();
+}
+```
+### 자동으로 조인이 이루어지는 이유
+- @ManyToOne으로 설정된 관계 매핑 덕분에, OrderEntity에서 product 필드를 통해 ProductEntity를 참조할 수 있다.
+- JPA는 JPQL 쿼리를 분석하고, OrderEntity에서 ProductEntity와의 관계가 설정된 것을 감지하면 자동으로 SQL 조인을 생성한다.
+- 위 쿼리문에서는 **o.product**를 통해 자동으로 ProductEntity와 조인이 이루어지기 때문에, JOIN을 명시적으로 쓰지 않아도 JPA는 적절한 SQL 조인 쿼리를 생성합니다.
+
+### OrderService만들기
+- 쿼리의 결과를 DTO로 변환한다.
+```java
+package com.korea.product.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.korea.product.dto.OrderDTO;
+import com.korea.product.persistence.OrderRepository;
+
+@Service
+public class OrderService {
+
+	@Autowired
+    private OrderRepository orderRepository;
+
+    public List<OrderDTO> getAllOrderTotalPrices() {
+        // JPQL 쿼리로 반환된 List<Object[]> 데이터를 받아옴
+        List<Object[]> results = orderRepository.findAllOrderTotalPrices();
+        
+        // Object[] 데이터를 OrderDTO로 변환
+        return results.stream()
+                .map(result -> OrderDTO.builder()
+                        .orderId((int) result[0])                          // orderId
+                        .productName((String) result[1])                   // productName
+                        .productCount((int) result[2])                     // productCount
+                        .productPrice((int) result[3])                     // productPrice
+                        .totalPrice((int) result[4])                       // totalPrice
+                        .orderDate((String) result[5])                     // orderDate
+                        .build())
+                .collect(Collectors.toList());
+    }
+}
 ```
