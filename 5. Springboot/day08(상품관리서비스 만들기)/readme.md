@@ -1,7 +1,7 @@
 # 상품관리 서비스 만들기
 - 상품과 주문에 대한 관리를 할 수 있는 서비스를 만들어보자
 
-## 백엔드 만들기
+## 상품추가,조회 만들기
 - 스프링부트 프로젝트 만들기
 - Group : com.korea
 - Artifact : product
@@ -215,6 +215,8 @@ public class ProductService {
 ```
 
 ### ProductController
+- HTTP메서드 : GET
+- 메서드명 : productList
 ```java
 package com.korea.product.controller;
 
@@ -245,6 +247,7 @@ public class ProductController {
 ## 상품 추가하기
 - db에 상품 추가하기
 ### ProductService
+- 메서드명 : create
 ```java
 //상품 추가하기
 public List<ProductEntity> create(final ProductEntity entity) {
@@ -263,6 +266,8 @@ private void validate(final ProductEntity entity) {
 ```
 
 ### ProductController
+- HTTP메서드 : POST
+- 메서드명 : createProduct
 ```java
 @PostMapping
 public ResponseEntity<?> createProduct(@RequestBody ProductDTO dto) {
@@ -279,4 +284,207 @@ public ResponseEntity<?> createProduct(@RequestBody ProductDTO dto) {
         return ResponseEntity.badRequest().body(response);
     }
 }
+```
+
+## 상품 정보 볼 수 있는 화면 만들기
+- product-react-app 생성하기
+
+### src에 p_info.js 만들기
+- 백엔드에 axios로 백엔드에 데이터를 요청하고 받아와서 화면에 출력하기
+- ApiService파일의 call메서드를 사용해도 좋습니다.
+- 다음 이미지와 같이 만들어보세요
+![img](img/상품조회.png)
+
+
+```js
+import React from 'react';
+import { useState,useEffect } from 'react';
+import {p_info} from './css/p_info'
+import { call } from './service/ApiService';
+
+function P_info(){
+
+    //상품정보를 가지고 있는 state
+    const [items, setItems] = useState([])
+
+    useEffect(() => {
+        //백엔드에게 요청하기
+        call("/product", "GET")//이제는 /Todo에 접근하려면 토큰인증이 필요하다.
+          .then(result => {
+            setItems(result.data);
+          })
+        
+    }, [])
+
+    let productItems = items.length > 0 && (
+        <table border="1">
+        <tr>
+            <th>상품 번호</th>
+            <th>상품 이름</th>
+            <th>상품 재고</th>
+            <th>상품 가격</th>
+            <th>등록 날짜</th>
+            <th>수정 날짜</th>
+        </tr>
+        {items.map((item) => (
+        <tr>
+            <td>{item.productId}</td>
+            <td>{item.productName}</td>
+            <td>{item.productStock}</td>
+            <td>{item.productPrice}</td>
+            <td>{item.registerDate}</td>
+            <td>{item.updateDate}</td>
+        </tr>
+        ))}
+        </table>
+      );
+
+    return(
+        <div>
+            <button type="button">상품추가</button>
+            {productItems}
+        </div>
+    );
+}
+
+export default P_info;
+```
+
+### css폴더 만들고 styles.css파일 만들기
+- 테이블에 스타일을 주자
+```css
+.container{
+    height: 100vh;
+    color: blue;
+    border : 5px solid blue;
+    display: flex;
+    justify-content: center;  /* 수평 가운데 정렬 */
+    align-items: center;      /* 수직 가운데 정렬 */
+    flex-direction: column;  /* 세로 방향 정렬 */
+};
+
+table{
+    color: blue;
+    size: 24px;
+    text-align: center;
+    background: #f0f0f0;
+}
+```
+
+## 상품추가창 만들기
+- 상품 추가 버튼을 누르면 상품을 추가하는 창이 뜨도록 만드세요
+- 내용을 입력하고 등록버튼을 누르면 상품을 DB에 등록하세요
+
+![img](img/상품추가창.png)
+
+```jsx
+import React from 'react';
+import { useState,useEffect } from 'react';
+import './css/styles.css'
+import { call } from './service/ApiService';
+import AddProduct from './AddProduct';
+
+function P_info(){
+
+    //상품정보를 가지고 있는 state
+    const [items, setItems] = useState([])
+
+    //추가창을 띄우는 state
+    const [open, setOpen] = useState(true);
+
+    useEffect(() => {
+        //백엔드에게 요청하기
+        call("/product", "GET")//이제는 /Todo에 접근하려면 토큰인증이 필요하다.
+          .then(result => {
+            setItems(result.data);
+          })
+        
+    }, [])
+
+
+    //onButtonClick함수 작성
+    const onButtonClick = ()=>{
+        setOpen(false);
+    }
+
+    ...중략
+
+
+    //버튼
+    let addProduct = <button type="button" onClick={onButtonClick}>상품추가</button>
+
+    //추가창
+    let addProductScreen = <AddProduct />
+
+    let addButton = addProduct;
+
+    //open이 false가 되면 상품추가 창을 연다.
+    if(!open){
+    addButton = addProductScreen;
+    }
+
+
+    return(
+        <div className='container'>
+            {addButton}
+            {productItems}
+        </div>
+    );
+}
+
+export default P_info;
+```
+
+### AddProduct.js생성하기
+- 버튼을 누르면 DB로 내용이 넘어가 추가가 됩니다.
+- 추가가 되면 모든 목록이 조회가 됩니다.
+- 등록이 되면 추가창의 모든 내용을 비우고 닫습니다.
+
+![img](img/상품추가.gif)
+
+```js
+import React from 'react';
+import { useState} from 'react';
+
+function AddProduct(props){
+
+    //상품의 정보를 저장할 수 있는 state
+    const [product, setProduct] = useState({productName : "",productStock:0,productPrice:0});
+
+    const {productName,productStock,productPrice} = product;
+
+    let addItem = props.addItem;
+
+    const onChange = (e) => {    
+        const { value, name } = e.target; // 우선 e.target 에서 name 과 value 를 추출    
+        setProduct({      
+            ...product, // 기존의 input 객체를 복사한 뒤      
+            [name]: value // name 키를 가진 값을 value 로 설정    
+            });  
+        };
+
+    const onButtonClick = ()=>{
+        console.log(product);
+        addItem(product);
+        resetFields();
+        props.setOpen(true);
+    }
+
+    // 입력 필드 초기화 함수
+    const resetFields = () => {
+        setProduct({ productName: "", productStock: 0, productPrice: 0 });
+    };
+
+
+    return(
+        <div className="register-wrap" style={{width:'500px'}}>
+			<div><input style={{width: '98%'}} value={productName} onChange={onChange} name='productName' placeholder='상품 이름'/></div>
+			<div><input style={{width: '98%'}} value={productStock} onChange={onChange} name='productStock' placeholder='상품 재고'/></div>
+			<div><input style={{width: '98%'}} value={productPrice} onChange={onChange} name='productPrice' placeholder='상품 가격'/></div>
+			<input type="button" value="등록" onClick={onButtonClick} style={{width:'100%'}} />
+		</div>
+    )
+}
+
+export default AddProduct;
 ```
