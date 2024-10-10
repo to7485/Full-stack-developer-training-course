@@ -25,21 +25,6 @@
 ```java
 package com.korea.product.model;
 
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -68,13 +53,6 @@ public class ProductEntity {
 - ProductDTO 클래스 만들기
 ```java
 package com.korea.product.dto;
-
-import com.korea.product.model.ProductEntity;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -117,12 +95,6 @@ public class ProductDTO {
 - 클라이언트와 데이터를 직접적으로 주고받기 위한 ResponseDTO클래스 만들기
 ```java
 package com.example.demo.dto;
-
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Builder
 @NoArgsConstructor
@@ -409,8 +381,6 @@ function P_info(){
     }
 
     ...중략
-
-
     //버튼
     let addProduct = <button type="button" onClick={onButtonClick}>상품추가</button>
 
@@ -549,10 +519,8 @@ public class OrderDTO {
     private int productCount;    // 주문 개수
     private int productPrice;    // 상품 가격
     private int totalPrice;      // 총 가격 (주문 개수 * 상품 가격)
-    private LocalDateTime orderDate;	//주문날짜
-   
+    private LocalDateTime orderDate;	//주문날짜  
 }
-
 ```
 
 ### OrderRepository만들기
@@ -593,12 +561,12 @@ public class OrderService {
         // Object[] 데이터를 OrderDTO로 변환
         return results.stream()
                 .map(result -> OrderDTO.builder()
-                        .orderId(((Number) result[0]).intValue())                        // orderId
-                        .productName((String) result[1])                                 // productName
-                        .productCount(((Number) result[2]).intValue())                  // productCount
-                        .productPrice(((Number) result[3]).intValue())                  // productPrice
-                        .totalPrice(((Number) result[4]).intValue())                    // totalPrice
-                        .orderDate(((Timestamp) result[5]).toLocalDateTime())            // orderDate 변환
+                        .orderId(((int) result[0])) // orderId
+                        .productName((String) result[1]) // productName
+                        .productCount(((int) result[2]))// productCount
+                        .productPrice(((int) result[3]))// productPrice
+                        .totalPrice(((int) result[4])) // totalPrice
+                        .orderDate(((String) result[5]))// orderDate 변환
                         .build())
                 .collect(Collectors.toList());
     }
@@ -654,18 +622,18 @@ public class OrderService {
         // Object[] 데이터를 OrderDTO로 변환
         return results.stream()
                 .map(result -> OrderDTO.builder()
-                        .orderId((int) result[0])                       // orderId
-                        .productName((String) result[1])                                 // productName
-                        .productCount((int) result[2])                  // productCount
-                        .productPrice((int) result[3])                 // productPrice
-                        .totalPrice((int) result[4])                   // totalPrice
-                        .orderDate((String) result[5])         // orderDate 변환
+                        .orderId((int) result[0]) // orderId
+                        .productName((String) result[1])// productName
+                        .productCount((int) result[2])  // productCount
+                        .productPrice((int) result[3]) // productPrice
+                        .totalPrice((int) result[4]) // totalPrice
+                        .orderDate((String) result[5]) // orderDate 변환
                         .build())
                 .collect(Collectors.toList());
     }
     
     //주문하기
-    public List<OrderDTO> save(OrderDTO dto) {
+    public List<ProductDTO> save(OrderDTO dto) {
     	
     	// 상품 존재 여부 확인
         ProductEntity product = productRepository.findById(dto.getProductId()).get();
@@ -688,8 +656,11 @@ public class OrderService {
         //DB에 주문내역 저장하기
         orderRepository.save(order);
         
+        List<ProductEntity> entities = productRepository.findAll();
+        List<ProductDTO> dtos = entities.stream().map(entity -> new ProductDTO(entity)).collect(Collectors.toList());
+        
         //주문내역 리스트 돌려주기
-        return getAllOrderTotalPrices();
+        return dtos;
     }
 }
 ```
@@ -710,7 +681,9 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<?>  getAllOrderTotals() {
     	List<OrderDTO> list = orderService.getAllOrderTotalPrices();
-        return ResponseEntity.ok().body(list); 
+    	System.out.println(list);
+    	ResponseDTO<OrderDTO> response = ResponseDTO.<OrderDTO>builder().data(list).build();
+        return ResponseEntity.ok().body(response); 
     }
     
     //상품id, 주문개수
@@ -721,4 +694,272 @@ public class OrderController {
     }
 }
 ```
+- 포스트맨에 주문을 하고 결과를 확인해보자
+```json
+{
+    "productId":1,
+    "productCount":10
+}
+```
+
+## 리액트에 주문하기 기능 만들기
+- 각 행에 라디오버튼과 입력필드를 추가한다.
+- 라디오버튼을 누른 행만 입력필드를 활성화 한다.
+- 입력필드에 주문개수를 적고 주문하기를 누르면 주문을 한다.
+
+### p_info에 코드 추가하기
+```js
+//라디오버튼의 index를 저장하는 state
+const[selectedIndex, setSelectedIndex] = useState(null);
+
+//주문개수를 저장하는 state
+const [orderCount, setOrderCount] = useState(''); 
+
+//클릭한 라디오버튼의 index
+const handleRadioChange = (index) => {
+    setSelectedIndex(index);
+};
+
+//상품 조회
+    let productItems = items.length > 0 && (
+        <div>
+            <table border="1">
+            <thead>
+            <tr>
+                <th>단일 선택</th>
+                <th>주문 개수</th>
+                <th>상품 번호</th>
+                <th>상품 이름</th>
+                <th>상품 재고</th>
+                <th>상품 가격</th>
+                <th>등록 날짜</th>
+                <th>수정 날짜</th>
+            </tr>
+            </thead>
+            <tbody>
+            {items.map((item,index) => (
+            <tr key={item.productId}>
+                <td><input type="radio" name="productId" onChange={() => handleRadioChange(index+1)}
+                  checked={selectedIndex === index+1}/></td>
+                <td><input 
+                       type="number"
+                       value={selectedIndex === index + 1 ? orderCount : ''}
+                       onChange={handleOrderCountChange}
+                       readOnly={selectedIndex !== index + 1} /></td>
+                <td>{item.productId}</td>
+                <td>{item.productName}</td>
+                <td>{item.productStock}</td>
+                <td>{item.productPrice}</td>
+                <td>{item.registerDate}</td>
+                <td>{item.updateDate}</td>
+            </tr>
+            ))}
+            </tbody>
+            </table>
+            <button type="button" id="order-done">주문 완료</button><button type="button" onClick="location.href='/order/list'">주문내역</button>
+        </div>
+      );
+```
+- map() 함수는 콜백 함수를 인자로 받으며, 콜백 함수는 다음과 같은 두 가지 매개변수를 기본적으로 제공한다
+1. 첫 번째 매개변수 (요소): 배열의 현재 요소.
+2. 두 번째 매개변수 (인덱스): 배열에서 현재 요소의 인덱스.
+
+## 리액트에 주문내역 출력하기
+- 주문내역 버튼을 누르면 주문창 아래 주문내역이 나오도록 만들어보자
+- src에 order_info.js 만들기
+```js
+import React from 'react';
+import {useState,useEffect} from 'react';
+import { call } from './service/ApiService';
+
+function OrderInfo() {
+    //주문내역을 저장할 state
+    const [orderList, setOrderList] = useState([]);
+
+    useEffect(() => {
+        call("/orders", "GET")
+        .then(result => {
+            setOrderList(result.data);
+        })
+    },[])
+
+  return (
+    <div id="container">
+      <table border="1">
+        <thead>
+          <tr>
+            <th>상품 이름</th>
+            <th>상품 가격</th>
+            <th>주문 개수</th>
+            <th>결제 금액</th>
+            <th>주문 날짜</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orderList.map((order) => (
+            <tr key={order.orderId}>
+              <td>{order.productName}</td>
+              <td>{order.productPrice}</td>
+              <td>{order.productCount}</td>
+              <td>{order.orderPrice}</td>
+              <td>{order.orderDate}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default OrderInfo;
+```
+
+### p_info에 import 하고 렌더링하기
+- p_info에 코드 추가하기
+```js
+import React from 'react';
+import { useState,useEffect } from 'react';
+import './css/styles.css'
+import { call } from './service/ApiService';
+import AddProduct from './AddProduct';
+import OrderInfo from './order_info';
+
+function P_info(){
+
+    //상품정보를 가지고 있는 state
+    const [items, setItems] = useState([])
+
+    //추가창을 띄우는 state
+    const [open, setOpen] = useState(true);
+
+    //라디오버튼의 index를 저장하는 state
+    const[selectedIndex, setSelectedIndex] = useState(null);
+
+    //주문개수를 저장하는 state
+    const [orderCount, setOrderCount] = useState('');  
+    
+    // 주문 내역을 렌더링할지 여부를 제어하는 state
+    const [showOrderInfo, setShowOrderInfo] = useState(false);
+
+    //조회
+    useEffect(() => {
+        call("/product", "GET")
+          .then(result => {
+            setItems(result.data);
+          })
+        
+    }, [])
+
+    //상품추가 창 띄우는 함수
+    const onButtonClick = ()=>{
+        setOpen(false);
+    }
+
+    //상품추가 기능
+    const addItem = (item) => {
+    call("/product", "POST", item)
+        .then(result => setItems(result.data))
+    }
+
+    //클릭한 라디오버튼의 index
+    const handleRadioChange = (index) => {
+        setSelectedIndex(index);
+        setOrderCount(''); // 라디오 버튼 선택 시 주문 개수를 초기화
+    };
+
+    console.log("누른 라디오버튼 : "+selectedIndex);
+
+    // 주문 개수 변경 시 호출되는 함수
+    const handleOrderCountChange = (event) => {
+        setOrderCount(event.target.value);
+    };
+
+    //주문하기
+    const orderProduct = () => {
+        // 주문하기 전에 유효성 검사를 수행
+        if (selectedIndex && orderCount > 0 && items[selectedIndex - 1]) {
+            const orderData = {
+              productId: items[selectedIndex- 1].productId, // productId는 선택된 인덱스에서 가져옴
+              productCount: parseInt(orderCount)
+            };
+        call("/orders", "POST", orderData)
+        .then(result => setItems(result.data))
+        }else {
+            alert("상품을 선택하고 주문 개수를 입력하세요.");
+        }
+    }
+    
+    // 주문 내역 버튼 클릭 시 호출되는 함수
+    const showOrderDetails = () => {
+        setShowOrderInfo(!showOrderInfo);  // 주문 내역을 렌더링하도록 상태 업데이트
+    };
+
+
+    //상품 조회
+    let productItems = items.length > 0 && (
+        <div>
+            <table border="1">
+            <thead>
+            <tr>
+                <th>단일 선택</th>
+                <th>주문 개수</th>
+                <th>상품 번호</th>
+                <th>상품 이름</th>
+                <th>상품 재고</th>
+                <th>상품 가격</th>
+                <th>등록 날짜</th>
+                <th>수정 날짜</th>
+            </tr>
+            </thead>
+            <tbody>
+            {items.map((item,index) => (
+            <tr key={item.productId}>
+                <td><input type="radio" name="productId" onChange={() => handleRadioChange(index+1)}
+                  checked={selectedIndex === index+1}/></td>
+                <td><input 
+                       type="number"
+                       value={selectedIndex === index + 1 ? orderCount : ''}
+                       onChange={handleOrderCountChange}
+                       readOnly={selectedIndex !== index + 1} /></td>
+                <td>{item.productId}</td>
+                <td>{item.productName}</td>
+                <td>{item.productStock}</td>
+                <td>{item.productPrice}</td>
+                <td>{item.registerDate}</td>
+                <td>{item.updateDate}</td>
+            </tr>
+            ))}
+            </tbody>
+            </table>
+            <button type="button" onClick={orderProduct}>주문 완료</button><button type="button" onClick={showOrderDetails}>주문내역</button>
+        </div>
+      );
+
+
+    //버튼
+    let addProduct = <button type="button" onClick={onButtonClick}>상품추가</button>
+
+    //추가창
+    let addProductScreen = <AddProduct setOpen={setOpen} addItem={addItem}/>
+
+    let addButton = addProduct;
+
+    //open이 false가 되면 상품추가 창을 연다.
+    if(!open){
+    addButton = addProductScreen;
+    }
+
+
+    return(
+        <div className='container'>
+            {addButton}
+            {productItems}
+            {showOrderInfo && <OrderInfo />} {/* showOrderInfo가 참일때 주문 내역을 렌더링 */}
+        </div>
+    );
+}
+
+export default P_info;
+```
+
 
