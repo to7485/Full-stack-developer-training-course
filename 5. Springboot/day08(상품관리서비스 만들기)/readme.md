@@ -497,7 +497,7 @@ public class OrderEntity {
 	private int productCount;
 	
 	@CreationTimestamp
-	private LocalDateTime orderDate;
+	private String orderDate;
 }
 ```
 
@@ -507,19 +507,32 @@ public class OrderEntity {
 ```java
 package com.korea.product.dto;
 
-@Data
 @Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDTO {
-    
-    private int orderId;         // 주문 ID
-    private int productId;		//상품Id
-    private String productName;  // 상품 이름
-    private int productCount;    // 주문 개수
-    private int productPrice;    // 상품 가격
-    private int totalPrice;      // 총 가격 (주문 개수 * 상품 가격)
-    private LocalDateTime orderDate;	//주문날짜  
+
+	private int orderId;//주문번호
+	private int productId;//상품 번호
+	private String productName;//상품 이름
+	private int productCount;//주문 개수
+	private int productPrice;//상품 가격
+	private int totalPrice; //결제 금액
+	private String orderDate; //주문날짜
+	
+	public static List<OrderDTO> toListOrderDTO(List<Object[]> list) {
+		//Object[] 데이터를 OrderDTO로 변환
+		//Object -> Integer -> int (언박싱)
+		return list.stream().map(result -> OrderDTO.builder()
+							.orderId((int)result[0])
+							.productName((String)result[1])
+							.productCount((int)result[2])
+							.productPrice((int)result[3])
+							.totalPrice((int)result[4])
+							.orderDate((String)result[5])
+							.build()).collect(Collectors.toList());	
+	}	
 }
 ```
 
@@ -590,10 +603,12 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    @GetMapping("total")
-    public List<OrderDTO> getAllOrderTotals() {
-        return orderService.getAllOrderTotalPrices();
-    }
+	@GetMapping("total")
+	public ResponseEntity<?> getAllOrderTotals(){
+		List<OrderDTO> list = orderService.getAllOrderTotalPrices();
+		ResponseDTO<OrderDTO> response = ResponseDTO.<OrderDTO>builder().data(list).build();
+		return ResponseEntity.ok().body(response);
+	}
 }
 ```
 
@@ -632,36 +647,50 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
     
-    //주문하기
-    public List<ProductDTO> save(OrderDTO dto) {
-    	
-    	// 상품 존재 여부 확인
-        ProductEntity product = productRepository.findById(dto.getProductId()).get();
-        
-        // 재고 확인
-        if (product.getProductStock() < dto.getProductCount()) {
-            throw new RuntimeException("재고가 부족합니다. 현재 재고: " + product.getProductStock());
-        }
-
-        // 재고 감소
-        product.setProductStock(product.getProductStock() - dto.getProductCount());
-        productRepository.save(product);
-        	
-        // 주문 생성
-        OrderEntity order = OrderEntity.builder()
-                .product(product)
-                .productCount(dto.getProductCount())
-                .build();
-
-        //DB에 주문내역 저장하기
-        orderRepository.save(order);
-        
-        List<ProductEntity> entities = productRepository.findAll();
-        List<ProductDTO> dtos = entities.stream().map(entity -> new ProductDTO(entity)).collect(Collectors.toList());
-        
-        //주문내역 리스트 돌려주기
-        return dtos;
-    }
+	//주문하기 기능
+	public List<ProductDTO> save(OrderDTO dto){
+		//productId와 productCount
+		
+		//상품 존재여부를 확인
+		//SELECT * FROM PRODUCT;
+		Optional<ProductEntity> option = productRepository.findById(dto.getProductId());
+		ProductEntity productEntity;
+		
+		//상품이 조회가 되면
+		if(option.isPresent()) {
+			//엔티티를 저장
+			productEntity = option.get();
+		} else {
+			//IllegalArgumentException : 잘못된 또는 부적절한 인수가 메서드에 전달됐을 때
+			//발생하는 예외
+			throw new IllegalArgumentException("상품을 찾을 수 없다");
+		}
+		
+		//재고확인
+		if(productEntity.getProductStock() < dto.getProductCount()) {
+			throw new RuntimeException("재고가 부족합니다. 현재 재고 : " + productEntity.getProductStock());
+		}
+		
+		//주문하기
+		OrderEntity order = OrderEntity.builder()
+								.product(productEntity)
+								.productCount(dto.getProductCount())
+								.build();
+		
+		//DB에 주문내역 저장하기
+		orderRepository.save(order);
+		
+		//재고 감소
+		productEntity.setProductStock(productEntity.getProductStock() - dto.getProductCount());
+		
+		//db에 수정된 재고로 업데이트
+		productRepository.save(productEntity);
+		
+		List<ProductDTO> dtos = productRepository.findAll().stream()
+									.map(entity ->new ProductDTO(entity))
+									.collect(Collectors.toList());
+		
+		return dtos;
 }
 ```
 
@@ -687,11 +716,12 @@ public class OrderController {
     }
     
     //상품id, 주문개수
-    @PostMapping
-    public ResponseEntity<?> saveOrder(@RequestBody OrderDTO dto){
-    	List<OrderDTO> list = orderService.save(dto);
-    	return ResponseEntity.ok().body(list);
-    }
+	@PostMapping
+	public ResponseEntity<?> saveOrder(@RequestBody OrderDTO dto){
+		List<ProductDTO> list = orderService.save(dto);
+		ResponseDTO<ProductDTO> response = ResponseDTO.<ProductDTO>builder().data(list).build();
+		return ResponseEntity.ok().body(response);
+	}
 }
 ```
 - 포스트맨에 주문을 하고 결과를 확인해보자
@@ -764,20 +794,22 @@ const handleRadioChange = (index) => {
 1. 첫 번째 매개변수 (요소): 배열의 현재 요소.
 2. 두 번째 매개변수 (인덱스): 배열에서 현재 요소의 인덱스.
 
+![img](img/주문창.png)
+
 ## 리액트에 주문내역 출력하기
 - 주문내역 버튼을 누르면 주문창 아래 주문내역이 나오도록 만들어보자
 - src에 order_info.js 만들기
 ```js
 import React from 'react';
 import {useState,useEffect} from 'react';
-import { call } from './service/ApiService';
+import { call } from '../service/ApiService';
 
 function OrderInfo() {
     //주문내역을 저장할 state
     const [orderList, setOrderList] = useState([]);
 
     useEffect(() => {
-        call("/orders", "GET")
+        call("/orders/total", "GET")
         .then(result => {
             setOrderList(result.data);
         })
@@ -801,7 +833,7 @@ function OrderInfo() {
               <td>{order.productName}</td>
               <td>{order.productPrice}</td>
               <td>{order.productCount}</td>
-              <td>{order.orderPrice}</td>
+              <td>{order.totalPrice}</td>
               <td>{order.orderDate}</td>
             </tr>
           ))}
@@ -936,13 +968,14 @@ function P_info(){
       );
 
 
-    //버튼
-    let addProduct = <button type="button" onClick={onButtonClick}>상품추가</button>
+    //상품추가 버튼
+    let addProductButton = <button type="button" onClick={onButtonClick}>상품추가</button>;
+    
+    let addProduct = addProductButton;
 
-    //추가창
-    let addProductScreen = <AddProduct setOpen={setOpen} addItem={addItem}/>
-
-    let addButton = addProduct;
+    if(open){
+        addProduct = <AddProduct setItems={setItems} setOpen={setOpen} />
+    }
 
     //open이 false가 되면 상품추가 창을 연다.
     if(!open){
@@ -961,5 +994,7 @@ function P_info(){
 
 export default P_info;
 ```
+
+![img](img/주문내역.png)
 
 
