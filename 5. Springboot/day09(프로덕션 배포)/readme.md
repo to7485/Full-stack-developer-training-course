@@ -221,188 +221,103 @@ Route 53의 이름은 두 가지 의미를 가지고 있다
 - 우리는 일래스틱 빈스톡에게 필요한 리소스들을 알려준다.
 - 로드 밸런서, 최소 인스턴스 갯수, 오토 스케일링 그룹, RDS(데이터베이스), 그리고 EC2 환경을 구축하고 EC2에 우리 애플리케이션을 실행한다.
 
-## AWS CLI와 EB CLI 설치
+## Elastic Beanstalk로 서버 구축하기
 
-### AWS의 리소스에 접근하는 방법
-1. AWS 콘솔을 통해 접근할 수 있다.
-   - AWS 콘솔은 https://console.aws.amazon.com을 통해 접근할 수 있고 GUI기반으로 동작한다.
-2. 두 번째 방법은 AWS CLI를 이용하는 방법이다.
-    - CLI를 이용하면 터미널이나 파워셀에서 명령어를 이용해 AWS 리소스에 접근할 수 있다.
-3. 세 번째 방법은 AWS SDK를 이용하는 것이다.
-    - AWS SDK는 라이브러리다.
+### 1. 지역을 서울로 설정한다.
+우리가 살고 있는 위치에서 가까울수록 응답 속도 등이 빠르므로 지역을 서울로 설정한다.
 
-
-## AWS 계정생성
-- https://portal.aws.amazon.com/billing/signup#/start에서 AWS 계정을 생성하자.
-- 계정을 생성하는 과정에서 신용카드 정보를 입력해야 하는데, 신용카드 확인 차원에서 1달러를 출금 후 재입금 하니 유의하도록 하자.
-- 회원가입을 완료하면 https://console.aws.amazon.com로 들어가 AWS 콘솔로 로그인한다.
-
-## 파이썬 설치
-- AWS CLI와 EB CLI는 파이썬 기반으로 작동한다.
-- 따라서 파이썬이 설치돼 있지 않다면 파이썬을 먼저 설치해야 한다.
-- 파워셸 또는 터미널에서 python --version로 파이썬이 설치돼있는지 확인하자
-
-### 파이썬 설치
-```
-https://www.python.org/downloads/windows/
-```
-- 설치시 Add python.exe to PATH 체크하기
-- pip --version을 이용해 pip가 설치되었는지도 확인한다.
-
-## AWS CLI 설치
-- https://awscli.amazonawa.com/AWSCLIV2.msi 에서 AWS CLI를 다운받아 설치한다.
-
-### AWS CLI 설정
-- AWS 콘솔(https://console.aws.amazon.com)에 로그인한 후 IAM으로 들어간다.
+### 2. IAM
+- IAM은 AWS 리소스에 접근하는 권한을 관리하는 서비스이다.
+- 일래스틱 빈스톡 서비스에 부여할 역할을 IAM에서 만들어야 한다.
 
 ![img](img/IAM.png)
 
-- 우리가 콘솔로 접근하기 위해 로그인을 했지만 보통 IT기업은 여러 명의 엔지니어가 협업해 서비스를 운영한다.
-- 그 모든 엔지니어가 같은 CLI 계정, 게다가 그냥 계정도 아닌 루트(어드민)계정을 사용하는 것은 보안에 취약하다.
-- 따라서 AWS는 IAM(Identity and Access Management)라는 툴을 제공해, 사람마다 역할마다 다른 접근 권한을 줄 수 있도록 한다.
-- 이때 사람에게는 아이디와 비밀번호를, 사람이 아닌 프로그램에게는 액세스 키와 비밀 액세스 키를 따로따로 제공할 수 있다.
-- AWS CLI는 프로그램이므로 지금부터 AWS CLI가 사용할 액세스 키와 비밀 액세스 키를 발급해주자.
+- 역할 -> 역할 생성을 누른다.
 
-![img](img/사용자.png)
+![img](img/역할생성.png)
 
-- IAM을 선택해 들어간 후 왼쪽 메뉴에서 사용자를 클릭한다.
+- 신뢰할 수 있는 엔티티 유형에는 [AWS 서비스]를 선택
+- 사용 사례 항목은 EC2로 선택한다.
+- 그리고 다음을 클릭한다.
 
-![img](img/사용자생성.png)
+![img](img/엔티티%20유형.png)
 
-- 사용자 추가 버튼을 눌러 사용자를 추가해준다.
+- 3개의 권한을 검색하여 체크하고 다음을 누른다.
+  - AWSElasticBeanstalkMulticontainerDocker
+  - AWSElasticBeanstalkWebTier
+  - AWSElasticBeanstalkWorkerTier
+- 역할 이름은 [aws-elasticbeanstalk-ec2-role]로 적고, 신뢰할 수 있는 엔티티와 권한이 잘 추가되었는지 확인한 후에 [역할생성]버튼을 눌러 역할을 생성한다.
 
-![img](img/사용자이름.png)
+![img](img/역할이름.png)
 
-- 사용자 추가 페이지에서 원하는 사용자 이름을 입력하고 다음을 누른다.
+### 3. Elastic Beanstalk로 이동한다.
 
-![img](img/정책연결.png)
+![img](img/빈즈토크.png)
 
-- 기존 정책 직접 연결을 누른 후 AdministratorAccess를 선택한다.
-```
-※ AdministratorAccess정책
-모든 AWS 리소스에 대해 모든 권한을 준다는 뜻이다.
-```
-- 사용자 생성을 클릭한다.
+- [환경->환경생성]을 누른 다음 '환경 구성' 화면이 나타나면 다음과 같이 입력한다.
+  - 애플리케이션 이름 : springboot-developer
+  - 플랫폼: Java(Corretto 17)
 
-![img](img/액세스키%20만들기1.png)
+![img](img/애플리케이션이름.png)
 
-- aws-cli에서 사용할 액세스 키를 만들어보자
+![img](img/플랫폼.png)
 
-![img](img/액세스키2.png)
+- 다음을 누르고 넘어가서 서비스 액세스 구성은 아래와 같이 선택한다.
 
-- 맨 아래 체크박스를 체크하고 다음으로 넘어간다.
+![img](img/역할세부정보.png)
 
-- 태그는 따로 설정할것이 없으니 넘어가고 액세스 키를 생성한다.
-- 생성한 액세스키와 비밀 액세스키는 메모장에 저장을 해놓는다.
-- cmd를 열어 aws configure를 입력한다.
+- 왼쪽에 4단계로 눌러 넘어갑니다.
 
-![img](img/aws-cli설정.png)
+![img](img/인스턴스트래픽조정.png)
 
-### Default region name
-- AWS에는 리전이라는 개념이 있다.
-- AWS 데이터센터가 있는 장소를 말한다.
-- 서비스를 실제로 사용할 사용자와 서비스가 호스팅되고 있는 데이터 센터가 가까울수록 네트워크 대기 시간이 짧아진다.
-- 한국에 거주할 확률이 높다면 ap-northeast-2를 선택하면 된다.
+- 루트볼륨을 기본값에서 범용3으로 바꾼다.
 
-## pip를 이용해 EB CLI 설치
-- AWS CLI는 AWS의 모든 서비스를 위한 CLI이다.
-- 따라서 AWS CLI를 사용하면 EC2, 로드밸런서, 오토 스케일링 그룹, 라우트 53, 다이나모 디비 등등 AWS의모든 서비스를 사용할 수 있다.
-- 반면 우리가 지금 설치할 EB CLI는 일래스틱 빈스톡만을 위한 CLI이다.
-- 일래스틱 빈스톡의 환경을 구축하고 설정할 수 있다.
+![img](img/루트볼륨.png)
 
-```
-pip install awsebcli --upgrade --user
-```
+- 스크롤을 쭉 내리고 검토 단계로 건너뛰기를 누른다.
+- 맨 아래 제출을 누르고 마무리한다.
 
-### EB-CLI 환경변수 설정하기
-- Path로 들어가서 아래의 문구를 추가한다.
-```
-%USERPROFILE%\AppData\Roaming\Python\Python313\Scripts
-```
-- cmd에서 환경변수가 잘 적용됐는지 확인한다.
-```
-C:\Users\lis74>eb --version
-EB CLI 3.21.0 (Python 3.13.0 (tags/v3.13.0:60403a5, Oct  7 2024, 09:38:07) [MSC v.1941 64 bit (AMD64)])
-```
+![img](img/제출.png)
 
-## AWS 일래스틱 빈스톡을 이용한 백엔드 배포
+- 생성 요청한 웹 앱을 사용할 준비가 되기까지 잠시 기다린다.
+- 프로젝트 생성이 완료되면 화면이 전환된다.
+- 왼쪽에 [환경]탭을 눌러 일래스틱 빈스토크 환경목록을 본다.
+- 환경 목록에 방금 생성한 환경의 상태가 OK로 보이는지 확인하고 URL을 클릭해 해당 URL에 잘 접속이 되는지 확인해보자
 
-![img](img/일래스틱빈스톡백엔드.jpg)
+![img](img/환경1.png)
 
-- 이전에도 설명했지만 일래스틱 빈스톡으로 이용하면 애플리케이션 로드 밸런서, 오토 스케일링 그룹, RDS, EC2 등을 따로따로 설정하지 않아도 된다.
-- 예를 들어 우리 백엔드 애플리케이션의 경우 RDS에 MySQL를 데이터베이스로 두며, 서버는 로드 밸런서에 오토 스케일링 그룹을 연결하는 형태이다.
-- 따라서 첫 번째로 데이터베이스 설정을 해야 한다. 그 후, 오토 스케일링 그룹을 생성하고 오토 스케일링 그룹 내에서 실행되는 EC2 인스턴스들이 애플리케이션을 실행할 수 있도록 스크립트를 짜야한다.
-- 또 로드밸런서에서 오토 스케일링 그룹을 타깃 그룹으로 지정해줘야 한다.
-- 이 모든 과정을 일래스틱 빈스톡은 한 커맨드 라인으로 가능하게 한다.
+![img](img/도메인.png)
 
-### eb init을 이용해 애플리케이션 생성
-- EB CLI를 이용해 로컬 환경에서 애플리케이션을 생성한다.
-- cmd를 열고 프로젝트가 있는 디렉터리로 이동한다.
-- eb init <애플리케이션 이름>을 이용해 로컬 환경에서 일래스틱 빈스톡 애플리케이션을 생성한다.
-- 이 커맨드는 로컬 환경에서 일래스틱 빈스톡 애플리케이션을 초기화하는 작업으로 실제 AWS에 아무 작업도 하지 않는다.
+- 다음과 같은 화면이 나왔다면 성공한 것이다.
 
-```
-D:\develop\springboot\work>eb init TodoApplication-backend
-```
+![img](img/일래스틱성공.png)
 
-![img](img/지역선택.png)
-- 일래스틱 빈스톡이 어느 리전에 이 애플리케이션의 환경을 생성해야 하는지 물어보는 것이다.
-- 이후 생성되는 모든 리소스는 지금 선택하는 리전에 생성된다.
+## 일래스틱 빈스톡에서 RDS생성하기
+- 이제 클라우드에 올릴 데이터베이스를 생성해보자
 
-![img](img/플랫폼선택.png)
-- 이 애플리케이션이 사용할 플랫폼을 선택하는 것이다.
-- 애플리케이션의 플랫폼이란 서버, 미들웨어, 운영체제등을 말한다.
-- 우리는 리눅스에서 자바8 애플리케이션을 실행시키기 위해 Java를 선택한다.
-- 그 다음 자바의 버전과 자바가 실행될 운영체제를 선택한다
-- 우리는 아마존 리눅스 위에서 도는 Correto 11을 선택한다.
+### 1. 환경 설정 메뉴에 들어가기
+- [환경 -> <내가 만든 호나경>]을 들어간 다음 [구성]을 눌러 환경 설정 메뉴에 들어간다.
+- 스크롤바를 내려 네트워킹 및 데이터베이스 메뉴에서 [편집]을 눌러 데이터베이스 설정을 추가한다.
 
-![img](img/ssh설정.png)
-- 일래스틱 빈스톡을 이용해 생성된 EC2에 접근하기 위해 SSH를 설정할 것인지 묻는 내용이다.
-- 우리는 설정하지 않으므로 n을 입력한다.
+![img](img/RDS설정1.png)
 
-```
-※SSH
-네트워크 상에서 두 컴퓨터 간의 안전한 통신을 가능하게 해주는 프로토콜이다.
-주로 원격 시스템에 접속하거나, 명령을 실행하거나, 파일을 안전하게 전송할 때 사용된다.
-```
-- 설정을 완료하면 디렉터리에 .elasticbeanstalk디렉터리가 생성된다. .elasticbeanstalk디렉터리 안에는 config.yml 파일이 생성되는데 이 파일에 방금 설정한 항목들이 나열돼있다.
+- 스크롤을 아래로 내려 데이터베이스를 활성화 하고 데이터베이스 엔진으로는 [mysql]을 선택한다.
+- 용량은 프리티어를 지원하는 [db.t3.micro]를 선택한다.
+- 사용자의 이름과 암호를 채운 다음 [적용]버튼을 눌러 데이터베이스를 생성한다.
 
-### 백엔드 애플리케이션 설정
-- 이제 백엔드 애플리케이션을 배포하기 위한 사전 작업을 해야한다.
-- 사전 작업은 애플리케이션 프로퍼티 파일을 개발용과 배포용으로 분리해주는 작업이다.
+※ 비밀번호는 8자 이상이어야 한다.
 
-### application-prod.yaml
-- src/main/resources 아래에 application-prod.yaml과 application-dev.yaml을 생성한다.
-- 자동생성된 application-properties.yml은 삭제한다.
+![img](img/RDS설정2.png)
 
-```yaml
-server:
-  port : 5000
-spring:
-  jpa:
-    database: MYSQL
-    show-sql: true
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: update
-  datasource:
-    url: jdbc:mysql://${rds.hostname}:${rds.port}/${rds.db.name}
-    username: ${rds.username}
-    password: ${rds.password}
-```
+- 데이터베이스가 얼마나 생성되었는지 상태를 확인하기 위해 검색 창에 RDS를 검색하여 들어간다.
+- [데이터베이스 -> <DB식별자>]를 눌러 상태를 확인해보자
 
-### server 설정
-- 일래스틱 빈스톡은 기본적으로 애플리케이션이 5000포트를 사용한다고생각한다.
-- 일래스틱 빈스톡의 설정을 바꿔줄 수도 있지만 우리는 그냥 애플리케이션이 5000번 포트에서 실행하도록 설정하자
+![img](img/DB생성중.png)
 
-### jpa 설정
-- database: MYSQL : 데이터베이스 MySQL 사용
-- show-sql: true : jpa가 실행한 sql쿼리를 보여 줄 지 여부.
-- database-platform: org.hibernate.dialect.MySQL8Dialect : database-platform으로 MySQL8Dialect을 사용한다.
-  - MySQL8Dialect : 자바의 데이터 형과 데이터베이스의 데이터형을 매핑해주는 라이브러리이다.
-  - String을 Varchar로 매핑해주거나, Integer를 bigint로 매핑해준다.
-  - 또 @Id, @GeneratedValue 등 각종 어노테이션을 데이터베이스 키워드로 전환해주는 등 자바와 데이터베이스 사이에서 다리 역할을 한다.
-- hibernate: ddl-auto: update : ddl은 테이블 생성과 관련된 쿼리를 의미한다.
-- ddl-auto는 애플리케이션 시작 시 데이터베이스 테이블을 어떻게 하겠냐에 대한 이야기다.
-- datasource: url: jdbc:mysql://${rds.hostname}:${rds.port}/${rds.db.name} : 데이터베이스 URL을 의미한다.
-- 일래스틱 빈스톡이 만들어주므로 값을 지정해 줄 수 있도록 위와 같이 쓴다.
+- DB 식별자가 사용가능 이어야 볼 수 있다.
+- 생성중이면 기다리자.
+- DB 식별자를 누르면 생성된 데이터베이스의 정보를 확인할 수 있다.
+- 특히 엔드포인트 정보는 RDS로 연결할 때 사용한다.
+- 엔드포인트는 미리 복사를 해두자.
+
+![img](img/엔드포인트.png)
