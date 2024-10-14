@@ -321,3 +321,55 @@ Route 53의 이름은 두 가지 의미를 가지고 있다
 - 엔드포인트는 미리 복사를 해두자.
 
 ![img](img/엔드포인트.png)
+
+- 데이터베이스 생성 후 애플리케이션도 생성한 데이터베이스를 사용하게 변경해보자.
+- AWS 일래스틱 빈스톡에서 만들었던 환경으로 이동한 다음 [구성]을 누르고 업데이트 및 로깅에서 [편집]을 선택해 데이터베이스의 정보를 입력한 다음[적용]버튼을 눌러 마무리한다.
+
+![img](img/DB연결.png)
+
+![img](img/환경속성추가.png)
+
+|이름|값|
+|----|----|
+|SPRING_DATASOURCE_URL|jdbc:mysql://엔드포인트입력/todo|
+|SPRING_DATASOURCE_USERNAME|RDS생성할 때 썼던 아이디|
+|SPRING_DATASOURCE_PASSWORD|RDS생성할 때 썼던 비밀번호|
+
+## 로컬에서 RDS 연결하기
+- 지금까지 로컬에서 사용하던 H2 대신에 AWS의 RDS를 사용해보자.
+- 로컬에서 동작하는 H2와 달리 RDS는 클라우드 위에 띄워져 있기 때문에 로컬에서 접속하려면 몇가지 설정을 해줘야 한다.
+
+### 1. VPC 보안 그룹 링크로 이동한다.
+- RDS의 데이터베이스로 이동하여 DB식별자를 누르고 VPC 보안 그룹 링크로 이동한다.
+
+### 2. 인바운드 규칙 설정
+- 보안 그룹 ID를 누르고 인바운드 규칙 탭을 눌러 이동한 뒤 편집버튼을 누른다.
+
+![img](img/인바운드규칙.png)
+
+### 3. 규칙 추가하기
+- 유형은 MYSQL/Aurora
+- 소스는 내IP를 선택하고 저장을 누른다.
+- 이렇게 하면 로컬에서 일래스틱 빈스토크 데이터베이스에 접근할 수 있다.
+
+![img](img/규칙추가.png)
+
+
+### 4. application.yml 파일 만들기
+- src/main/resources에 application.yml만들고 코드 추가하기
+```yml
+server:
+  port: 5000
+spring:
+  jpa:
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:mysql://본인엔드포인트:3306/ebdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: testpm
+    password: 11111111
+```
+
+- 백엔드 서버와 프론트엔드 서버를 모두 열고 잘 작동을 하는지 확인해보자
