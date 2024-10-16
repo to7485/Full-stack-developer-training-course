@@ -57,7 +57,7 @@
 - DNS레코드 사용비용 (5~6천원)
 - 로드 밸런서 비용 약 2만원/달을 지불해야 한다.
 - 이는 서버를 한달 내내 운영했을 때의 비용이다.
-- 실제로 테스팅만 하는 데는 도메인 비용과 DNS비용, 로드 밸런서 비용을 함해 2~3만원이 채 들지 않는다.
+- 실제로 테스팅만 하는 데는 도메인 비용과 DNS비용, 로드 밸런서 비용을 포함해 2~3만원이 채 들지 않는다.
 - 또 도메인과 DNS레코드 사용은 필수가 아니다.
 - 실습 후 반드시 AWS의 모든 리소스를 삭제하고 정리해야 한다.
 - 그렇지 않으면 사용하지 않았음에도 비용을 지불해야 할 수 있다.
@@ -134,7 +134,7 @@ HTTP(HyperText Transfer Protocol)의 기본 포트다.
 - Route 53은 이 도메인 이름과 IP 주소를 연결해주는 서비스다.
 
 ### Route 53의 이름 의미
-Route 53의 이름은 두 가지 의미를 가지고 있다
+- Route 53의 이름은 두 가지 의미를 가지고 있다
 1. **Route**: 트래픽을 어디로 보낼지 결정하는 '라우팅' 기능을 말한다.
 2. **53**: DNS가 기본적으로 사용하는 네트워크 포트 번호가 53번이기 때문에 Route 53이라고 부른다.
 
@@ -212,6 +212,8 @@ Route 53의 이름은 두 가지 의미를 가지고 있다
 - 우리는 AWS가 제공하는 디폴트 VPC와 서브넷을 사용할 예정이므로 VPC나 서브넷에 대해 자세하게 알지 못해도 진행하는데 문제는 없다.
 
 ## Elastic Beanstalk(일래스틱 빈스톡)
+### 정의
+- 웹 애플리케이션을 쉽게 배포하고 관리할 수 있는 플랫폼이다. 
 - **애플리케이션을 쉽게 배포하고 관리**할 수 있도록 도와준다. 
 - 쉽게 말해, 일래스틱 빈스톡을 사용하면 **복잡한 서버 설정이나 네트워크 관리 없이** 웹 애플리케이션을 빠르고 쉽게 실행할 수 있게 도와주는 서비스다.
 - 우리는 위에 설명한 환경 구축을 대신 해 주는 서비스가 바로 AWS 일래스틱 빈스톡이다.
@@ -221,13 +223,20 @@ Route 53의 이름은 두 가지 의미를 가지고 있다
 - 우리는 일래스틱 빈스톡에게 필요한 리소스들을 알려준다.
 - 로드 밸런서, 최소 인스턴스 갯수, 오토 스케일링 그룹, RDS(데이터베이스), 그리고 EC2 환경을 구축하고 EC2에 우리 애플리케이션을 실행한다.
 
+### 흐름
+1. 코드 준비: 개발자가 애플리케이션 코드를 작성한다.
+2. 코드 업로드: Elastic Beanstalk에 코드를 업로드한다.
+3. 자동 배포: Elastic Beanstalk가 서버와 네트워크 설정을 자동으로 해주고 애플리케이션을 실행시킨다.
+4. 애플리케이션 실행: 애플리케이션이 실행되면 웹사이트나 서비스를 이용할 수 있게 된다.
+
 ## Elastic Beanstalk로 서버 구축하기
 
 ### 1. 지역을 서울로 설정한다.
 우리가 살고 있는 위치에서 가까울수록 응답 속도 등이 빠르므로 지역을 서울로 설정한다.
 
 ### 2. IAM
-- IAM은 AWS 리소스에 접근하는 권한을 관리하는 서비스이다.
+- IAM(Identity and Access Management)은 AWS에서 보안과 권한을 관리하는 서비스다.
+- AWS에서 누가 무엇을 할 수 있는지를 결정하는 도구라고 생각하면 된다.
 - 일래스틱 빈스톡 서비스에 부여할 역할을 IAM에서 만들어야 한다.
 
 ![img](img/IAM.png)
@@ -348,8 +357,9 @@ Route 53의 이름은 두 가지 의미를 가지고 있다
 ![img](img/인바운드규칙.png)
 
 ### 3. 규칙 추가하기
-- 유형은 MYSQL/Aurora
-- 소스는 내IP를 선택하고 저장을 누른다.
+1. 규칙 추가를 누른다.
+2. 유형은 MYSQL/Aurora
+3. 소스는 내IP를 선택하고 저장을 누른다.
 - 이렇게 하면 로컬에서 일래스틱 빈스토크 데이터베이스에 접근할 수 있다.
 
 ![img](img/규칙추가.png)
@@ -371,5 +381,126 @@ spring:
     username: testpm
     password: 11111111
 ```
+1. server: port: 5000
+설명:
+애플리케이션이 실행될 때 사용할 서버 포트를 5000번으로 설정함.
+기본적으로 Spring Boot 애플리케이션은 8080번 포트를 사용하지만, 이 설정을 통해 5000번 포트를 사용하도록 변경됨.
+2. spring: jpa: show-sql: true
+- 설명:
+   - JPA(자바 영속성 API)에서 실행되는 SQL 쿼리를 콘솔에 출력하도록 설정함.
+- 역할:
+   - 개발자가 디버깅하거나 SQL 쿼리를 확인할 때 유용하며, 모든 SQL 쿼리가 콘솔에 출력됨.
+3. spring: jpa: database-platform: org.hibernate.dialect.MySQL8Dialect
+- 설명:
+   - Hibernate에서 사용할 데이터베이스의 **방언(dialect)**을 MySQL 8.x 버전에 맞게 지정함.
+- 역할:
+   - Hibernate가 MySQL 8 버전에서 최적화된 SQL을 생성하도록 도와줌.
+4. spring: jpa: hibernate: ddl-auto: update
+- 설명:
+   - 애플리케이션이 시작될 때 데이터베이스 스키마(테이블 구조)를 자동으로 업데이트하는 설정임.
+- 역할:
+   - 엔티티(Entity) 변경 사항을 반영하여 기존 테이블 구조를 자동으로 업데이트하며, 데이터 손실 없이 테이블을 수정함.
+5. spring: datasource: url: jdbc:mysql://본인엔드포인트:3306/ebdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+- 설명:
+   - MySQL 데이터베이스의 연결 URL을 지정함.
+   - 본인엔드포인트는 실제 MySQL 서버의 엔드포인트로 변경해야 하며, ebdb는 데이터베이스 이름임.
+   - useSSL=false: SSL 연결을 사용하지 않도록 설정함. SSL은 데이터 전송을 암호화하지만, 여기서는 사용하지 않음.
+   - allowPublicKeyRetrieval=true: MySQL 8.x 버전에서 암호화된 키를 사용하여 인증하는 옵션임.
+   - serverTimezone=UTC: 서버의 시간대를 UTC로 설정하여, 애플리케이션과 데이터베이스 간의 시간대 차이를 맞춤.
+6. spring: datasource: username: testpm
+- 설명:
+   - MySQL 데이터베이스에 접근할 때 사용할 사용자 이름을 지정함.
+   - 여기서는 testpm이라는 사용자 이름을 사용하여 데이터베이스에 접근함.
+7. spring: datasource: password: 11111111
+- 설명:
+   - MySQL 데이터베이스에 접근할 때 사용할 비밀번호를 지정함.
+   - 비밀번호는 11111111로 설정되어 있음.
 
 - 백엔드 서버와 프론트엔드 서버를 모두 열고 잘 작동을 하는지 확인해보자
+
+## 스프링부트 프로젝트 배포하기
+
+### 1. HealthController 만들기
+- AWS로드 밸런서는 기본 경로인 "/"에 HTTP 요청을 보내 애플리케이션이 동작하는지 확인한다.
+- 일래스틱 빈스톡은 이를 기반으로 애플리케이션이 실행 중인 상태인지, 주의가 필요한 상태인지 확인해준다.
+```java
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HealthController {
+
+	@GetMapping("/")
+	public String healthCheck() {
+		return "The service is up and running...";
+	}
+}
+```
+### 2.  gradle로 build하기
+- 프로젝트의 root폴더에 gradlew로 프로젝트를 .jar형식으로 만들어야 한다.
+
+![img](img/gradlew.png)
+
+- powershell을 열고 demo의 root폴더로 이동한다.
+
+※ 여러분이 만드신 프로젝트의 경로로 이동하면 됩니다.
+
+![img](img/경로.png)
+
+- ./gradlew build로 프로젝트를 빌드합니다.
+```
+※ Slf4j 관련 에러가 일어날 수도 있습니다.
+- 다음의 의존성을 build.gradle에 추가합니다.
+annotationProcessor 'org.projectlombok:lombok:1.18.26'
+testImplementation 'org.springframework.boot:spring-boot-starter-test'
+```
+
+![img](img/빌드.png)
+
+- build/libs 폴더에 빌드된 파일이 들어있습니다.
+
+![img](img/빌드파일.png)
+
+- 우리가 만든 일래스틱 빈스톡 환경에 들어가 업로드및배포를 누른다.
+
+![img](img/업로드및배포.png)
+
+- 파일선택을 누르고 우리가 만든 파일을 선택하고 배포를 누릅니다.
+
+![img](img/파일선택.png)
+
+- 도메인 주소를 눌러 배포가 잘됐는지 실행해보면 된다.
+
+![img](img/실행.png)
+
+![img](img/결과.png)
+
+### 3. 포스트맨에서 계정생성 API 테스트하기
+
+![img](img/포스트맨.png)
+
+## 프론트엔드 통합 테스팅
+- 각각의 API 동작 여부를 포스트맨을 이용해 확인했으므로 이제 프론트엔드와 통합을 해보자.
+- 통합을 위해 프론트엔드의 api-config.js의 경로를 변경한다.
+
+```js
+let backendHost;
+const hostname = window && window.location && window.location.hostname;
+
+if(hostname === "localhost"){
+    backendHost = "Springboot-developer2-env.eba-xnuiauxn.ap-northeast-2.elasticbeanstalk.com";
+}
+
+export const API_BASE_URL = `${backendHost}`
+```
+- 수정을 마친 후 npm start를 이용해 프론트엔드 애플리케이션을 재시작하고 엔드포인트가 동작하는지 확인한다.
+
+![img](img/화면.png)
+
+- 개발자 도구의 Network탭에서 우리의 백엔드로 요청을 보낸것을 확인해보자.
+- 로그인 후 프로트엔드와 백엔드가 잘 통합돼 돌아가는지 확인해보자
+
+![img](img/네트워크.png)
+
