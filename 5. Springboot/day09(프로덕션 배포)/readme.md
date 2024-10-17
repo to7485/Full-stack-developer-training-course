@@ -383,38 +383,38 @@ spring:
 ```
 1. server: port: 5000
 설명:
-애플리케이션이 실행될 때 사용할 서버 포트를 5000번으로 설정함.
-기본적으로 Spring Boot 애플리케이션은 8080번 포트를 사용하지만, 이 설정을 통해 5000번 포트를 사용하도록 변경됨.
+애플리케이션이 실행될 때 사용할 서버 포트를 5000번으로 설정한다.
+기본적으로 Spring Boot 애플리케이션은 8080번 포트를 사용하지만, 이 설정을 통해 5000번 포트를 사용하도록 변경된다.
 2. spring: jpa: show-sql: true
 - 설명:
-   - JPA(자바 영속성 API)에서 실행되는 SQL 쿼리를 콘솔에 출력하도록 설정함.
+   - JPA(자바 영속성 API)에서 실행되는 SQL 쿼리를 콘솔에 출력하도록 설정한다.
 - 역할:
-   - 개발자가 디버깅하거나 SQL 쿼리를 확인할 때 유용하며, 모든 SQL 쿼리가 콘솔에 출력됨.
+   - 개발자가 디버깅하거나 SQL 쿼리를 확인할 때 유용하며, 모든 SQL 쿼리가 콘솔에 출력된다.
 3. spring: jpa: database-platform: org.hibernate.dialect.MySQL8Dialect
 - 설명:
-   - Hibernate에서 사용할 데이터베이스의 **방언(dialect)**을 MySQL 8.x 버전에 맞게 지정함.
+   - Hibernate에서 사용할 데이터베이스의 **방언(dialect)**을 MySQL 8.x 버전에 맞게 지정한다.
 - 역할:
    - Hibernate가 MySQL 8 버전에서 최적화된 SQL을 생성하도록 도와줌.
 4. spring: jpa: hibernate: ddl-auto: update
 - 설명:
    - 애플리케이션이 시작될 때 데이터베이스 스키마(테이블 구조)를 자동으로 업데이트하는 설정임.
 - 역할:
-   - 엔티티(Entity) 변경 사항을 반영하여 기존 테이블 구조를 자동으로 업데이트하며, 데이터 손실 없이 테이블을 수정함.
+   - 엔티티(Entity) 변경 사항을 반영하여 기존 테이블 구조를 자동으로 업데이트하며, 데이터 손실 없이 테이블을 수정한다.
 5. spring: datasource: url: jdbc:mysql://본인엔드포인트:3306/ebdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 - 설명:
-   - MySQL 데이터베이스의 연결 URL을 지정함.
+   - MySQL 데이터베이스의 연결 URL을 지정한다.
    - 본인엔드포인트는 실제 MySQL 서버의 엔드포인트로 변경해야 하며, ebdb는 데이터베이스 이름임.
-   - useSSL=false: SSL 연결을 사용하지 않도록 설정함. SSL은 데이터 전송을 암호화하지만, 여기서는 사용하지 않음.
+   - useSSL=false: SSL 연결을 사용하지 않도록 설정한다. SSL은 데이터 전송을 암호화하지만, 여기서는 사용하지 않는다.
    - allowPublicKeyRetrieval=true: MySQL 8.x 버전에서 암호화된 키를 사용하여 인증하는 옵션임.
    - serverTimezone=UTC: 서버의 시간대를 UTC로 설정하여, 애플리케이션과 데이터베이스 간의 시간대 차이를 맞춤.
 6. spring: datasource: username: testpm
 - 설명:
-   - MySQL 데이터베이스에 접근할 때 사용할 사용자 이름을 지정함.
-   - 여기서는 testpm이라는 사용자 이름을 사용하여 데이터베이스에 접근함.
+   - MySQL 데이터베이스에 접근할 때 사용할 사용자 이름을 지정한다.
+   - 여기서는 testpm이라는 사용자 이름을 사용하여 데이터베이스에 접근한다.
 7. spring: datasource: password: 11111111
 - 설명:
-   - MySQL 데이터베이스에 접근할 때 사용할 비밀번호를 지정함.
-   - 비밀번호는 11111111로 설정되어 있음.
+   - MySQL 데이터베이스에 접근할 때 사용할 비밀번호를 지정한다.
+   - 비밀번호는 11111111로 설정되어 있다.
 
 - 백엔드 서버와 프론트엔드 서버를 모두 열고 잘 작동을 하는지 확인해보자
 
@@ -504,3 +504,426 @@ export const API_BASE_URL = `${backendHost}`
 
 ![img](img/네트워크.png)
 
+## AWS 일래스틱 빈스톡을 이용한 프론트엔드 배포
+
+
+### 1. 접속주소 수정하기
+```JS
+let backendHost;
+const hostname = window && window.location && window.location.hostname;
+
+if(hostname === "localhost"){
+    backendHost = "http://localhost:5000";
+} else {
+    backendHost = "Springboot-developer2-env.eba-xnuiauxn.ap-northeast-2.elasticbeanstalk.com";
+}
+
+export const API_BASE_URL = `${backendHost}`
+```
+- npm run build를 통해 소스 코드를 빌드한다.
+```js
+npm run build
+```
+- build 폴더를 압축한다.
+
+### 2. 일래스틱 빈스톡 생성하기
+- 백엔드를 배포하기 위해 만들었던것 처럼 일래스틱빈스톡을 하나 더 만든다.
+- 환경이름 : TodoApplication-frontend-env
+- 플랫폼 : Node.js
+- 플랫폼 브랜치 : Node.js 18
+
+### 3. 업로드 및 배포
+- Pocfile
+```
+web: node index.js
+```
+- index.js
+```js
+for (;;) {}
+```
+-.platform\nginx\conf.d\elasticbeanstalk\00_application.conf
+```
+root /var/app/current;
+
+location ~* \.(js|css|html)$ {
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+}
+
+location / {
+    index index.html;
+    try_files $uri $uri/ /index.html;
+}
+```
+- 3개의 폴더와 파일을 build폴더에 넣고 압축한 파일을 업로드한다.
+
+![img](img/리액트배포.png)
+
+- 도메인을 누르고 회원가입,로그인, Todo 추가하기 기능이 잘 동작하는지 확인해보자
+
+## CI/CD
+- 우리가 서비스를 배포하고 운영하던 중 코드를 변경할 일이 생기면 어떻게 해야할까?
+1. 코드를 수정하고, 로컬 환경에서 테스트를 진행한다.
+2. 빌드가 잘 되는지 확인한다.
+3. 그 다음에 jar파일을 생성해 복사를 진행한다.
+4. AWS에 접속해서 복사한 jar파일을 업로드해 새 배포 버전을 제공한다.
+- 프로젝트의 규모가 커지게 되면 이 작업은 굉장히 힘들어진다.
+- 이 때 도입하는것이 CI/CD이다.
+- 이 방법을 도입하면 빌드부터 배포까지의 과정을 자동화 할 수 있고, 잘 되는지 모니터링 할 수 있다.
+
+## CI(Continuous Integration)
+- 한글로 직역을 하자면 지속적인 통합을 의미한다.
+- 개발자를 위해 빌드와 테스트를 자동화하는 과정이다.
+- CI는 변경 사항을 자동으로 테스트해 애플리케이션에 문제가 없다는것을 보장한다.
+- 그리고 정기적으로 빌드하고, 테스트하므로 여러 명이 동시에 작업을 하는 경우 충돌을 방지하고 모니터링 할 수 있다.
+- 코드 변경 사항이 코드 저장소에 업로드되면 CI를 시작하고, CI 도중에 문제가 생기면 실패하므로 코드의 오류도 쉽게 파악할 수 있다.
+
+## CD(Continuous Deployment)
+- 배포 준비가 된 코드를 자동으로 서버에 배포하는 작업을 자동화 한다.
+- CI가 통과되면 개발자가 수작업으로 코드를 배포하지 않아도 자동으로 배포하니 매우 편리해진다.
+- CD는 지속적인 제공의 continuous Delivery라는 의미도 가진다.
+
+## git과 github
+- git은 코드를 저장하고 관리할 수 있는 시스템이다.
+- 이 시스템을 이용하면 같은 파일을 여러 명이 동시에 작업할 수 있다.
+- github는 git과 연동해 작업한 코드를 저장할 수 있는 서비스이다.
+- 이 두 서비스를 이용해 CI/CD작업을 구현해보자.
+
+## git설치하기
+- http://git-scm.com/download/win 에 접속한 뒤 [Click to download]를 눌러 깃을 설치해보자.
+- 설치는 기본값을 그대로 두고 설치를 하면 된다.
+
+### 버전확인하기
+```
+git --version
+git version 2.44.0.windows.1
+```
+- 버전이 출력된다면 제대로 설치가 된것이다.
+
+### 깃허브와 연동하기
+- git을 github와 연동하려면 github회원 가입을 하고 git초기설정을 해야한다.
+- github에 접속해서 회원 가입을 한 다음 git config 명령어를 사용해 github에 가입한 사용자 이름과 이메일 주소를 설정한다.
+- 여기서 설정한 정보로 커밋할 때마다 이 정보를 사용한다.
+
+```
+C:\Users\lis74>git config --global user.name "깃허브 닉네임"
+
+C:\Users\lis74>git config --global user.email "깃허브이메일"
+```
+
+### SSH 설정하기
+
+# SSH (Secure Shell)란?
+
+- SSH(Secure Shell)는 네트워크를 통해 안전하게 원격 시스템에 접속할 수 있도록 해주는 프로토콜이다. 
+- SSH는 주로 원격 서버에 로그인하거나 명령어를 실행할 때 사용되며, 안전한 데이터 전송과 인증을 제공한다. 
+- SSH는 암호화된 통신 채널을 통해 데이터를 주고받기 때문에, 민감한 정보를 안전하게 보호할 수 있다.
+
+## 주요 기능
+
+- **암호화된 통신**: SSH는 데이터가 전송되는 동안 제3자가 이를 가로채더라도 내용을 확인할 수 없도록 암호화된 통신을 제공한다.
+- **원격 접속**: SSH를 통해 사용자는 네트워크 상의 다른 컴퓨터에 원격으로 접속하여 명령어를 실행하거나 파일을 관리할 수 있다.
+- **인증**: SSH는 비밀번호 인증 또는 공개 키 기반 인증(Public Key Authentication)을 통해 사용자 인증을 제공한다.
+- **포트 포워딩**: SSH는 포트 포워딩(Port Forwarding)을 통해 다른 네트워크 서비스에 대한 보안 통신 채널을 생성할 수 있다.
+
+## SSH 작동 원리
+
+1. **클라이언트와 서버 간의 연결**: SSH 클라이언트(예: `ssh` 명령어를 사용한 터미널)가 서버에 연결 요청을 보내면, 서버는 클라이언트에게 자신의 공개 키(Public Key)를 보낸다.
+2. **클라이언트 인증**: 클라이언트는 서버의 공개 키를 사용해 암호화된 데이터를 전송하고, 서버는 자신의 개인 키(Private Key)로 이를 해독해 클라이언트의 정당성을 확인한다.
+3. **암호화된 통신**: 연결이 성공하면, 클라이언트와 서버 간의 통신은 암호화된 채널을 통해 이루어진다.
+
+- git을 SSH로 접속하기 위해 인증 정보를 등록해야 한다.
+- PC마다 별도의 SSH키를 등록해야 한다.
+- 터미널을 열고 SSH키를 생성하는 명령어를 입력한다.
+- 질문에는 모두 기본값을 사용하도록 아무것도 입력하지 않고 ENTER를 누른다.
+
+```
+- SSH키 생성
+ssh-keygen -t rsa -C "github메일주소"
+```
+
+- 생성 완료 메시지가 뜨면 기본경로인 ./ssh/id_rsa에 pub파일이 생긴다.
+- 파일을 열어 값을 복사하고 이를 github에 등록해준다.
+- ssh키가 저장되어 있는 위치로 이동한 다음 pub파일을 메모장으로 열어준다.
+- 그 뒤 나오는 내용을 전체 복사한다.
+
+![img](img/ssh키.png)
+
+### github에 ssh키 넣기
+- github 홈페이지에 접속한 다음 프로필 사진을 누르고 [Setting]메뉴에 들어간다.
+- 그 다음 왼쪽 하단에 있는 [SSH and GPC keys]를 선택하고 [New SSH Key]를 눌러 새로운 키를 등록한다.
+- Title에 추가할 SSH 키 이름을 적고 복사해뒀던 SSH키를 붙여넣어준다.
+- 그 뒤 [Add SSH Key]버튼을 눌러 SSH키를 추가한다.
+-  name
+   - AWS_ACCESS_KEY_ID
+   - 발급받은 키
+- name
+  - AWS_SECRET_ACCESS_KEY
+  - 발급받은 비밀키
+  
+
+![img](img/ssh.png)
+
+
+## github action
+- github에서 제공하는 서비스이다.
+- repository에 특정 이벤트가 발생하면 특정 작업을 하거나, 주기적으로 특정 작업을 반복할 수 있게 한다.
+- 누군가 코드를 작성해 github에 업데이트 하면 해당 코드에 문제가 없는지 자동으로 코드를 빌드, 테스트 한 이후 배포까지 할 수 있다.
+
+### github 레포지토리 만들고 코드 푸시하기
+- github action을 사용하려면 repository에 지금까지 작업한 코드를 업로드 해야한다.
+- github에 코드를 업로드 하는 행위를 push라고 부른다.
+
+![img](img/레포생성.png)
+
+- 레포지터리가 생성되면 SSH로 접근할 수 있는 레포지토리 주소도 알려주기 위해 복사한다.
+
+![img](img/ssh주소복사.png)
+
+- 우리가 작업한 프로젝트에서 git bash here로 연다
+- git init으로 폴더를 git저장소로 만든다.
+![img](img/gitbash.png)
+
+```
+$ git init
+Initialized empty Git repository in D:/develop/springboot/work/demo/.git/
+```
+- 빈 깃 저장소를 다시 초기화했습니다 라는 문구가 나오면 제대로 실행이 된것이다.
+- 이 폴더에 코드의 변경 내역(버전)관리를 위한 정보를 저장한다.
+- 이 폴더를 실수로 지우면 우리의 버전 관리 내역이 모두 사라지므로 주의해야 한다.
+
+### git과 github연결하기
+- github의 레포지토리와 로컬의 git 저장소를 연결하기 위해 remote 명령어를 사용한다.
+- 쉽게 말해 로컬의 깃 저장소의 이력과 파일을 모두 깃허브에 업로드하기 위해 이 둘을 연결한다고 생각하면 된다.
+```
+git remote add origin https://github.com/to7485/springboot-developer.git
+
+$ git add .
+$ git commit -m "project init"
+$ git branch -M main
+$ git push origin main
+```
+- github에 접속해서 리포지토리를 확인하면 커밋할 때 적었던 메시지와 함게 코드들이 업로드된 것을 확인할 수 있다.
+
+## github action 스크립트 작성하기, CI
+- github action 스크립트를 작성해 CI를 구현해보자.
+
+### 1. 프로젝트의 root폴더에 .github디렉터리만들기
+- 그 안에 workflows 디렉터리를 다시 만들고 ci.yml파일을 생성해 다음 스크립트를 작성한다.
+```yml
+#1. 워크플로우의 이름 지정
+name: CI
+
+#2. 워크플로가 시작될 조건 지정
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 실행 환경 지정
+
+    # 4. 실행 스템 지정
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+```
+### name
+- 워크플로우의 이름을 정의하는 키워드이다.
+- 이 워크플로우는 코드가 푸시되었을 때 CI 파이프라인을 실행하는 것을 의미한다.
+
+### on
+- 워크플로우가 실행되는 조건을 정의한다.
+- 여기서는 특정 이벤트가 발생했을 때 워크플로우가 실행되도록 설정한다.
+- 이 예시에서는 push 이벤트가 main 브랜치에 발생할 때 워크플로우가 실행된다.
+- push: 코드가 리포지토리에 푸시될 때 트리거된다.
+- branches: [ main ]: main 브랜치에 코드가 푸시될 때만 실행된다.
+
+### jobs
+- 워크플로우 내에서 수행할 작업을 정의하는 부분이다.
+- 여러 개의 작업을 설정할 수 있으며, 작업은 병렬 또는 순차적으로 실행할 수 있다.
+- 여기에 정의된 작업들은 GitHub Actions에서 실행되며, jobs 안에 여러 작업을 포함할 수 있다.
+
+### build
+- 워크플로우에서 하나의 작업(job)을 정의한다.
+- 여기서는 build라는 이름의 작업이 있다.
+- 이 작업은 Java 프로젝트를 빌드하는 과정이다.
+
+### runs-on
+- 작업이 실행되는 환경을 정의하는 키워드이다.
+- 이 워크플로우는 최신 버전의 Ubuntu 리눅스 환경에서 실행된다.
+- GitHub Actions는 다양한 실행 환경을 제공하며, ubuntu-latest는 최신 버전의 Ubuntu가 사용된다.
+
+### steps
+- 각 작업 내에서 실행되는 단계를 정의하는 섹션이다.
+- 여기서 정의된 순서대로 단계를 실행한다. 각 단계는 실행할 명령이나 액션을 정의할 수 있다.
+
+### uses: actions/checkout@v3
+- 이 단계에서는 actions/checkout이라는 GitHub Action을 사용하여 리포지토리 코드를 체크아웃한다.
+- 현재 리포지토리의 코드를 가져와서 작업 환경에 다운로드한다.
+- 이는 다른 작업에서 해당 코드를 사용하기 위한 준비 과정이다.
+- **@v3**는 이 액션의 버전 3을 사용한다는 의미다.
+
+### uses: actions/setup-java@v3
+- Java 환경을 설정하는 GitHub Action이다.
+- 이 액션은 Java 개발 환경을 설정하며, 여기서는 AWS에서 제공하는 자바 배포판인 corretto를 설치하고, 자바 17 버전을 사용하도록 설정한다.
+- distribution: 'corretto': AWS에서 제공하는 Java 배포판을 사용.
+- java-version: '17': 자바 17 버전을 설치하여 해당 작업에서 사용한다.
+
+### name: Grant execute permission for gradlew
+- gradlew 파일에 실행 권한을 부여하는 단계이다.
+- Linux 환경에서는 실행 파일에 실행 권한을 부여해야만 해당 파일을 실행할 수 있다. 이 단계는 chmod +x 명령어를 통해 gradlew 파일에 실행 권한을 부여한다.
+
+### name: Build with Gradle
+- Gradle을 사용해 빌드를 실행하는 단계이다.
+- 이 단계에서 ./gradlew clean build 명령어를 실행하여 프로젝트를 빌드한다.
+- clean 명령은 기존 빌드 결과물을 삭제하고, build 명령은 새롭게 프로젝트를 빌드하는 과정이다.
+
+### 파일올리기
+- 추가된 파일을 원격 저장소에 올리기 위해 커밋,푸시를 진행하고 깃허브 리포지터리의 [Action]메뉴에 들어가 CI가 실행되는 것을 확인한다.
+
+```
+git add .
+git commit -m "CI 추가"
+git push origin main
+```
+
+![img](img/CI.png)
+
+- 이 화면이 보이고 워크플로가 성공적으로 동작하면 초록색 체크 모양으로 표시가 된다.
+
+## github action 스크립트 작성하기, CD
+- 현재 프로젝트에서 빌드를 진행하면 총 두개의 jar파일이 생긴다
+- 하나는 일반 jar파일이고, 다른 하나는 plain이라는 접미사가 붙은 jar파일이다.
+- 이 jar파일은 플레인 아카이브라고 하며 애플리케이션 실행에 필요한 의존성을 포함하지 않고 소스 코드의 클래스 파일과 리소스만 포함한다.
+- 따라서 플레인 아카이브만으로는 서비스를 실행할 수 없으므로 빌드 시에 일반 jar파일만 생성하도록 gradle파일을 변경하자.
+
+```
+jar{
+   enable = false
+}
+```
+### ci.yml 파일이름 변경하기
+- ci.yml파일 이름을 cicd.yml로 변경하고 다음 코드를 추가한다.
+```yml
+#1. 깃허브 액션 이름 변경
+name: CICD
+
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      #2. 현재 시간 가져오기
+      - name: Get current time
+        uses: josStorer/get-current-time@v2.0.2
+        id: current-time
+        with:
+          format: YYYY-MM-DDTHH-mm-ss
+          utcOffset: "+09:00"
+
+      - name: Set artifact
+        run: echo "artifact=$(ls ./build/libs)" >> $GITHUB_ENV
+
+      - name: Beanstalk Deploy
+        uses: einaregilsson/beanstalk-deploy@v20
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: springboot-developer2
+          environment_name: Springboot-developer2-env
+          version_label: github-action-${{steps.current-time.outputs.formattedTime}}
+          region: ap-northeast-2
+          deployment_package: ./build/libs/${{env.artifact}}
+```
+
+### josStorer/get-current-time@v2.0.2
+- 현재 시간을 특정 형식(YYYY-MM-DDTHH-mm-ss)으로 가져온다.
+- utcOffset 값이 +09:00으로 설정되어 있어 한국 표준시(KST) 기준으로 시간을 가져온다.
+- id: current-time: 이 단계의 출력값을 이후 단계에서 steps.current-time.outputs.formattedTime으로 참조할 수 있게 한다.
+- format: 가져올 시간의 형식을 지정한다. 여기서는 YYYY-MM-DDTHH-mm-ss 형식으로 설정.
+- utcOffset: 시간대를 +09:00으로 설정하여 한국 시간 기준으로 시간을 가져온다.
+
+### name: Set artifact
+- 빌드된 파일을 저장하고 환경 변수를 설정하는 단계이다.
+- 빌드 디렉토리(./build/libs/)에서 생성된 아티팩트 파일의 이름을 가져와 GitHub Actions 환경 변수(GITHUB_ENV)로 설정한다.
+- ls ./build/libs: ./build/libs/ 디렉토리의 파일 목록을 나열한다. 여기서 아티팩트 파일(빌드된 .jar 파일)을 가져온다.
+- echo "artifact=$(ls ./build/libs)" >> $GITHUB_ENV: 아티팩트 파일명을 환경 변수로 설정한다.
+
+### name: Beanstalk Deploy
+- AWS Elastic Beanstalk에 애플리케이션을 배포하는 단계이다.
+- einaregilsson/beanstalk-deploy@v20 액션을 사용해 AWS Elastic Beanstalk에 배포한다.
+- aws_access_key / aws_secret_key: AWS 액세스 키와 시크릿 키를 GitHub Secrets에서 가져온다. 
+  - AWS 리소스에 접근하기 위한 인증 정보이다.
+- application_name: spring-boot-developer2: 배포할 Elastic Beanstalk 애플리케이션의 이름이다.
+- environment_name: Springboot-developer2-env: 배포할 Elastic Beanstalk 환경의 이름이다.
+- version_label: github-action-${{steps.current-time.outputs.formattedTime}}: 배포 버전 라벨을 현재 시간을 포함한 형식으로 설정한다.
+- github-action-YYYY-MM-DDTHH-mm-ss 형식의 버전 라벨을 생성한다.
+- region: ap-northeast-2: 배포할 AWS 리전으로 ap-northeast-2(서울 리전)을 사용한다.
+- deployment_package: ./build/libs/${{env.artifact}}: 빌드된 아티팩트 파일을 Elastic Beanstalk에 배포한다. 
+  - 위에서 설정한 환경 변수 artifact를 사용해 아티팩트 파일 경로를 지정한다.
+
+### 권한 부여하기
+- AWS에 접속한 뒤 IAM을 검색해 사용자를 추가한다.
+- 사용자 이름은 github-action으로 지정한다.
+- [직접 정책 연결]을 선책한 뒤 AdministratorAccess-AWSElasticBeanstalk를 검색해 선택한다.
+- 이 권한은 빈스토크를 사용하기 위해 필요한 모든 관리 권한을 사용자에게 제공하는 권한이다.
+
+### 액세스키 생성하기
+- 사용자 생성을 마치고 github-action 사용자를 눌러 액세스 키를 만든다.
+- [액세스 키 만들기] 버튼을 누르고 [서드 파티 서비스]를 선택하고 [다음]을 누르고 '설명 태그 값'을 github-action으로 액세스 키를 만들자.
+
+![img](img/서드파티.png)
+
+![img](img/태그값.png)
+
+### 액세스키 저장하기
+- 액세스키는 화면에서 딱 한 번 확인할 수 있다.
+- 값을 미리 복사하거나 [.csv 파일 다운로드]를 눌러 보관하자.
+
+![img](img/저장.png)
+
+### 복사한 값 등록하기
+- github 리포지토리에 접속한 뒤 [settings -> Secrets and variables -> Actions]순서로 메뉴에 들어간다.
+- 그 이후에 [New repository secrets]버튼을 눌러 새로운 비밀키를 각각 등록한다.
+
+
+![img](img/키등록1.png)
+
+![img](img/키등록2.png)
+
+![img](img/키등록3.png)
+
+### 커밋과 푸시하기
+- cd가 정상적으로 작동하는 것을 확인하기 위해 커밋과 푸시를 차례대로 수행하고 확인한다.
+- 깃허브 액션이 성공하는것을 확인할 수 있다.
+- 실제로 배포가 되었는지 확인하기 위해 빈스토크의 최근 배포 날짜와 시간을 확인해보자
+- 앞으로 작업을 한 뒤 리포지터리에 업로드하면 깃허브 액션이 빌드를 자동으로 실행하고, 빌드에 성공하면 새 버전을 빈스토크에 배포한다.
