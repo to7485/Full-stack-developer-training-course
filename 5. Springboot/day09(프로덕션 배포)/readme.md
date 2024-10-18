@@ -453,8 +453,9 @@ public class HealthController {
 ```
 ※ Slf4j 관련 에러가 일어날 수도 있습니다.
 - 다음의 의존성을 build.gradle에 추가합니다.
-annotationProcessor 'org.projectlombok:lombok:1.18.26'
-testImplementation 'org.springframework.boot:spring-boot-starter-test'
+// Test용 Lombok 추가
+testCompileOnly 'org.projectlombok:lombok:1.18.24'
+testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 ```
 
 ![img](img/빌드.png)
