@@ -456,6 +456,9 @@ public class HealthController {
 // Test용 Lombok 추가
 testCompileOnly 'org.projectlombok:lombok:1.18.24'
 testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+※테스트 관련 에러가 일어날 때
+- src/test/main의 DemoApplicationTests클래스의 메서드를 어노테이션과 함께 주석처리 해본다.
 ```
 
 ![img](img/빌드.png)
