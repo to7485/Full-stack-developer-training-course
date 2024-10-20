@@ -120,11 +120,13 @@ const hostname = window && window.location && window.location.hostname;
 if (hostname === "localhost") {
   backendHost = "http://localhost:8080";
 } else {
-  backendHost = "https://api.fsoftwareengineer.com";
+  backendHost = "https://api.<설정한도메인>";
 }
 
-export const API_BASE_URL = `${backendHost}`;
+export const API_BASE_URL = `${backendHost}`; 
 ```
+- npm run build를 하여 eb에 다시 배포를 진행합니다.
+
 
 
 
