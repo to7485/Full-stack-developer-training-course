@@ -127,10 +127,39 @@ export const API_BASE_URL = `${backendHost}`;
 ```
 - npm run build를 하여 eb에 다시 배포를 진행합니다.
 
+### CORS 문제 수정하기
+- WebSecurityConfig클래스에 프론트에서 들어오는 요청 허가하기
+
+```java
+configuration.setAllowedOrigins(Arrays.asList(
+          "http://localhost:3000",
+    		  "http://app.hens-lab.com",
+    		  "https://app.hens-lab.com"));
+```
+- 브라우저에 http://app.본인도메인을 입력하면 접속할 수 있다.
+
+![img](img/결과.png)
+
+## HTTPS사용을 위한 SSL 인증서 발급받기
+- 콘솔에 certificate manager를 입력하고 이동한다.
+- 인증서 요청 버튼을 누른다.
+
+![img](img/ssl인증서발급1.png)
+
+- 퍼블릭 인증서 요청을 통해 요청을 시도한다.
 
 
+![img](img/ssl인증서발급2.png)
 
 
+- 도메인 이름에 가비아에서 구매한 도메인을 입력해준다.
+- 프론트와 백엔드에 할당한 서브 도메인에 모두 적용을 시켜주기위해 [*.도메인] 형식으로 적는다.
+- 나머지는 수정할 것이 없고 요청 버튼을 누른다.
 
+![img](img/ssl인증서발급3.png)
+
+- 검증 대기중 / 아니요/ 부적격이 뜨면 정상이다.
+
+![img](img/ssl인증서발급4.png)
 
 
