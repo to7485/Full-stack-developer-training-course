@@ -93,6 +93,7 @@
     - 여기서는 예시로 다음과 같이 작성합니다.(꼭 똑같이 작성해야 하는건 아니다.)
     - 프론트엔드에 app.자기도메인
     - 백엔드에서는 api.자기도메인
+
 ![img](img/레코드생성.png)
 
 #### 값 설정하기
@@ -120,7 +121,7 @@ const hostname = window && window.location && window.location.hostname;
 if (hostname === "localhost") {
   backendHost = "http://localhost:8080";
 } else {
-  backendHost = "https://api.<설정한도메인>";
+  backendHost = "http://api.<설정한도메인>";
 }
 
 export const API_BASE_URL = `${backendHost}`; 
@@ -141,9 +142,39 @@ configuration.setAllowedOrigins(Arrays.asList(
 ![img](img/결과.png)
 
 ## 로드밸런서 설정하기
+### 로드밸런서란?
+- 서버에 대한 네트워크 트래픽을 효율적으로 분산시켜 여러 서버로 나누어 처리하는 장치 또는 소프트웨어다.
+- 로드밸런서를 사용하면 트래픽 부하를 분산시켜 각 서버에 가해지는 부담을 줄이고, 서버가 과부하로 인해 다운되는 것을 방지하여 애플리케이션의 성능과 가용성을 높일 수 있다.
+### AWS Elastic Load Balancer(ELB)
+- AWS에서 제공하는 로드밸런싱 서비스로, EC2 인스턴스 간 트래픽을 자동으로 분산시킨다.
+- AWS ELB는 여러 유형의 로드밸런서를 제공한다.
+#### ELB의 종류
+- Application Load Balancer(ALB) : L7 로드밸런서로, HTTP 및 HTTPS 트래픽을 처리하며, 애플리케이션 기반 라우팅을 지원한다.
+- Network Load Balancer(LAB) : L4 로드밸런서로, TCP 트래픽을 처리하며 대량의 트래픽을 빠르게 분산할 수 있다.
+- Classic Load Balancer (CLB): L4 및 L7 로드밸런싱 기능을 제공하지만, 새로운 기능 지원이 제한된다.
+```
+※ OSI 7계층
+- 네트워크 통신 과정을 7개의 계층으로 나눈 모델로, 컴퓨터 네트워크에서 통신이 이루어지는 방식과 각 단계의 역할을 명확히 하기 위해서 설계되었다.
+- 각 계층은 독립적이면서도 상호 작용하며, 데이터가 한 계층에서 다른 계층으로 이동하면서 구체적인 통신 기능을 수행한다.
+- 각 계층을 L1, L2, L3 이런 식으로 줄여서 부르기도 한다.
+- L1: 물리 계층(Physical Layer) 물리적 매체를 통해 비트 전송
+- L2: 데이터 링크 계층(Data Link Layer) 프레임 단위의 데이터 전송
+- L3: 네트워크 계층(Network Layer) IP 주소 기반 경로 설정 및 라우팅
+- L4: 전송 계층(Transport Layer) 신뢰성 있는 전송, 오류 검출, 포트 기반 통신
+- L5: 세션 계층(Session Layer) 세션 관리, 대화 제어, 데이터 동기화
+- L6: 프레젠테이션 계층(Presentation Layer) 데이터 암호화/복호화, 데이터 형식 변환
+- L7: 응용 계층(Application Layer) 사용자와 네트워크 간 인터페이스 제공
+```
+### Target Group
+- 로드밸런서가 트래픽을 분산시킬 대상을 정의하는 그룹이다.
+- 로드밸런서에 연결된 인스턴스, 컨테이너, IP 주소 등의 리소스를 그룹으로 묶어 관리하며, 이를 통해 로드밸런서는 트래픽을 효율적으로 분배할 수 있다.
 
-### 1. Target Group을 만든다.
-- 요청이 들어오면 전달할 Target Group을 만든다.
+### Target
+- 로드밸런서가 트래픽을 보내는 대상이다.
+- AWS에서는 여러 종류의 리소스를 타겟으로 사용할 수 있다.
+- EC2 인스턴스, Lambda 함수, 컨테이너, IP 주소 등이 타겟이 될 수 있다.
+
+### 타겟그룹 만들기
 - [EC2]로 이동하여 왼쪽 아래 [대상그룹]을 클릭한다.
 
 ![img](img/로드밸런서연결1.png)
@@ -159,6 +190,11 @@ configuration.setAllowedOrigins(Arrays.asList(
 
 - 대상그룹 생성을 누른다.
 
+### Health Check
+- Target Group은 각 타겟의 상태를 모니터링할 수 있는 헬스 체크 기능을 제공한다.
+- 헬스 체크를 통해 타겟이 정상인지 여부를 판단하고, 트래픽을 정상적인 타겟에만 전달한다.
+- 헬스 체크는 주로 HTTP(S) 요청을 통해 진행되며, 설정된 기준에 따라 헬스 체크에 통과하지 못한 타겟은 트래픽 분배에서 제외된다.
+
 
 ### 2. 인스턴스에 요청이 들어오도록 설정
 - EC2 > 보안그룹 > 타겟의 보안그룹 ID로 이동한다.
@@ -168,6 +204,14 @@ configuration.setAllowedOrigins(Arrays.asList(
 - 그리고 규칙 저장을 누른다.
 
 ![img](img/로드밸런서연결4.png)
+
+#### 인바운드 규칙
+- 네트워크 보안에서 특정 인프라나 시스템으로 들어오는 트래픽을 제어하는 규칙을 말한다.
+- 주로 방화벽이나 보안 그룹 설정에서 사용되며, 허용 또는 차단할 트래픽을 정의하는데 활용한다.
+- AWS EC2 인스턴스나 네트워크 장비에서 인바운드 규칙을 설정할 때 고려하는 항목
+  - 소스(Source) : 어떤 IP 주소 또는 IP 범위에서 오는 트래픽을 허용할지 결정한다.
+  - 프로토콜(Protocol) : 허용할 트래픽의 프로토콜을 설정한다. 일반적으로 많이 사용하는 프로토콜로는 TCP, UDP, ICMP등이 있다.
+  - 포트(Port) : 특정 애플리케이션이 사용하는 포트를 지정하여 해당 포트로 접근하는 트래픽을 허용하거나 차단할 수 있다. HTTP는 80, HTTPS는 433을 사용한다.
 
 
 ### 3. 로드밸런서 생성하기
@@ -212,7 +256,33 @@ configuration.setAllowedOrigins(Arrays.asList(
 
 
 
-## HTTPS사용을 위한 SSL 인증서 발급받기
+## HTTPS사용하기
+
+### HTTPS
+- HTTP에 SSL(Secure Sockets Layer)를 추가한 프로토콜로, 데이터를 암호화하여 안전하게 통신을 할 수 있도록 만든다.
+- HTTPS를 사용하려면 서버가 SSL/TLS 인증서를 설치해야 한다.
+- 인증서는 신뢰할 수 있는 인증 기관(CA, Certificate Authority)이 발급하며, 해당 서버가 실제로 그 주체가 맞는지 증명해준다.
+- 인증서를 통해 클라이언트는 서버가 신뢰할 수 있는 대상인지 확인한 후 통신을 시작할 수 있다.
+
+### SSL
+- HTTPS에서 보안을 제공하는 초기 기술로, 웹 서버와 브라우저 간의 통신을 암호화한다.
+
+### 리액트 api-config.js 수정하기
+```js
+let backendHost;
+
+const hostname = window && window.location && window.location.hostname;
+
+if(hostname === "localhost"){
+    backendHost = "http://localhost:5000";
+}else {
+    backendHost = "https://api.hens-lab.com";
+  }
+
+export const API_BASE_URL = `${backendHost}`
+```
+
+### 백엔드/프론트엔드 AWS Certificate Manager를 이용한 https설정
 - 콘솔에 certificate manager를 입력하고 이동한다.
 - 인증서 요청 버튼을 누른다.
 
@@ -234,4 +304,38 @@ configuration.setAllowedOrigins(Arrays.asList(
 
 ![img](img/ssl인증서발급4.png)
 
+### 백엔드 애플리케이션 HTTPS 설정
+- [EC2] > [로드밸런서]로 이동하여 백엔드에서 사용하는 로드밸런서를 클릭하고 리스너 추가를 누른다.
+  
+![img](img/ssl인증서발급5.png)
 
+- 프로토콜 : https
+- 포트 : 443
+- 대상그룹 : 본인의 백엔드 타겟
+- 추가를 누릅니다.
+
+![img](img/ssl인증서발급6.png)
+
+### 프론트엔드 애플리케이션 HTTPS 설정
+- [EC2] > [로드밸런서]로 이동하여 프론트엔드에서 사용하는 로드밸런서를 클릭하고 리스너 추가를 누른다.
+
+- 프로토콜 : https
+- 포트 : 443
+- 대상그룹 : 본인의 프론트엔드 타겟
+- 추가를 누릅니다.
+
+### VPC의 보안그룹 설정하기
+- 로드밸런서에 443포트가 접속할수 있도록 하자
+- [EC2] >[보안그룹]으로 들어가 VPC보안그룹 ID를 누른다.
+
+![img](img/보안그룹ID.png)
+
+- 인바운드 규칙 편집을 누르고 HTTPS를 추가해준다.
+- 규칙저장을 한다.
+
+![img](img/HTTPS.png)
+
+### 브라우저에서 확인하기
+- 브라우저에 https://app.도메인 을 입력하고 잘 출력되는지 확인해보자.
+
+![img](img/결과2.png)
