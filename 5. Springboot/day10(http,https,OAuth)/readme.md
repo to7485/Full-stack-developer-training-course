@@ -339,3 +339,253 @@ export const API_BASE_URL = `${backendHost}`
 - 브라우저에 https://app.도메인 을 입력하고 잘 출력되는지 확인해보자.
 
 ![img](img/결과2.png)
+
+## 타 애플리케이션과 어떻게 통합할까??
+- 우리의 Todo 애플리케이션을 깃허브의 이슈 기능을 연결한다고 가정해보자.
+- 타 애플리케이션을 통합하는 기능은 어떻게 구현해야 할까?
+- 가장 간단한 방법은 사용자에게서 깃허브의 아이디와 비밀번호를 받는것이다.
+- 사용자가 공유 기능을 최초로 사용할 때, 사용자의 깃허브 아이디와 비밀번호를 입력받고 이를 데이터베이스에 저장한다.
+- 이후 사용자가 공유 기능을 사용할 때마다 데이터베이스에 저장된 아이디와 비밀번호로 깃허브에 로그인해 이슈를 가져오는 것이다.
+- 하지만 이 방법은 정보가 애플리케이션에 안전하게 저장되는지, 계정 정보를 이용해 다른 정보를 빼가지 않을지  신뢰하기 힘들다.
+- 만약 100개의 애플리케이션에 아이디와 비밀번호를 제공했다고 가정했을 때, 한 애플리케이션을 더 이상 사용하고 싶지 않고 이 애플리케이션이 더 이상 내 깃허브에 접근하지 않았으면 좋겠다.
+- 비밀번호를 바꿔버리게 되면 나머지 99개의 애플리케이션에서도 사용을 못하게 될 것이다.
+
+## OAuth 2.0
+- OAuth 2.0은 다양한 서비스와 애플리케이션 간에 안전하게 자원을 공유할 수 있도록 만들어진 인증 및 권한 부여 프로토콜이다.
+- 서드파티 어플리케이션이 자기 자신 또는 리소스 오너를 대신해 HTTP 서비스에 제한된 액세스를 제공하도록 해주는 인가 프레임워크이다.
+- 주로 클라이언트 애플리케이션이 사용자 데이터를 요청할 때 사용되며, 사용자가 직접 자격 증명을 제공하지 않아도 타사 서비스에 안전하게 접근할 수 있게 해준다.
+- 많은 소셜미디어 플랫폼이 OAuth 2.0 프레임워크를 구현하고 있고, 우리는 비밀번호 대신 OAuth 2.0를 사용해 사용자의 정보에 액세스한다.
+
+### 서드파티 어플리케이션
+- 다른 회사나 개발자가 만든 애플리케이션
+- 서비스에 대해 사용자가 자신의 계정 정보나 데이터를 공유하거나 통합할 수 있도록 만든 애플리케이션을 의미한다.
+- OAuth2에서는 우리의 Todo어플리케이션이 서드파티 어플리케이션이다.
+
+### 리소스
+- Todo 어플리케이션은 사용자의 계정 정보를 사용하고자 한다.
+- '사용자 정보'가 리소스가 된다.
+
+### 리소스 오너
+- 리소스를 가지고 있는 사람 즉, 사용자를 의미한다.
+
+### 제한된 액세스
+- '비밀번호'를 이용한 접근과 완전 반대되는 개념이다.
+- 서드파티 어플리케이션이 리소스 오너가 허락한 리소스에만 접근할 수 있도록 하겠다는 것이다.
+- 예를 들어 사용자는 우리 어플리케이션이 사용자 아이디와 이름만 접근하도록 허락할 수 있다.
+- 이 경우 우리 어플리케이션은 사용자의 깃허브 소스 코드나 다른 개인정보에는 접근할 수 없다.
+
+## OAuth 2.0의 주요 개념
+1. **리소스 소유자(Resource Owner)**: 자신의 자원에 대한 접근 권한을 가지고 있는 주체, 보통 사용자입니다.
+   
+2. **클라이언트(Client)**: 리소스 소유자의 데이터를 사용하고자 하는 애플리케이션입니다. 이 클라이언트는 리소스 서버에 직접 접근하지 않고, OAuth 2.0을 통해 인증 및 권한 부여 과정을 거친 후 데이터를 얻습니다.
+
+3. **인증 서버(Authorization Server)**: 리소스 소유자의 동의를 얻고, 액세스 토큰을 발급하는 서버입니다. OAuth 인증 서버는 클라이언트가 적절한 권한을 가졌는지 확인한 뒤 토큰을 발급합니다.
+
+4. **리소스 서버(Resource Server)**: 보호된 리소스를 제공하는 서버입니다. 예를 들어, 사용자의 개인 정보를 저장하고 있는 서버가 해당됩니다. 클라이언트는 액세스 토큰을 통해 이 서버에 접근할 수 있습니다.
+
+5. **액세스 토큰(Access Token)**: 인증 서버에서 발급하는 토큰으로, 클라이언트가 리소스 서버에 요청할 때 이를 사용해 인증을 받습니다. 이 토큰은 유효 기간이 있으며, 권한 범위(scope)를 나타냅니다.
+
+## OAuth 2.0의 흐름
+
+![img](img/OAuth2-1.jpg)
+
+1. 사용자는 Todo 어플리케이션의 브라우저 화면상에서 '깃허브로 로그인하기'같은 버튼을 클릭한다.
+2. 이 버튼은 Todo백엔드에게 소셜 로그인 요청을 보낸다.
+3. 백엔드는 지정한 소셜 로그인 리소스 서버에 해당하는 인가 페이지로 브라우저를 리다이렉트한다. 이 시점에서 사용자는 더이상 우리 어플리케이션의 화면이 아닌 소셜 로그인의 리소스의 인가 페이지를 보게된다. 이 예제에서는 깃허브의 로그인 페이지가 이에 해당한다.
+4. 소셜 로그인의 로그인 화면에서 리소스 오너가 로그인한다.
+5. 소셜 로그인의 인가 서버로 로그인 요청이 된다.
+
+![img](img/OAuth2-2.jpg)
+
+6. 5에서 리소스 오너의 로그인 요청을 처리한 인가 서버는 'Todo 어플리케이션을 인가하겠습니까?'와 같이 Todo 어플리케이션에게 접근 권한을 부여하는 페이지로 브라우저를 리다이렉트한다.
+7. 리소스 오너는 브라우저상에서 접근을 인가하는 버튼을 클릭한다.
+8. 리소스 오너의 인가 요청을 받은 인가 서버는 브라우저를 다시 Todo어플리케이션 페이지로 리다이렉트한다. 이때, 인가 서버는 어떤 URL로 리다이렉트해야 하는지 미리 알고 있다.
+9. 클라이언트인 Todo 애플리케이션은 인가 서버에서 받은 요청을 이용해 액세스 토큰을 받을 준비를 한다.
+
+![img](img/OAuth2-3.jpg)
+
+10. 인가 서버에서 받은 요청에는 인증을 위한 여러가지 매개변수가 들어있다. 이런 매개변수를 이용해 클라이언트는 인가 서버에 리소스 오너의 액세스 토큰을 요청한다. 이 액세스 토큰은 Bearer토큰과 같다.
+11. 리소스 오너가 클라이언트에게 접근 권한을 이미 부여했으므로, 인가 서버는 클라이언트가 리소스 오너의 리소스를 접근할 수 있도록 액세스 토큰을 반환한다.
+12. 액세스 토큰을 받은 클라이언트는 이제 토큰을 이용해 리소스 오너의 리소스에 접근할 수 있다.
+
+※ 주의
+- 리소스 서버 또는 리소스 인가 서버는 클라이언트 어플리케이션을 미리 알고있어야 한다. 다시말해, 클라이언트 어플리케이션은 이미 리소스 서버 또는 인가 서버에 등록된 어플리케이션이다.
+- 그렇지 않으면 리소스 서버 및 인가 서버의 어떤 API요청도 할 수 없다.
+- 클라이언트 어플리케이션이 리소스/인가 서버에 등록 당시 콜백URL을 지정한다.
+
+## 소셜 로그인 백엔드 구현
+- 깃허브를 이용해 소셜 로그인을 구현해보자
+- 소셜 로그인이란 SSO(Single-Sign-On)의 일종으로 소셜 네트워크의 계정을 이용해 다른 어플리케이션의 계정을 생성하는 기능이다.
+- SSO란 하나의 아이디를 이용해 여러개의 독립된 어플리케이션에 로그인할 수 있는 인증 메커니즘을 의미한다.
+- 예를 들어 깃허브 아이디로 여러 다른 어플리케이션에 로그인 할 수 있다는 점에서 소셜 로그인은 SSO의 일종이다.
+- 그리고 이 소셜 로그인을 구현하는 방법 중 하나가 바로 OAuth2다.
+
+## 소셜 로그인 사이트에서 클라이언트 어플리케이션 생성하기.
+- 깃허브에 로그인 한후 오른쪽 위 아이콘을 누른다.
+- [Setting] > [Developer Setting]을 클릭해서 들어간다.
+- [OAuth Apps] > [New OAuth app]을 선택한다.
+- 우리의 어플리케이션을 등록하기 위한 작업이다.
+
+![img](img/OAuth2-4.png)
+
+![img](img/OAuth2-5.png)
+
+### Homepage URL
+- Todo 백엔드 어플리케이션
+
+### Authorization callback URL
+- 백엔드 어플리케이션에 존재할 콜백 포인트이다.
+- 콜백 포인트를 http://localhost:5000/oauth2/callback으로 설정하자.
+
+**작성 후 Register application을 클릭하자.**
+
+![img](img/OAuth2-6.png)
+
+- Client ID를 반드시 메모해놓자.
+- Generate a new client secret를 클릭해 시크릿을 발행한 후 메모해놓자.
+- 리소스 오너의 액세스 토큰을 요청할 때, 리소스 오너의 리소스를 요청할 때 우리 어플리케이션은 Client ID와 Secret을 이용해야 한다.
+
+## OAuth2.0 라이브러리 추가
+```groovy
+// https://mvnrepository.com/artifact/org.springframework.security/spring-security-oauth2-client
+	implementation group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: '6.3.1'
+```
+
+## application-dev.yml에 OAuth2.0설정
+```yml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            clientId: <CLIENT_ID>
+            clientSecret: <CLIENT_SECRET>
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - user:email
+              - read:user
+    provider:
+      github:
+        authorization-uri: https://github.com/login/oauth/authorize
+```
+
+## Todo 백엔드 OAuth 2.0 엔드포인트 설정
+- 백엔드에서 소셜 로그인 요청을 받기 위한 엔드포인트를 설정해야한다.
+- 이 설정은 WebSecurityConfig에서 스프링 시큐리티가 제공하는 메서드를 이용하면된다.
+
+```java
+package com.example.demo.config;
+
+import com.example.demo.security.JwtAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig {
+   
+   @Autowired
+   private JwtAuthenticationFilter jwtAuthenticationFilter;
+   
+   @Bean
+   protected DefaultSecurityFilterChain securityFilterChain(
+         HttpSecurity http) throws Exception {
+
+      http
+         .cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource()))
+         .csrf(csrfConfigurer -> csrfConfigurer.disable())
+         .httpBasic(httpBasicConfigurer -> httpBasicConfigurer.disable())
+         .sessionManagement(sessionManagementConfigurer ->
+               sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+           )
+         
+         .authorizeHttpRequests(authorizeRequestsConfigurer -> 
+            authorizeRequestsConfigurer
+            /////////////추가//////////////////
+            .requestMatchers("/", "/auth/**","/oauth2/**").permitAll()// /oauth2경로도 인증없이 허용
+            /////////////추가//////////////////
+            .anyRequest().authenticated()
+         )
+         /////////////추가//////////////////
+         .oauth2Login();//oauth2 로그인 설정
+         /////////////추가//////////////////
+
+      http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+      return http.build();
+   }
+
+   @Bean
+   public CorsConfigurationSource corsConfigurationSource() {
+      CorsConfiguration configuration = new CorsConfiguration();
+      //React 애플리케이션이 실행되는 출처에서 오는 요청을 허용
+      configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000",
+    		  "http://app.hens-lab.com",
+    		  "https://app.hens-lab.com"));
+      //HTTP메서드 허용
+      configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+      //모든 헤더를 허용
+      configuration.setAllowedHeaders(Arrays.asList("*"));
+      //쿠키나 인증 정보를 포함한 요청을 허용
+      configuration.setAllowCredentials(true);
+      
+      //모든 경로에 대해 CORS설정을 적용
+      UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+      source.registerCorsConfiguration("/**", configuration);
+      return source;
+   }
+}
+```
+### 어플리케이션 실행
+- gradle을 이용하여 어플리케이션을 실행할 수 있다.
+```groovy
+./gradlew bootRun --args='--spring.profiles.active=dev --server.port=5000'
+```
+- 브라우저상에서 http://localhost:5000/oauth2/authorization/github 를 치고 들어가보면 깃허브의 로그인 화면으로 리다이렉트되는 것을 확인할 수 있다.
+
+![img](img/OAuth2-7.png)
+
+- 개발자도구를 확인해보면 리다이렉트가 여러 번 일어났다는 것을 확인할 수 있다.
+- 첫번째로 http://localhost:5000/oauth2/authorization/github로 들어갔을 때 백엔드는 브라우저를 https://github.com/login/oauth/authorize로 리다이렉트한다.
+- 사용자가 로그인하지 않은 상태이므로 깃허브는 이를 다시 https://github.com/login로 리다이렉트한다.
+
+- 현재 소셜로그인 요청과 리다이렉트 부분을 구현한셈이다.
+- 어느 엔드포인트를 사용할 것인지, 어디로 콜백할 건지만 알려주면 나머지는 스프링 시큐리티 OAuth 2.0라이브러리가 해결해준다.
+- authorize 요청을 클릭하면 백엔드가 리다이렉트 당시 어떤 쿼리를 매개변수에 추가했는지 알 수 있다.
+- client_id,scope,redirect_uri를 확인해보자.
+- 이 매개변수의 값들은 우리가 설정한 application-dev.yml파일에서 온것이다.
+- 이처럼 클라이언트 어플리케이션은 쿼리 매개변수를 이용해 깃허브의 인가 서버에게 자신이 어떤 클라이언트인지 어디로 리다이렉트 해야 하는지 어떤 리소스에 접근이 필요한 것인지 알려주는것이다.
+
+### 로그인해보기
+- 로그인을 하고 나서 Authorize를 누르면 인가가 된다.
+- http://localhost:5000/oauth2/callback/github로 리다이렉트하려고 했으나 페이지가 존재하지 않아 HTTP 404를 반환한다.
+
+### WebSecurityConfig 코드 추가하기
+```java
+.oauth2Login()
+.redirectionEndpoint()
+.baseUri("/oauth2/callback/*");
+```
+- http://localhost:5000/oauth2/callback/*으로 들어오는 요청을 redirectionEndpoint에 설정된 곳으로 리다이렉트하라는 뜻이다.
+- redirectionEndpoint에 아무 주소도 넣지 않았다면 베이스 URL인 http://localhost:5000으로 리다이렉트한다.
+
+## 소셜 로그인 후 자동으로 회원가입
+- 사용자가 깃허브로 로그인을 하면 백엔드가 액세스 토큰을 요청해 사용자의 액세스 토큰을 발행하고, 액세스 토큰을 이용해 사용자의 게정 정보를 가져오는 것이다.
+- 깃허브가 콜백 엔드포인트 요청을 보낼 때, 해당 사용자의 계정이 이미 있는지 확인하고 없다면 새로 생성해주는 부분을 구현해보자.
+
+### application-dev.yml에 코드 추가하기
+```yml
+provider:
+  github:
+    authorization-uri: https://github.com/login/oauth/authorize
+    token-uri: https://github.com/login/oauth/access_token
+    user-info-uri: https://api.github.com/user
+```
+
+### token-uri
+- 깃허브에 액세스 가능한 액세스 토큰을 받아오기위한 주소
+
+### user-info-uri
+- 유저의 정보를 가져오기 위한 주소이다.
+
+
+- 유저의 정보를 가져오기 위해서는 액세스 토큰이 필요하므로 우리는 token-uri를 이용해 먼저 액세스 토큰을 받은 후, user-info-uri로 사용자의 정보를 요청할 때 토큰을 함께 보낸다.
