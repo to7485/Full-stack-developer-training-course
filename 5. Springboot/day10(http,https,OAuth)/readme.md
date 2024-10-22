@@ -589,3 +589,650 @@ provider:
 
 
 - 유저의 정보를 가져오기 위해서는 액세스 토큰이 필요하므로 우리는 token-uri를 이용해 먼저 액세스 토큰을 받은 후, user-info-uri로 사용자의 정보를 요청할 때 토큰을 함께 보낸다.
+
+### OAuthUserServiceImpl클래스 생성하기
+```java
+package com.example.demo.security;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.UserEntity;
+import com.example.demo.persistence.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
+
+//DefaultOAuth2UserService
+//시큐리티에서 기본으로 제공하는 OAuth2로그인시 사용자의 정보를 처리하는 서비스 클래스이다.
+//OAuth2 인증이 성공하면 스프링 시큐리티는 이 클래스를 이용해 OAuth2 제공자(github)로부터 
+//사용자의 정보를 가져오고, 이를 기반으로 어플리케이션에서 인증된 사용자 객체를 생성한다.
+@Slf4j
+@Service
+public class OAuthUserServiceImpl extends DefaultOAuth2UserService {
+
+   @Autowired
+   private UserRepository userRepository;
+   
+   public OAuthUserServiceImpl() {
+      super();
+   }
+   
+   @Override
+   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+      // DefaultOAuth2UserService의 기존 loadUser를 호출한다.
+      //이 메서드가 user-info-uri를 이용해 사용자 정보를 가져오는 부분이다.
+      final OAuth2User oAuth2User = super.loadUser(userRequest);
+      try {
+         log.info("OAuth2User attributes {} ",new ObjectMapper().writeValueAsString(oAuth2User.getAttributes()));
+      } catch (Exception e) {
+         // TODO: handle exception
+      }
+      
+      //login필드를 가져온다.
+      final String username = (String)oAuth2User.getAttributes().get("login");
+      //현재 사용자가 어떤 OAuth2 제공자를 통해 로그인했는지 이름을 반환한다.
+      final String authProvider = userRequest.getClientRegistration().getClientName();
+      
+      UserEntity userEntity = null;
+      
+      //유저가 존재하지 않으면 새로 생성한다.
+      if(userRepository.existsByUsername(username) == false) {
+         userEntity = UserEntity.builder()
+                     .username(username)
+                     .authProvider(authProvider)
+                     .build();
+         
+         //내용을 넣은 userEntity객체를 db에 저장
+         userEntity = userRepository.save(userEntity);
+      }
+      
+      log.info("Successfully pulled user info username {} authProvider {}",username,authProvider);
+      return oAuth2User;
+   }
+}
+```
+
+- 각 소셜 로그인 제공자가 반환하는 유저 정보, 즉 attributes에 들어 있는 내용은 제공자마다 각각 다를것이다.
+- email을 아이디로 사용하는 제공자는 email필드가 있을것이고, 깃허브의 경우에는 login필드가 존재한다.
+- 따라서 여러 소셜 로그인과 통합하려면 이부분을 알맞게 파싱해야 한다.
+
+### WebSecurityConfig클래스에 메서드 추가하기
+```java
+package com.example.demo.config;
+
+import java.util.Arrays;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.example.demo.security.JwtAuthenticationFilter;
+import com.example.demo.security.OAuthSuccessHandler;
+import com.example.demo.security.OAuthUserServiceImpl;
+
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig {
+   
+   @Autowired
+   private JwtAuthenticationFilter jwtAuthenticationFilter;
+   
+   @Autowired
+   private OAuthUserServiceImpl oAuthUserService;
+   
+   @Autowired
+   private OAuthSuccessHandler oAuthSuccessHandler;
+   
+   @Bean
+   protected DefaultSecurityFilterChain securityFilterChain(
+         HttpSecurity http) throws Exception {
+
+      http
+         .cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource()))
+         .csrf(csrfConfigurer -> csrfConfigurer.disable())
+         .httpBasic(httpBasicConfigurer -> httpBasicConfigurer.disable())
+         .sessionManagement(sessionManagementConfigurer ->
+               sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+           )
+         
+         .authorizeHttpRequests(authorizeRequestsConfigurer -> 
+            authorizeRequestsConfigurer
+            .requestMatchers("/", "/auth/**","/oauth2/**").permitAll()
+            .anyRequest().authenticated()
+         )
+         .oauth2Login()//oauth2Login 활성화
+         .redirectionEndpoint() //아무 주소도 넣지 않았다면 베이스 URL인 http://localhost:5000으로 리다이렉트한다.
+         .baseUri("/oauth2/callback/*")//인증이 성공하면 리다이렉트할 엔드포인트의 URI
+         .and()
+         //OAuth2 제공자로부터 사용자 정보를 가져올 때 사용하는 엔드포인트를 설정한다.
+         //이 부분은 OAuth2 인증이 성공한 후, 사용자 프로필 데이터를 가져오는 역할
+         .userInfoEndpoint()
+         //사용자 정보를 처리하는 서비스를 지정하는 메서드 
+         .userService(oAuthUserService)
+
+      http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+      return http.build();
+   }
+
+   @Bean
+   public CorsConfigurationSource corsConfigurationSource() {
+      CorsConfiguration configuration = new CorsConfiguration();
+      //React 애플리케이션이 실행되는 출처에서 오는 요청을 허용
+      configuration.setAllowedOrigins(Arrays.asList("localhost:3000"
+            ,"http://app.hens-lab.com"
+            ,"https://app.hens-lab.com"));
+      //HTTP메서드 허용
+      configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+      //모든 헤더를 허용
+      configuration.setAllowedHeaders(Arrays.asList("*"));
+      //쿠키나 인증 정보를 포함한 요청을 허용
+      configuration.setAllowCredentials(true);
+      
+      //모든 경로에 대해 CORS설정을 적용
+      UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+      source.registerCorsConfiguration("/**", configuration);
+      return source;
+   }
+}
+```
+- 어플리케이션을 재시작 후  http://localhost:5000/oauth2/authorization/github 에 접속해보자.
+- 다음과 같이 사용자 정보가 반환된 것을 확인할 수 있다.
+```
+2024-10-22T15:46:25.517+09:00  INFO 12320 --- [io-5000-exec-10] c.e.demo.security.OAuthUserServiceImpl   : Successfully pulled user info username to7485 authProvider GitHub
+```
+
+- 지금까지 액세스 토큰을 요청하고 리소스를 접근해서 가져오는 부분까지 작성을 해봤다.
+- 우리가 직접 만들기보다는 스프링 시큐리티가 제공하는 라이브러리를 사용한 것이다.
+- 여기에 더 나아가 우리는 사용자가 존재하지 않는 경우 새 사용자를 만드는 부분까지 구현했다.
+
+## Todo 어플리케이션 토큰 발행
+- 소셜 로그인을 이용한 회원가입 부분을 마쳤으니 로그인 후 토큰을 발행하는 부분을 구현해보자.
+- 토큰 발행 부분은 소셜 로그인을 이용한 인증이 완료된 다음 즉, OAuth2.0을 이용한 인증이 모두 끝난 다음 발행해야 한다.
+- 따라서 우리는 OAuth 2.0 흐름이 성공적으로 끝난 후 부르는 OAuthSuccessHandler 내부에서 토큰을 생성하고 반환하도록 만들어보자.
+
+### OAuthSuccessHandler 구현하기
+```java
+package com.example.demo.security;
+
+import java.io.IOException;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+
+//SimpleUrlAuthenticationSuccessHandler
+//인증 성공 후 사용자를 처리하는 데 사용되는 클래스
+
+@Slf4j
+@Component
+@AllArgsConstructor
+public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler{
+   //토큰을 생성하고,반환하는 기능
+   @Override
+   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+         Authentication authentication) throws IOException, ServletException {
+      
+      TokenProvider tokenProvider = new TokenProvider();
+      String token = tokenProvider.create(authentication);
+      
+      response.getWriter().write(token);
+      log.info("token {}",token);
+   }
+}
+```
+- tokenProvider의 create메서드의 매개변수는 UserEntity타입의 객체를 받게 되어있다.
+- Authentication을 받을 수 있도록 오버로딩해보자
+
+### TokenProvider클래스 수정하기
+```java
+package com.example.demo.security;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.model.UserEntity;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.extern.slf4j.Slf4j;
+
+//이 TokenProvider 클래스의 역할은 유저의 정보를 받아서 토큰(JWT)을 생성하기
+@Service 
+@Slf4j //로그를 찍기위한 어노테이션
+public class TokenProvider {
+   
+   private static final String SECRET_KEY = "eyJhbGciOiJIUzUxMiJ9eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyNzk3NzQ2OSwiaWF0IjoxNzI3OTc3NDY5fQ3WUk1X983GsejnQZJSNQKjZBfBeSzOK4cAxpndz0G3pSItFPDiDVnSfD0ZsQzVCSkSMKQozyMVDjt9VYTcJw"; 
+   
+   
+   //토큰을 생성하는 create 메서드
+   public String create(UserEntity userEntity) {
+      
+      //토큰의 유효날짜를 1일로 정함
+      //기한 지금(Instant.now())으로부터 1일(plus(1,ChronoUnit.DAYS))로 설정
+      //Date.from() : Instant 객체를 Date 객체로 변환하는 메서드
+      //Instant.now() : 현재 기준의 시간을 날짜와 시간을 초 단위로 표현
+      //plus(1,ChronoUnit.DAYS) : Instant 객체에 하루를 더하는 동작
+      Date expiryDate = Date.from(Instant.now().plus(1,ChronoUnit.DAYS));
+      
+      /*
+       *{//header
+       * "alg" : "HS512"
+       * }.{//payload
+       * "sub" : "~~~~~",
+       * "iss" : "demp app",
+       * "iat" : ~~~~~~,
+       * "exp" : ~~~~~~
+       * }.
+       * */
+      //SECRET_KEY 를 이용해 서명한 부분
+      //XXXXXXXXXXXXXXXX
+//      return null;
+      
+      //JWT 토큰 생성
+      return Jwts.builder()
+            .signWith(SignatureAlgorithm.HS512,SECRET_KEY)
+            .setSubject(userEntity.getId())
+            .setIssuer("demo app") //토큰 발행 주체
+            .setIssuedAt(new Date()) //토큰 발행 날짜
+            .setExpiration(expiryDate) // exp
+            .compact(); //토큰을 . 으로 구분된 하나의 문자열로 만들어준다
+            
+      
+   }
+   
+   //토큰을 생성하는 create 메서드
+   //Authentication
+   //어플리케이션 내에서 사용자가 누구인지와 그 사용자가 권한을 가졌는지 여부를 나타내는 객체
+   //Principal : 사용자를 나타내는 정보, 보통 사용자 ID 또는 사용자 객체가 들어간다.
+   public String create(Authentication authentication) {
+   Date expiryDate = Date.from(Instant.now().plus(1,ChronoUnit.DAYS));
+         
+   //JWT 토큰 생성
+   return Jwts.builder()
+         .signWith(SignatureAlgorithm.HS512,SECRET_KEY)
+         .setSubject(userPrincipal.getName())//id가 반환됨
+         .setIssuer("demo app") //토큰 발행 주체
+         .setIssuedAt(new Date()) //토큰 발행 날짜
+         .setExpiration(expiryDate) // exp
+         .compact();
+               
+   }
+   //토큰을 받아서 검증을 하는 메서드
+   public String validateAndeGetUserId(String token) {
+      Claims claims = Jwts.parser()
+            //토큰을 생성할 때 사용했던 서명키
+            .setSigningKey(SECRET_KEY)
+            //JWT 토큰을 파싱하고, 서명을 검증한다.
+            //이 메서드는 토큰이 유효한지 확인하고, 올바른 서명으로
+            //서명이 되었는지 검증한다.
+            //서명이 유효하지 않거나 토큰이 만료된 경우, 예외가 발생
+            .parseClaimsJws(token)
+            //페이로드 부분을 반환한다.
+            //여기에는 주체, 발행자, 만료시간, 발행시간 등
+            //여러가지 필드가 있을 수 있다.
+            .getBody();
+      
+      //getSubject()
+      //claims객체에서 주체를 가져온다.
+      //주로 사용자의 id나 이름같은 식별자를 나타낸다.
+      //이 값은 JWT를 발급할 때 설정된 것이다.
+      return claims.getSubject();
+      
+   }
+}
+```
+- 하지만 authentication에는 UserEntity의 id가 없다.
+- 이를 해결하기 위해 OAuth2User를 구현하는 새 클래스를 작성해야 한다.
+- 이 클래스는 OAuth2User와 UserEntity사이의 다리 같은 역할을 한다.
+### ApplicationOAuth2User클래스 만들기
+```java
+package com.example.demo.security;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+
+public class ApplicationOAuth2User implements OAuth2User {
+
+   private String id;
+   private Collection<? extends GrantedAuthority> authorities;
+   private Map<String, Object> attributes;
+   
+   public ApplicationOAuth2User(String id, Map<String, Object> attributes) {
+      this.id = id;
+      this.attributes = attributes;
+      this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+    
+   }
+
+   @Override
+   public Map<String, Object> getAttributes() {
+      return this.attributes;
+   }
+
+   @Override
+   public Collection<? extends GrantedAuthority> getAuthorities() {
+      return this.authorities;
+   }
+
+   @Override
+   public String getName() {
+      return this.id; //name대신 id를 반환한다.
+   }
+}
+```
+
+### OAuth2User
+- OAuth 2.0 로그인 과정을 처리할 때 사용하는 인터페이스다. 
+- 애플리케이션이 외부 인증 제공자(Google, Facebook, GitHub 등)를 통해 사용자 인증을 처리할 때, 해당 사용자 정보를 나타내는 역할을 한다.
+- OAuth2User 인터페이스는 OAuth 2.0을 통해 로그인한 사용자의 프로필 정보와 권한을 제공하는데 주로 사용된다.
+- 사용자가 인증 제공자에서 로그인한 후, 스프링 시큐리티는 OAuth2User 객체를 생성하여 애플리케이션에 전달하고, 이를 통해 로그인된 사용자의 정보를 다룬다.
+
+### 주요 메서드
+- Map<String, Object> getAttributes(): 외부 인증 제공자로부터 받은 사용자 속성 정보를 반환한다. 이 속성 정보는 인증 제공자에 따라 다를 수 있다.
+  - 예: Google OAuth2.0에서 제공하는 getAttributes() 값은 sub, name, email과 같은 필드를 포함할 수 있다.
+- String getName(): 사용자의 고유 식별자를 반환한다. 이 식별자는 인증 제공자로부터 제공되며, 주로 사용자를 고유하게 식별하는 용도로 사용된다.
+  - 예: Google OAuth2.0에서는 sub(subject)가 이 역할을 할 수 있다.
+- Collection<? extends GrantedAuthority> getAuthorities(): 사용자가 가진 권한을 반환한다. 이 권한 정보는 스프링 시큐리티의 권한 관리를 통해 사용된다.
+
+### SimpleGrantedAuthority
+- 스프링 시큐리티에서 제공하는 클래스이며, **사용자 권한(Authority)**을 나타낸다.
+- 이 클래스는 `GrantedAuthority` 인터페이스를 구현한 것으로, 사용자가 어떤 권한을 가지고 있는지 표현한다.
+- `"ROLE_USER"`는 사용자가 부여받는 권한의 이름으로, 스프링 시큐리티에서는 권한 이름이 보통 `"ROLE_"`로 시작합니다. 이는 스프링 시큐리티에서 권한과 구분자 역할을 한다.
+
+#### 권한의 의미
+- **`ROLE_USER`**: 
+  - 권한 이름이 `"ROLE_"`로 시작하는 것은 스프링 시큐리티의 권장 관례입니다. 일반적으로 시스템에서 특정 역할(Role)을 부여하는 구조로 사용된다.
+  - `"ROLE_USER"`는 보통 일반 사용자를 나타내는 권한입니다. 예를 들어, 로그인한 사용자가 기본적으로 애플리케이션에서 접근할 수 있는 리소스나 기능이 있다면, 그 사용자는 `"ROLE_USER"` 권한을 부여받는다.
+
+### Collections.singletonList():
+ - 이 메서드는 Java에서 제공하는 유틸리티 메서드로, 단 하나의 요소를 가진 불변 리스트(immutable list)를 생성한다.
+ - 즉, 여기서는 "ROLE_USER" 권한을 나타내는 하나의 `SimpleGrantedAuthority` 객체를 포함한 리스트를 생성하는 것이다.
+ - 생성된 리스트는 수정할 수 없으며, 오직 읽기 전용 리스트로 사용된다.
+ - 이 방법을 사용하면 권한이 단일 항목(즉, "ROLE_USER")만 있는 경우 간단하고 효율적으로 리스트를 생성할 수 있다.
+
+- OAuthUserServiceImpl로 돌아가 OAuth2User대신 ApplicationOAuth2User를 반환한다.
+- 그러면 SuccessHandler에서도 getName()를 호출할 때 id를 넘겨받을 수 있다.
+
+### OAuthUserServiceImpl 수정하기
+```java
+  log.info("Successfully pulled user info username {} authProvider {}",username,authProvider);
+  return new ApplicationOAuth2User(userEntity.getId(), oAuth2User.getAttributes());
+  }
+}
+```
+### TokenProvider에 코드 수정하기
+```java
+   public String create(Authentication authentication) {
+   //OAuth2.0 인증을 통해 로그인한 사람의 정보를 나타낸다.
+   ////////////////추가/////////////////////////////
+   ApplicationOAuth2User userPrincipal = (ApplicationOAuth2User)authentication.getPrincipal();
+    ////////////////추가/////////////////////////////
+   Date expiryDate = Date.from(Instant.now().plus(1,ChronoUnit.DAYS));
+         
+   //JWT 토큰 생성
+   return Jwts.builder()
+         .signWith(SignatureAlgorithm.HS512,SECRET_KEY)
+         .setSubject(userPrincipal.getName())//id가 반환됨
+         .setIssuer("demo app") //토큰 발행 주체
+         .setIssuedAt(new Date()) //토큰 발행 날짜
+         .setExpiration(expiryDate) // exp
+         .compact();
+               
+   }
+```
+
+### WebSecurityConfig에 코드 추가하기
+```java
+package com.example.demo.config;
+
+   
+   @Autowired
+   private OAuthSuccessHandler oAuthSuccessHandler;
+   
+   ...중략
+   
+         .oauth2Login()//oauth2Login 활성화
+         .redirectionEndpoint() //아무 주소도 넣지 않았다면 베이스 URL인 http://localhost:5000으로 리다이렉트한다.
+         .baseUri("/oauth2/callback/*")//인증이 성공하면 리다이렉트할 엔드포인트의 URI
+         .and()
+         //OAuth2 제공자로부터 사용자 정보를 가져올 때 사용하는 엔드포인트를 설정한다.
+         //이 부분은 OAuth2 인증이 성공한 후, 사용자 프로필 데이터를 가져오는 역할
+         .userInfoEndpoint()
+         //사용자 정보를 처리하는 서비스를 지정하는 메서드 
+         .userService(oAuthUserService)
+         .and()
+         .successHandler(oAuthSuccessHandler);//oauth2 인증이 성공한 뒤 실행될 동작을 정의하는메서드
+
+      http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+      return http.build();
+   }
+```
+- http://localhost:5000/oauth2/authorization/github 로 다시 접근해보면 리다이렉션 대신 토큰이 반환되는 것을 확인할 수 있다.
+
+## 소셜 로그인 프론트엔드 구현
+- 위에서 깃허브 애플리케이션을 등록할 때 백엔드 주소를 넣어줬고, 모든 인증 및 인가 작업은 백엔드에서 일어났다.
+- 이는 사용자가 궁극적으로 로그인해야 하는 시스템이 백엔드이기 때문이다.
+- 하지만 사용자 입장에서는 그렇지 않다.
+- 실제 사용자는 프론트엔드를 통해 상호작용을 한다.
+- 따라서 우리는 프론트엔드에서 사용자가 소셜 로그인을 시작할 수 있는 방법을 제공해야 한다.
+- 또한 백엔드에서 인증을 마친 후 다시 프론트엔드로 돌아가 사용자가 어플리케이션을 사용할 수 있도록 해야 한다.
+
+### 백엔드 AuthenticationEntryPoint설정
+- 백엔드와 프론트엔드를 모두 실행하고 개발자 툴의 네트워크 탭을 켠 후 http://localhost:3000으로 들어가보자.
+
+- 프론트엔드에서 http://localhost:3000으로 들어가면 리액트가 http://localhost:5000/todo를 호출해 사용자의 Todo 리스트를 가지고 온다.
+- 이때 헤더에 Bearer토큰을 함께 보내 사용자를 인증한다.
+- 만약 토큰이 없다면 인증은 실패하고 HTTP상태코드로 403이 반환된다
+- 그러면 리액트는 로그인 페이지로 리다이렉트한다.
+- 하지만 시큐리티가 제멋대로 302를 리다이렉트 하기 때문에 로그인 페이지로 갈 수 없다.
+- 우리는 여전히 인증 실패시 상태 코드로 403을 받고 로그인 화면으로 리다이렉트 하고싶다.
+- 그리고 그 로그인 화면에서 사용자가 소셜로그인을 할지 이메일로그인을 할지 결정하게 하고 싶다.
+- AuthenticationEntryPoint를 이용하면 OAuth 2.0 흐름으로 넘어가는 기본 설정을 바꿀 수 있다.
+
+### WebSecurityConfig에 코드 추가하기
+```java
+... 중략
+.successHandler(oAuthSuccessHandler)
+.and()
+.exceptionHandling()
+.authenticationEntryPoint(new Http403ForbiddenEntryPoint()); // Http403ForbiddenEntryPoint 추가
+```
+- 위 코드를 추가하고 어플리케이션을 다시 시작해본다.
+- 프론트엔드로 들어가보면 인증에 실패해 로그인 화면으로 돌아가는것을 확인할 수 있다.
+
+## 소셜 로그인 엔드포인트 추가
+- 지금까지는 테스팅을 위해 기본으로 제공되던 http://localhost:5000/oauth2/authorization/github를 사용했지만 이 경로는 원하는 경로로 설정이 가능하다.
+- 이 엔드포인트를 http://localhost:5000/auth/authorize/{provider}라고 하자.
+- {provider}에는 어떤 소셜 로그인 제공자라도 들어갈 수 있다.
+
+### WebSecurityConfig에 코드 추가하기
+```java
+...중략
+.oauth2Login()
+.redirectionEndpoint()
+.baseUri("/oauth2/callback/*")
+.and()
+.authorizationEndpoint()
+.baseUri("/auth/authorize") // OAuth 2.0 흐름 시작을 위한 엔드포인트 추가
+...중략
+```
+- /auth/authorize를 authorizationEndpoint의 baseUri로 지정해주자.
+- 어플리케이션을 재시작한 후 http://localhost:5000/auth/authorize/github로 들어가보면 http://localhost:5000/oauth2/authorization/github와 동일한 흐름으로 리다이렉션이 이루어지는 것을 확인할 수 있다.
+
+## 소셜 로그인 기능 추가
+- 이제 프론트엔드의 기능을 마저 추가하도로고 하자.
+- 로그인 화면에서 깃허브로 로그인 하기 버튼을 추가하고 사용자가 버튼을 클릭하면 /auth/authorize/github로 리다이렉션 해주면된다.
+- 프론트엔드의 Login.js파일을 수정해주자.
+
+### Login.js파일 수정하기
+```js
+<Grid item xs={12}>
+  <Button type="submit" fullWidth variant="contained" color="primary">
+    로그인
+  </Button>
+</Grid>
+<Grid item xs={12}>
+  <Button fullWidth variant="contained" style={{backgroundColor: '#000'}}>
+    깃허브로 로그인하기
+  </Button>
+</Grid>
+<Grid item>
+  <Link to="/signup" variant="body2">
+  계정이 없습니까? 여기서 가입 하세요.
+  </Link>
+</Grid>
+```
+- 이때 Button에 `type=submit` 속성이 없도록 주의하자ㅏ.
+- Submit타입의 버튼으로 설정하면 submitHandler가 실행될 수도 있다.
+- 그 대신 handlerSocialLogin이라는 함수를 만들고 해당 함수를 깃허브 로그인하기 버튼에 추가해야 한다.
+### handlSocialLogin함수 추가하기
+```js
+const handleSocialLogin = (provider) => {
+  console.log(provider);
+}
+
+...중략
+
+<Button onClick={() => handleSocialLogin("github")} fullWidth variant="contained" style={{backgroundColor: '#000'}}>
+  깃허브로 로그인하기
+</Button>
+```
+- 추가한 함수를 버튼의 onClick에 연결한다.
+- handleSocialLogin함수 내부를 구현하기 위해 socialLogin이라는 함수를 ApiService.js에 추가하자.
+이 함수는 백엔드의 /auth/authorize/github로 브라우저를 리다이렉트해준다.
+
+### ApiService에 socialLogin API 추가
+```js
+export function socialLogin(provider) {
+  window.location.href= API_BASE_URL + "/auth/authorize/"+provider;
+}
+```
+### handleSocialLogin함수에 추가하기
+```js
+import{signin, socialLogin} from "./service/ApiService'
+
+const handleSocialLogin = (provider) => {
+  socialLogin(provider);
+}
+```
+- 프론트엔드 페이지로 돌아가 깃허브 로그인하기를 누르면 깃허브 로그인 페이지로 리다이렉트 되는 것을 확인할 수 있다.
+
+## 프론트엔드로 Bearer 토큰 전달하기
+- 리다이렉트된 깃허브 로그인 페이지에서 로그인해보자.
+- 토큰을 반환하고 끝이 아니라 백엔드는 로그인이 완료된 프론트엔드 페이지, 즉 Todo리스트 페이지로 리다이렉트 해야한다.
+- 토큰을 반환하는 곳은 OAuthSuccessHandler였다.
+
+### OAuthSuccessHandler 함수 수정하기
+```java
+@Override
+public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+  log.info("auth succeeded");
+  TokenProvider tokenProvider = new TokenProvider();
+  String token = tokenProvider.create(authentication);
+
+  log.info("token {}", token);
+  response.sendRedirect("http://localhost:3000");
+}
+```
+- HTTP response에 토큰을 넘기는 대신 sendRedirect를 이용해 프론트엔로 리다이렉트하자.
+- 하지만 이렇게 리다이렉트를 하면 토큰을 전달할 수 없다.
+- 따라서 프론트엔드는 백엔드가 리다이렉트 하면서 전달하는 토큰을 받아주는 기능이 필요하다.
+- 이 기능을 위해 sociallogin이라는 페이지를 만들기로 하자.
+
+```java
+@Override
+public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+  log.info("auth succeeded");
+  TokenProvider tokenProvider = new TokenProvider();
+  String token = tokenProvider.create(authentication);
+
+  log.info("token {}", token);
+  response.sendRedirect("http://localhost:3000/sociallogin?token="+token);
+}
+```
+
+### SocialLogin페이지 구현
+```js
+import React from "react";
+import { Navigate } from "react-router-dom";
+
+const SocialLogin = (props) => {
+  const getUrlParameter = (name) => { // 쿼리 파라미터에서 값을 추출 해 주는 함수
+    let search = window.location.search;
+    let params = new URLSearchParams(search);
+    return params.get(name);
+  };
+
+  const token = getUrlParameter("token");
+
+  console.log("토큰 파싱: " + token);
+
+  if (token) {
+    console.log("로컬스토리지에 토큰 저장" + token);
+    localStorage.setItem("ACCESS_TOKEN", token);
+    return (
+      <Navigate
+        to={{
+          pathname: "/",
+          state: { from: props.location },
+        }}
+      />
+    );
+  } else {
+    return (
+      <Navigate
+        to={{
+          pathname: "/login",
+          state: { from: props.location },
+        }}
+      />
+    );
+  }
+};
+
+export default SocialLogin;
+```
+
+### AppRouter에 라우팅해주기
+```js
+ <Route path="/" element={<App />} />
+<Route path="login" element={<Login />} />
+<Route path="signup" element={<SignUp />} />
+<Route path="sociallogin" element={<SocialLogin />} />
+```
+- socialLogin으로 향하는 경로를 추가한 후 백엔드와 프론트엔드 어플리케이션을 재시작하자.
+- 로그인 후 Todo 화면으로 넘어가는 것을 확인할 수 있다.
+
