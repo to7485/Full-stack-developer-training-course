@@ -401,3 +401,82 @@ X-Naver-Client-Secret: {애플리케이션 등록 시 발급받은 클라이언�
 | `isbn`    | Integer  | ISBN                                                    |
 | `description`| String| 네이버 도서의 책 소개                                    |
 | `pubdate` | dateTime | 출간일     
+
+### BookSearch.js 만들기
+```js
+import React, {useState} from 'react'
+import axios from 'axios';
+function BookSearch(){
+    const [query, setQuery] = useState(''); // 검색어
+    const [books, setBooks] = useState([]); // 검색 결과로 얻은 책 목록
+    const [loading, setLoading] = useState(false); // 로딩 상태
+    const [error, setError] = useState(null); // 에러 상태
+  
+    // 네이버 도서 API 호출 함수
+    const searchBooks = async () => {
+      setLoading(true);
+      setError(null);
+      
+      const clientId = 'bFq0Fj2phTIER882qECQ'; // 네이버에서 발급받은 Client ID
+      const clientSecret = 'mOnwlkBvEBT'; // 네이버에서 발급받은 Client Secret
+      
+      try {
+        const response = await axios.get(`/naver-api/v1/search/book.json`, {
+          params: {
+            query: query,  // 검색어
+          },
+          headers: {
+            'X-Naver-Client-Id': clientId,
+            'X-Naver-Client-Secret': clientSecret,
+          },
+        });
+  
+        // 검색 결과를 books 상태에 저장
+        setBooks(response.data.items);
+      } catch (err) {
+        setError('도서 검색에 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    // 검색 버튼 클릭 시 호출
+    const handleSearch = (e) => {
+      e.preventDefault();
+      searchBooks();
+    };
+  
+    return (
+      <div>
+        <h1>네이버 도서 검색</h1>
+        <form onSubmit={handleSearch}>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)} // 입력 값이 변경되면 query 상태 업데이트
+            placeholder="책 이름을 입력하세요"
+          />
+          <button type="submit">검색</button>
+        </form>
+  
+        {loading && <p>검색 중...</p>}
+        {error && <p>{error}</p>}
+  
+        <ul>
+          {books.map((book) => (
+            <li key={book.isbn}>
+              <img src={book.image} alt={book.title} />
+              <p>제목: {book.title}</p>
+              <p>저자: {book.author}</p>
+              <p>출판사: {book.publisher}</p>
+              <p>가격: {book.discount ? `${book.discount}원` : '가격 정보 없음'}</p>
+              <a href={book.link} target="_blank" rel="noopener noreferrer">더보기</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+}
+
+export default BookSearch
+```
