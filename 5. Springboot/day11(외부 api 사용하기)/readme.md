@@ -305,5 +305,99 @@ const PostcodeComponent = () => {
 };
 
 export default PostcodeComponent;
-
 ```
+
+## 2. 네이버 검색 api
+- 네이버 개발자 센터로 이동한다.
+- 다양한 api를 제공하는데 도서를 검색하는 api를 사용해보자.
+
+![img](img/어플등록.png)
+
+- API를 사용하기 위헤 어플리케이션을 등록한다.
+
+![img](img/이용신청.png)
+
+- Client ID와 Client Secret을 발급받는다.
+- 어딘가에 잘 복사해놓자.
+![img](img/키.png)
+
+
+### 요청 URL
+|요청 URL|결과값 반환 형식|
+|https://openapi.naver.com/v1/search/book.xml|XML|
+|https://openapi.naver.com/v1/search/book.json|JSON|
+
+### 프로토콜
+- HTTPS
+
+### HTTP메서드
+- GET
+
+### 파라미터
+- 파라미터를 쿼리스트링 형식으로 전달한다.
+
+<table border="1" cellspacing="0" cellpadding="10">
+  <tr>
+    <th>파라미터</th>
+    <th>타입</th>
+    <th>필수 여부</th>
+    <th>설명</th>
+  </tr>
+  <tr>
+    <td>query</td>
+    <td>String</td>
+    <td>Y</td>
+    <td>검색어. UTF-8로 인코딩되어야 합니다.</td>
+  </tr>
+  <tr>
+    <td>display</td>
+    <td>Integer</td>
+    <td>N</td>
+    <td>한 번에 표시할 검색 결과 개수 (기본값: 10, 최댓값: 100)</td>
+  </tr>
+  <tr>
+    <td>start</td>
+    <td>Integer</td>
+    <td>N</td>
+    <td>검색 시작 위치 (기본값: 1, 최댓값: 1000)</td>
+  </tr>
+  <tr>
+    <td rowspan="2">sort</td>
+    <td rowspan="2">String</td>
+    <td rowspan="2">N</td>
+    <td>- sim: 정확도순으로 내림차순 정렬 (기본값)</td>
+  </tr>
+  <tr>
+    <td>- date: 출간일순으로 내림차순 정렬</td>
+  </tr>
+</table>
+
+### 참고사항
+- API를 요청할 때 다음 예와 같이 HTTP 요청 헤더에 클라이언트 아이디와 클라이언트 시크릿을 추가해야 한다.
+```
+GET /v1/search/book.xml?query=%EC%A3%BC%EC%8B%9D&display=10&start=1 HTTP/1.1
+Host: openapi.naver.com
+User-Agent: curl/7.49.1
+Accept: */*
+X-Naver-Client-Id: {애플리케이션 등록 시 발급받은 클라이언트 아이디 값}
+X-Naver-Client-Secret: {애플리케이션 등록 시 발급받은 클라이언트 시크릿 값}
+```
+
+### 응답
+- 응답에 성공하면 XML 또는 JSON 형식으로 반환한다.
+
+| 항목                   | 타입     | 설명                                                   |
+|------------------------|----------|--------------------------------------------------------|
+| `lastBuildDate` | dateTime | 검색 결과를 생성한 시간                                   |
+| `total`        | Integer  | 총 검색 결과 개수                                        |
+| `start`        | Integer  | 검색 시작 위치                                           |
+| `display`      | Integer  | 한 번에 표시할 검색 결과 개수                             |
+| `title`   | String   | 책 제목                                                  |
+| `link`    | String   | 네이버 도서 정보 URL                                      |
+| `image`   | String   | 섬네일 이미지의 URL                                       |
+| `author`  | String   | 저자 이름                                                |
+| `discount`| Integer  | 판매 가격. 절판 등의 이유로 가격이 없으면 값을 반환하지 않음  |
+| `publisher`| String  | 출판사                                                   |
+| `isbn`    | Integer  | ISBN                                                    |
+| `description`| String| 네이버 도서의 책 소개                                    |
+| `pubdate` | dateTime | 출간일     
