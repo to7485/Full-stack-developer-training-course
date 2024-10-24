@@ -749,3 +749,135 @@ export default NaverBookSearch;
 ```
 - 백엔드와 프론트엔드를 모두 켜고 검색을 해보면 결과를 잘 받는걸 볼 수 있다.
 
+## 카카오 지도 API
+- https://developers.kakao.com/ 로 들어가 로그인을 한다.
+
+![img](img/카카오1.png)
+
+- 어플리케이션을 등록한다.
+- 내용은 마음대로 적어도 상관 없다.
+![img](img/카카오2.png)
+
+- 앱 키가 자동으로 발급되어있다.
+![img](img/카카오3.png)
+
+- 플랫폼을 등록합니다.
+- 우리는 웹 어플리케이션이기 때문에 Web을 등록합니다.
+
+![img](img/카카오4.png)
+
+- http://localhost:3000 을 입력하고 저장한다.
+
+![img](img/카카오5.png)
+
+- 루트 디렉토리에 .env 파일을 생성하고 코드를 작성한다.
+
+![img](img/카카오6.png)
+
+- github에 업로드되지 않도록 .gitignore파일에 .env파일을 추가한다.
+- 간혹 .env에 작성한 코드를 읽지 못하는 경우가 있어 vscode를 껐다가 다시 실행하자.
+![img](img/카카오7.png)
+
+### 지도 라이브러리
+- Kakao 지도 Javascript API 는 지도와 함께 사용할 수 있는 라이브러리 를 지원하고 있다.
+- 라이브러리는 javascript API와 관련되어 있지만 조금 특화된 기능을 묶어둔 것을 말합니다. 이 기능은 추가로 불러와서 사용할 수 있도록 되어있다.
+### 라이브러리 불러오기
+- 라이브러리는 추가로 불러서 사용해야 한다.
+- 파라메터에 추가하여 로드한다.
+- `clusterer`
+  - 마커를 클러스터링 할 수 있는 클러스터러 라이브러리 입니다.
+- `services`
+  - 장소 검색 과 주소-좌표 변환 을 할 수 있는 services 라이브러리 입니다.
+- `drawing` 
+  - 지도 위에 마커와 그래픽스 객체를 쉽게 그릴 수 있게 그리기 모드를 지원하는 drawing 라이브러리 입니다.
+
+### 라이브러리 추가하기
+- 태그는 문서에 지도로 이동하자
+- public/index.html의 \<head>태그 안이나 \<body> 태그 안 맨 아래쪽에 카카오 지도 API를 불러오는 코드를 그대로 작성하자.
+
+![img](img/카카오8.png)
+
+- appkey 부분을발급받은 JS키를 .env에 REACT_APP_KAKAOMAP_KEY로 써준다.
+
+![img](img/카카오9.png)
+
+```js
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=%REACT_APP_KAKAOMAP_KEY%&libraries=services,clusterer"></script>
+```
+
+### 라이브러리 설차히기
+- react에서 카카오맵을 컴포넌트 형태로 사용하기 위해 터미널 창에서 react-kakao-maps-sdk 라이브러리도 설치한다.
+
+```js
+npm install react-kakao-maps-sdk
+```
+
+### Map.js 만들기
+```js
+import React, { useState, useEffect } from 'react';
+import { Map } from "react-kakao-maps-sdk";
+const MapContainer = () => {
+
+    const center = {
+    // 지도의 중심좌표
+    lat: 33.450701,
+    lng: 126.570667,
+  }
+
+  return (
+    <div>
+      <Map
+      center={center} //지도 중심 좌표 lat : 위도, lng : 경도
+      style={{ width: '600px', height: '600px' }} //지도의 너비와 높이
+      level={3}
+      /> 
+    </div>
+  );
+};
+
+export default MapContainer;
+```
+
+### 클릭한 위치에 마커 생성하기
+```js
+import React, { useState } from 'react';
+import { Map, MapMarker } from "react-kakao-maps-sdk";
+const MapContainer = () => {
+
+  const [position, setPosition] = useState(null);
+
+  const center = {
+    // 지도의 중심좌표
+    lat: 33.450701,
+    lng: 126.570667,
+  }
+
+  return (
+    <div>
+      <Map
+      center={center} //지도 중심 좌표 lat : 위도, lng : 경도
+      style={{ width: '600px', height: '600px' }} //지도의 너비와 높이
+      level={3} //지도 확대 레벨
+      onClick={(event,mouseEvent) => {
+        const latlng = mouseEvent.latLng;
+        setPosition({
+          lat: latlng.getLat(),
+          lng: latlng.getLng(),
+        });
+      }}
+      >
+        <MapMarker position={position ?? center}/>
+      </Map>
+      <p>
+        <em>지도를 클릭해주세요!</em>
+      </p>
+      <div id="clickLatLng">
+        {position && `클릭한 위치의 위도는 ${position.lat}이고, 경도는 ${position.lng} 입니다.`}
+      </div>
+    </div>
+  );
+};
+
+export default MapContainer;
+
+```
