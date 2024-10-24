@@ -481,3 +481,271 @@ function BookSearch(){
 
 export default BookSearch
 ```
+- 실행해보면 CORS에러가 발생한 것을 볼 수 있다.
+- 우리의 백엔드가 아닌데 CORS를 어떻게 처리할 수 있을까??
+
+## CORS의 동작원리
+### Simple requests인 경우
+```
+※ Simple Request란?
+- HTTP메서드가 GET,HEAD,POST이다.
+- 설정할 수 있는 헤더들(Accept, Accept-Language, Content-Language)만 변경한다.
+- Contet-Type이(application/x-www-form-urlencoded, multipart/form-data, text/plain)인 경우
+```
+1. 서버로 요청을 한다.
+2. 서버의 응답이 왔을 때 브라우저가 요청한 Origin과 응답한 헤더 Access-Control-Request-Headers의 값을 비교하여 유효한 요청이라면 리소스를 응답한다.
+3. 만약 유효하지 않은 요청이라면 브라우저에서 이를 막고 에러가 발생한다.
+
+![img](img/CORS.png)
+
+- 출처를 비교하는 로직이 서버에 구현된 스펠이 아니라 브라우저에 구현된 스펙이라는 것이다.
+- 서버는 CORS를 위반하더라도 정상적으로 응답을 해주고, 응답의 파기 여부는 브라우저가 결정한다.
+
+### 근데 왜 포스트맨은 CORS에 안걸렸을까?
+- 우선 브라우저를 쓰지 않으면 보내지 않는데, 앞서 말했듯이 origin이 다른지 판단하는 것은 브라우저 스펙이기 때문이다.
+- 그래서 Postman과 같은 기능을 사용하면 json 형태든, POST로 보내든 CORS 문제가 발생하지 않는다.
+
+## 서버에서 외부 API 요청하기
+- 브라우저에서 응답을 받지 않으므로 브라우저를 거치지 않으면 된다.
+- 즉 우리의 스프링부트 서버에서 네이버의 서버로 요청을 하면 브라우저를 거치는것이 아니기 때문에 CORS에 걸리지 않는다.
+
+## 스프링부트 프로젝트 만들기
+- spring-boot-starter-web만 추가하고 프로젝트를 만든다.
+
+### WebClient
+- Spring WebFlux에서 제공하는 비동기 HTTP 클라이언트로, RESTful 웹 서비스와의 통신을 비동기적으로 처리할 수 있는 강력한 도구다.
+- Spring 5에서 도입되었으며, 기존의 동기 HTTP 클라이언트인 RestTemplate을 대체하는 용도로 설계되었다.
+- 비동기 처리, 반응형 스트림, 그리고 다양한 HTTP 요청 메서드를 지원하는 것이 특징이다.
+
+#### 의존성 추가
+```groovy
+// WebClient 사용을 위한 WebFlux 의존성
+implementation 'org.springframework.boot:spring-boot-starter-webflux'
+```
+
+#### 주요 특징
+`1. 비동기 및 반응형 프로그래밍 지원`
+  - WebClient는 비동기적으로 HTTP 요청을 처리하고, 응답을 받아올 수 있다. 
+  - 비동기 방식이므로, 서버로부터 응답을 기다리는 동안 다른 작업을 동시에 처리할 수 있다.
+  - Mono나 Flux와 같은 Reactor 타입을 반환하며, 이를 통해 반응형 프로그래밍을 쉽게 적용할 수 있다.
+
+`2. HTTP 요청 메서드 지원`
+  - WebClient는 HTTP의 주요 메서드(GET, POST, PUT, DELETE, PATCH 등)를 모두 지원하며, 요청을 유연하게 구성할 수 있다.
+
+`3. 유연한 요청 구성`
+  - URI 경로, 쿼리 파라미터, 헤더, 쿠키, 요청 본문 등 다양한 옵션을 설정할 수 있다.
+  - 각 요청마다 별도의 헤더를 추가하거나 인증 정보를 제공할 수 있으며, 필요에 따라 기본 설정을 미리 구성할 수도 있다.
+
+`4. 비동기 처리와 예외 처리`
+  - 비동기 처리뿐만 아니라 에러 발생 시 이를 처리하는 로직도 쉽게 추가할 수 있다. 
+  - 비동기 스트림 처리와 함께 예외 처리 패턴을 결합해 안정적인 네트워크 통신을 구현할 수 있다.
+
+`5. Blocking 요청 지원`
+  - 비록 WebClient는 기본적으로 비동기 클라이언트이지만, 동기식으로 블로킹 방식의 요청도 처리할 수 있다. 필요한 경우 .block() 메서드를 사용해 동기적으로 응답을 받을 수 있다.
+
+#### WebClient의 생성
+- 기본 WebClient 생성
+```java
+WebClient webClient = WebClient.create();
+```
+- Builder를 사용하여 WebClient 구성
+```java
+WebClient webClient = WebClient.builder()
+        .baseUrl("https://api.example.com")
+        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        .build();
+```
+
+#### GET 요청
+```java
+WebClient webClient = WebClient.create("https://api.example.com");
+
+Mono<String> response = webClient.get()
+        .uri("/data")  // https://api.example.com/data
+        .retrieve()    // 서버로부터 응답을 가져옴
+        .bodyToMono(String.class);  // 응답 본문을 String으로 변환
+
+response.subscribe(System.out::println);  // 비동기적으로 결과 출력
+```
+
+#### POST 요청
+```java
+WebClient webClient = WebClient.create("https://api.example.com");
+
+Mono<String> response = webClient.post()
+        .uri("/submit")
+        .contentType(MediaType.APPLICATION_JSON)  // 요청 본문의 Content-Type 설정
+        .bodyValue(new MyRequestBody("value1", "value2"))  // JSON 형식의 요청 본문
+        .retrieve()
+        .bodyToMono(String.class);
+
+response.subscribe(System.out::println);
+```
+
+#### Mono와 Flux
+- Mono와 Flux는 Spring WebFlux에서 사용하는 두 가지 주요 비동기 타입이며, Reactor 라이브러리의 핵심 개념이다.
+- Reactive Streams의 일환으로, 비동기 데이터 스트림을 처리하는데 사용된다.
+
+#### 1.Mono
+- 0 또는 1개의 데이터만을 비동기적으로 반환하는 타입이다.
+- 어떤 작업의 결과로 하나의 값 또는 빈 값(값이 없을 수도 있음)을 비동기적으로 처리할 때 사용한다. 
+- 반적으로 비동기 작업에서 단일 값을 반환할 때 사용되며, null을 포함할 수도 있다.
+
+#### 2.Flux
+-  0개 이상의 데이터를 비동기적으로 처리할 수 있는 스트림을 나타낸다.
+-  여러 개의 데이터를 연속적으로 방출하고 이를 처리할 때 사용한다.
+-  무제한 스트림일 수도 있고, 유한한 스트림일 수도 있으며, 데이터 스트림을 지속적으로 생성하거나 이벤트 기반으로 처리하는데 사용된다.
+
+### application.properties 설정
+- 네이버 API의 클라이언트 ID와 시크릿을 설정파일에서 관리하는 것이 좋다.
+```properties
+naver.client.id=YOUR_CLIENT_ID
+naver.client.secret=YOUR_CLIENT_SECRET
+```
+
+### NaverBookApiController 만들기
+```java
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+@RestController
+public class NaverBookApiController {
+
+    // WebClient 객체를 사용하여 외부 API와 비동기 통신을 하기 위한 필드 선언
+    private final WebClient webClient;
+
+    // application.properties 또는 application.yml 파일에서 네이버 API 클라이언트 ID 값을 가져옴
+    @Value("${naver.client.id}")
+    private String clientId;
+
+    // application.properties 또는 application.yml 파일에서 네이버 API 클라이언트 Secret 값을 가져옴
+    @Value("${naver.client.secret}")
+    private String clientSecret;
+
+    // 생성자를 통해 WebClient.Builder를 주입받고 WebClient 객체를 초기화
+    // 네이버 API의 기본 URL을 설정
+    public NaverBookApiController(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.baseUrl("https://openapi.naver.com/v1/search").build();
+    }
+
+    // 책 검색 요청을 처리하는 GET API 엔드포인트
+    @GetMapping("/api/books")
+    public Mono<String> searchBooks(@RequestParam String query) {
+        // WebClient를 사용하여 네이버 책 검색 API에 GET 요청을 보냄
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/book.json")
+                        // 검색어를 query 매개변수로 추가
+                        .queryParam("query", query)
+                        .build())
+                // 요청 헤더에 Content-Type을 JSON으로 설정
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                // 네이버 API 인증을 위한 Client ID와 Secret을 헤더에 추가
+                .header("X-Naver-Client-Id", clientId)
+                .header("X-Naver-Client-Secret", clientSecret)
+                // 요청을 서버로 보내고 응답을 받음
+                .retrieve() // API 요청을 보내고 응답을 기다림
+                // 응답의 Body를 Mono<String>으로 변환하여 비동기로 처리
+                .bodyToMono(String.class); // 응답 데이터를 Mono 객체로 받음 (JSON 데이터를 문자열로 처리)
+    }
+}
+```
+
+### WebMvcConfig 만들기
+- localhost:3000으로 응답이 잘 가도록 처리하자
+```java
+package com.korea.api.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+//CORS
+//하나의 출처에서 다른 출처로 REQUEST를 허용해주는것.
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/**")
+		.allowedOrigins("http://localhost:3000")
+		.allowedMethods("GET","POST","PUT","DELETE")
+		.allowedHeaders("*")
+		.allowCredentials(true)
+		.maxAge(3600);
+	}
+}
+```
+
+### 리액트에서 우리의 서버에 요청하기
+```js
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const NaverBookSearch = () => {
+  const [query, setQuery] = useState(''); // 검색어 상태
+  const [results, setResults] = useState([]); // 검색 결과 상태
+  const [loading, setLoading] = useState(false); // 로딩 상태
+  const [error, setError] = useState(null); // 에러 상태
+
+  const handleSearch = async () => {
+    if (!query) {
+      alert("검색어를 입력하세요.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 스프링부트 백엔드로 요청
+      const response = await axios.get('http://localhost:8080/api/books', {
+        params: { query }
+      });
+
+      setResults(response.data.items); // 네이버 도서 API에서 받은 결과 저장
+    } catch (err) {
+      setError("검색에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Naver Book Search</h1>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="책 제목을 입력하세요"
+      />
+      <button onClick={handleSearch} disabled={loading}>
+        {loading ? '검색 중...' : '검색'}
+      </button>
+
+      {error && <p>{error}</p>}
+
+      <ul>
+        {results.map((book, index) => (
+          <li key={index}>
+            <h3>{book.title}</h3>
+            <p>저자: {book.author}</p>
+            <p>출판사: {book.publisher}</p>
+            <p>출판일: {book.pubdate}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default NaverBookSearch;
+```
+- 백엔드와 프론트엔드를 모두 켜고 검색을 해보면 결과를 잘 받는걸 볼 수 있다.
+
