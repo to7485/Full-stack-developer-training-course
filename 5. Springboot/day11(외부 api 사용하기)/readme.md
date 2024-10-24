@@ -324,6 +324,7 @@ export default PostcodeComponent;
 
 ### 요청 URL
 |요청 URL|결과값 반환 형식|
+|------|---------------------|
 |https://openapi.naver.com/v1/search/book.xml|XML|
 |https://openapi.naver.com/v1/search/book.json|JSON|
 
