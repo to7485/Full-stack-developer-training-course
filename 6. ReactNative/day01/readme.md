@@ -438,8 +438,6 @@ npm run android
 - **Metro**는 **React Native** 개발 환경에서 중요한 역할을 하는 **번들러**다. 
 - 쉽게 말해, Metro는 리액트 네이티브 앱을 개발할 때 필요한 **코드를 모아서 하나로 묶어주는 도구**라고 할 수 있다.
 
----
-
 ### 번들러는 무엇일까?
 
 - 번들러는 여러 파일로 나뉘어 있는 코드들을 모아 하나의 파일이나 작은 묶음으로 만들어주는 역할을 한다. 
@@ -461,5 +459,54 @@ npm run android
 - 리액트 네이티브 앱을 처음 실행하면, Metro가 자동으로 실행되면서 앱에 필요한 자바스크립트 파일들을 준비해준다. 
 - 앱이 실행 중일 때 Metro가 계속 코드를 확인해 수정된 부분을 반영해 주기 때문에, 개발자는 더 편리하게 코드를 실시간으로 수정하면서 결과를 볼 수 있다.
 
+![img](img/결과.png)
 
 
+### 메인 파일 변경
+- Expo 프로젝트와 리액트 네이티브 CLI 프로젝트의 화면에 보이는 내용은 모두 App.js 파일에 있는 내용이다.
+- 첫 화면을 구성하는 메인 파일을 변경해보자
+- 프로젝트에 src 폴더를 생성하고 App.js파일을 만들어 다음과 같이 작성한다.
+```JSX
+import React from 'react'
+import { View, StyleSheet, Text } from 'react-native'
+
+const App = () => {
+    return(
+        <View style={styles.container}>
+            <Text style={styles.title}>My First React Native</Text>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex : 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor:'#ffffff',
+    },
+    title:{
+        fontSize: 30,
+    }
+})
+
+export default App;
+```
+- 파일 작성이 완료되었다면 이제 첫 화면 파일을 변경해보자.
+- Expo 프로젝트의 경우 프로젝트 루트 폴더에 있는 App.js 파일을 다음과 같이 수정한다.
+
+```jsx
+import App from './src/App'
+export default App;
+```
+- 리액트 네이티브 CLI 프로젝트에서는 프로젝트 루트 폴더에 있는 index.js 파일을 다음과 같이 수정한다.
+```jsx
+import {AppRegistry} from 'react-native';
+import App from './src/App';
+import {name as appName} from './app.json';
+```
+
+![img](img/결과2.png)
+
+- 실제 시작 파일을 변경하는 방법도 있지만, 그 방법보다는 첫 화면을 구성하는 파일만 변경하고 리액트 네이티브에서 사용되는 파일을 모두 src 폴더에서 관리하는 방법을 추천한다.
+- 앞으로 이 책에서 진행하는 실습파일은 모두 src폴더에서 관리하고 App.js파일을 첫 화면 파일로 이용할 것이다.
