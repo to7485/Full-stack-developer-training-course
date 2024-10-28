@@ -521,6 +521,10 @@ export default MyButton;
 - 부모 컴포넌트가 자식 컴포넌트의 props를 설정하면 자식 컴포넌트에서는 해당 props를 사용할 수 있지만 변경하는 것은 불가능하다.
 - props의 변경이 필요한 경우 props를 설정 및 전달한 부모 컴포넌트에서 변경해야 한다.
 
+```html
+<컴포넌트 속성="속성값" 속성={속성값}>
+```
+
 ### props 전달하고 사용하기
 - 먼저 부모 컴포넌트에서 props를 자식 컴포넌트로 전달해보자.
 - Button 컴포넌트를 사용하면서 title 속성을 지정했었다.
@@ -655,5 +659,75 @@ MyButton.propTypes = {
 - PropTypes를 이용해 필수 여부를 지정하는 방법은 간단하다.
 - 선언된 타입 뒤에 isRequired만 붙여주면 된다.
 ```jsx
+MyButton.propTypes = {
+    title: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+}
+```
+
+![img](img/결과7.png)
+
+- name은 필수로 전달되어야 하는데 전달되지 않았기 때문에 경고메시지가 나타난다.
+- title도 전달되지 않았지만 defaultProps에 기본값을 설정했기 대문에 경고 메시지가 나타나지 않는다.
+- MyButton 컴포넌트에서 defaultProps를 삭제한 후 확인해보면 title에대한 경고 메시지가 나타나는것을 볼 수 있다.
+
+### PropTypes에 다양한 타입 지정하기
+- 함수 전달하기
+```jsx
+ MyButton.propTypes = {
+        title: PropTypes.string.isRequired,
+        onPress : PropTypes.func.isRequired
+    }
+
+  return(
+      <Pressable
+          style={{
+              backgroundColor: '#3498db',
+              padding: 16,
+              margin: 10,
+              borderRadius: 8,
+          }}
+          onPress={()=> props.onpress()}
+          >
+```
+- onPress가 필수로 설정되었으므로 App 컴포넌트에서 MyButton 컴포넌트를 사용할 때 onPress를 전달하도록 수정하자.
+```jsx
+<MyButton title="Button"  onPress={()=> alert('props')}/>
+<MyButton title="Button"  onPress={()=> alert('children')}> Children Props</MyButton>
+<MyButton  onPress={()=> alert('default')}/>
+```
+
+## State
+- props는 부모 컴포넌트에서 받은 값으로 변경할 수 없는 반면, state는 컴포넌트 내부에서 생성되고 값을 변경할 수 있으며 이를 이용해 컴포넌트 상태를 관리한다.
+- 상태(state)란 컴포넌트에서 변화할 수 있는 값을 나타내며, 상태가 변하면 컴포넌트는 리렌더링된다.
+
+### useState 사용하기
+- 리액트 Hooks 중 useState는 함수형 컴포넌트에서 상태를 관리할 수 있도록 해준다.
 
 ```
+const[변수,setter] = useState(초기값);
+```
+- useState는 상태를 관리하는 변수와 그 변수의 값을 변경할 수 있는 setter함수를 배열로 반환한다.
+- 상태 변수는 직접 변경하는것이 아니라 useState에서 반환한 setter함수를 이용해야한다.
+- useState 함수를 호출할 때 파라미터에 생성되는 상태의 초기값을 전달할 수 있고, 초깃값을 전달하지 않으면 undefined로 설정되어 에러가 발생할 수 있다.
+- components 폴더 밑에 Counter.js를 생성하고 useState를 이용해 Counter 컴포넌트를 만들어보자
+```jsx
+import React from "react";
+import { View, Text } from "react-native";
+import MyButton from "./MyButton";
+
+const Counter = () => {
+    const [count, setCount] = useState(0);
+
+    return(
+        <View style={{alignItems: 'center'}}>
+            <Text style={{ fontSize: 30, margin: 10}}>{count}</Text>
+            <MyButton title="+1" onPress={() => setCount(count + 1)}/>
+            <MyButton title="-1" onPress={() => setCount(count - 1)}/>
+        </View>
+    )
+}
+
+export default Counter;
+```
+- App에서 사용해보자
