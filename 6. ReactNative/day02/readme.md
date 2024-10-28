@@ -511,4 +511,149 @@ const MyButton = () => {
 
 export default MyButton;
 ```
--
+- 안드로이드와 iOS에서 동일한 버튼이 나타나고 기능도 잘 동작하는 모습을 확인할 수 있다.
+
+## psops와 state
+- props와 state는 컴포넌트가 UI 뿐만 아니라  다양한 기능을 담당할 수 있도록 하여 더욱 다양한 역할을 수행할 수 있도록 해준다.
+
+### props
+- properties의 줄인 표현으로, 부모 컴포넌트로부터 전달된 속성값 혹은 상속받은 속성값을 이야기한다.
+- 부모 컴포넌트가 자식 컴포넌트의 props를 설정하면 자식 컴포넌트에서는 해당 props를 사용할 수 있지만 변경하는 것은 불가능하다.
+- props의 변경이 필요한 경우 props를 설정 및 전달한 부모 컴포넌트에서 변경해야 한다.
+
+### props 전달하고 사용하기
+- 먼저 부모 컴포넌트에서 props를 자식 컴포넌트로 전달해보자.
+- Button 컴포넌트를 사용하면서 title 속성을 지정했었다.
+```html
+<Button title="button" />
+```
+- 이 코드처럼 Button 컴포넌트에  title 속성을 지정하면, Button 컴포넌트의 props로 title이 전달된다.
+- 이번에는 우리가 만든 MyButton 컴포넌트를 이용해서 props에 전달되는 값을 확인해보자.
+- 먼저 App 컴포넌트에서 MyButton 컴포넌트에 title이라는 속성을 입력해 사용한다.
+```jsx
+const App = () => {
+    return(
+        <View
+            style={{
+                flex:1,
+                backgroundColor:'#fff',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}
+        >
+            <Text style={{fontSize:30, marginBottom:10}}>Props</Text>
+            {/* <Button title="button" onPress={()=> alert('Click!!')}/> */}
+            <MyButton title="Button" />
+        </View>
+    )
+}
+```
+- App 컴포넌트에서 MyButton 컴포넌트를 호출할 때 title 속성에 Button이라는 문자열을 전달했다.
+- 자식 컴포넌트에서는 부모로부터 전달된 props를 함수의 파라미터로 받아서 사용할 수 있다.
+- MyButton 컴포넌트에서 props를 전달받아 값을 확인해보자
+
+```jsx
+const MyButton = (props) => {
+    console.log(props);
+    return( ...
+```
+
+![img](img/로그.png)
+- 터미널에 출력되는 값을 보면 App 컴포넌트에서 MyButton 컴포넌트의 속성으로 지정한 title이 전달되는 것을 확인할 수 있다.
+- 이번에는 props로 전달된 title을 이용해 버튼에 출력되는 문자열을 변경해보자
+```jsx
+<Pressable
+  ...
+    >
+    <Text style={{color: 'white', fontSize : 24}}>{props.title}</Text>
+</Pressable>
+```
+![img](img/결과1.png)
+
+- title로 전달된 내용이 버튼에 잘 나온것을 확인할 수 있다.
+- 부모 컴포넌트에서 자식 컴포넌트를 사용하면서 속성으로 props를 전달하는 방법 외에 컴포넌트의 태그 사이에서 값을 입력해서 전달하는 방법도 있다.
+- App 컴포넌트를 수정해보자.
+```jsx
+...
+  <Text style={{fontSize:30, marginBottom:10}}>Button Component</Text>
+  {/* <Button title="button" onPress={()=> alert('Click!!')}/> */}
+  <MyButton title="Button" />
+  <MyButton title="Button" > Children Props</MyButton>
+</View>
+
+```
+- 컴포넌트의 태그 사이에 전달된 값은 자식 컴포넌트의 props에 children으로 전달된다.
+- 이제 MyButton 컴포넌트에서 children을 이용하여 태그 사이에 있는 값을 출력하도록 수정해보자.
+
+```jsx
+<Text style={{color: 'white', fontSize : 24}}>{props.children || props.title}</Text>
+```
+![img](img/결과4.png)
+
+- props에 children이 있다면 title보다 우선시되도록 작성했다.
+
+### defaultProps
+- 만약 사용해야 하는 값이 props로 전달되지 않으면 어떻게 될까?
+- App 컴포넌트에서 아무값도 전달하지 않으면서 MyButton 컴포넌트를 사용해보자.
+```jsx
+<Text style={{fontSize:30, marginBottom:10}}>Button Component</Text>
+{/* <Button title="button" onPress={()=> alert('Click!!')}/> */}
+<MyButton title="Button" />
+<MyButton title="Button" > Children Props</MyButton>
+<MyButton />
+```
+![img](img/결과5.png)
+
+- MyButton 컴포넌트에서 Text 컴포넌트에 title 혹은 children을 렌더링하도록 했지만, 어떤 값도 전달되지 않았기 때문에 빈 버튼이 나타난다.
+- 여러 사람과 함께 개발하다보면 내가 만든 컴포넌트를 다른 사람이 사용하는 경우가 많다.
+- 이런 상황에서 컴포넌트를 잘못 파악해 반드시 전달되어야 하는 중요한 값이 전달되지 않았을 때 사용할 기본값을 defaultProps로 지정하면 만약의 사태에 빈 값이 나타나는 상황을 막을 수 있다.
+```jsx
+const MyButton = (props) => {
+
+    MyButton.defaultProps = {
+        title: 'Button',
+    }
+...
+
+```
+- App 컴포넌트는 수정하지 않았지만, MyButton 컴포넌트의 defaultProps 덕분에 빈 값으로 나타나던 버튼에 기본값으로 지정한 텍스트가 나타나는 것을 확인할 수 있다.
+
+### propsTypes
+- 프로젝트의 크기가 커지면서 컴포넌트에 props를 전달할 때 잘못된 타입으로 전달하거나, 필수로 전달해야 하는 값을 전달하지 않아서 문제가 생길 수 있다.
+- 혹은 협업하는 다른 개발자가 잘못 전달할 수도 있다.
+- 이런 상황에서 잘못된 props가 전달되었다는 것을 경고 메시지를 통해 알리는 방법으로 PropsTypes를 사용하는 방법이 있다.
+- PropsTypes를 사용하려면 prop-types라이브러리를 추가로 설치해야 한다.
+```js
+npm install prop-types
+```
+- PropsTypes를 이용하면 컴포넌트에서 전달받아야 하는 props의 타입과 필수 여부를 지정할 수 있다.
+- 설치가 완료되면 MyButton 컴포넌트에서 PropsTypes를 이용해 다음과 같이 수정한다.
+```jsx
+import PropTypes from "prop-types";
+
+const MyButton = (props) => {
+
+...
+
+  MyButton.propTypes = {
+      title: PropTypes.number
+  }
+```
+- title에는 문자열이 넘어오지만, PropTypes를 이용해 title에 전달되어야 하는 값의 타입이 숫자여야 한다고 지정했다.
+- 결과를 보면 경고 메시지를 확인할 수 있다.
+
+![img](img/결과6.png)
+
+- 이렇게 전달받을 props의 타입을 지정해서 잘못된 타입이 전달될 경우 경고 메시지를 출력할 수 있다.
+- title의 타입을 문자열로 변경하면 앞의 경고 메시지가 더 이상 나타나지 않는다는 것을 알 수 있다.
+```jsx
+MyButton.propTypes = {
+    title: PropTypes.string
+}
+```
+- 이번에는 필수 전달 여부를 설정해보자.
+- PropTypes를 이용해 필수 여부를 지정하는 방법은 간단하다.
+- 선언된 타입 뒤에 isRequired만 붙여주면 된다.
+```jsx
+
+```
