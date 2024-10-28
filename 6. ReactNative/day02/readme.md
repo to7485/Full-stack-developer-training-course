@@ -93,6 +93,17 @@ export default function App() {
   );
 }
 ```
+### JSX 표현식 규칙
+- 중괄호 {} 안에 JavaScript 표현식을 사용할 수 있다.
+- 숫자, 문자열, 함수 호출, 배열 등을 중괄호 {} 안에 넣어 JSX 내에서 자유롭게 사용할 수 있다.
+
+### 태그의 닫힘 규칙
+- JSX에서 모든 태그는 반드시 닫혀야 한다.
+-  img나 input 같은 HTML에서는 자주 단독으로 쓰는 태그도 JSX에서는 \<img src="url" />와 같이 끝에 /을 붙여서 닫아야 오류가 발생하지 않는다.
+```JSX
+<Image source={{ uri: 'https://example.com/image.png' }} style={{ width: 100, height: 100 }} />
+```
+
 
 ### 자바스크립트 변수
 - JSX는 내부에서 자바스크립트의 변수를 전달하여 이용할 수 있다.
@@ -174,10 +185,14 @@ export default function App() {
       <StatusBar style="auto" />
     </View>
   );
-}
 ```
 - AND 연산자 앞의 조건이 참일 때 뒤의 내용이 렌더링 되고, 거짓인 경우 나타나지 않는다.
+```jsx
+<Text>{name || "Default Name"}</Text>
+```
 - OR연산자는 AND연산자와 반대로 앞의 조건이 거짓인 경우 내용이 나타나고, 조건이 참인 경우 나타나지 않는다.
+
+
 
 ### null과 undefined
 - 조건에 따라 출력하는 값을 변경하다 보면 컴포넌트가 null이나 undefined를 반환하는 경우가 있다.
@@ -194,3 +209,306 @@ export default function App() {
   return undefined;
 }
 ```
+- undefined가 반환되는 상황에서는 화면이 나타나지 않는 것이 아니라 오류가 발생하기 때문에 코드 작성시 신경 써야 한다.
+
+### 주석
+- JSX에서의 주석은 자바스크립트에서의 주석과 약간 차이가 있다.
+- 단, 태그 안에서 주석을 사용할 때는 자바스크립트처럼 //나 /**/주석을 사용할 수 있다.
+```jsx
+export default function App() {
+  const name = "Mal-Dong";
+  return (
+    <View style={styles.container}>
+      {/* <Text style={styles.text}>Comment</Text> */}
+      <Text //Comment
+      >
+        Comment
+      </Text>
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+```
+
+### 스타일링
+- JSX의 각 요소에 스타일을 적용하는 방법은 다양하다
+- 자세한 내용은 4장에서 하고, 여기서는 인라인 스타일링에 대해 알아보자
+- JSX에서는 HTML과 달리 style에 문자열로 입력하는 것이 아니라 객체 형태로 입력해야 한다.
+- 그리고 background-color처럼 하이픈(-)으로 연결된 이름은 하이픈을 제거하고 카멜 표기법으로 backgroundColor처럼 작성해야 한다.
+```jsx
+export default function App() {
+  const name = "Mal-Dong";
+  return (
+    <View style={{flex:1,
+      backgroundColor:'#fff',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <Text>Open up App.js to start working on your app!</Text>
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+```
+
+## 컴포넌트
+- 재사용이 가능한 조립 믈록으로 화면에 나타나는 UI 요소이다.
+- 우리가 지금까지 봤던 App.js 파일도 App이라는 컴포넌트이다.
+- 컴포넌트는 단순히 UI역할만 하는 것이 아니라 부모로부터 받은 속성(props)이나 자신의 상태(state)에 따라 표현이 달라지고 다양한 기능을 수행한다.
+- 리액트 네이티브는 데이터와 UI 요소의 집합체라고 할 수 있는 컴포넌트를 이용하여 화면을 구성한다.
+
+## 컴포넌트의 특징
+### 독립적
+- 포넌트는 다른 코드와 독립적으로 동작한다.
+- 한 곳에서 수정해도 다른 부분에 영향을 주지 않는다.
+### 재사용 가능
+- 한 번 작성한 컴포넌트를 여러 곳에서 사용할 수 있다. 
+- 예를 들어, 앱에서 같은 스타일의 버튼이 필요하다면 버튼 컴포넌트를 만들어 원하는 곳에서 재사용할 수 있다.
+
+
+```jsx
+import React from 'react';
+import { View } from 'react-native';
+import MyComponent from './MyComponent'; // 작성한 컴포넌트를 불러옴
+
+export default function App() {
+  return (
+    <View>
+      <MyComponent />
+      <MyComponent />
+    </View>
+  );
+}
+```
+## 컴포넌트의 장점
+### 유지보수가 용이하다
+- 화면의 각 부분을 작은 컴포넌트로 분리하여 만들기 때문에 필요한 부분만 수정할 수 있다.
+### 재사용 가능하다
+- 반복적으로 사용하는 요소를 컴포넌트로 만들어서 여러 곳에서 재사용할 수 있다.
+### 가독성 증가
+- 코드가 잘게 나누어지기 때문에 이해하기 쉽고 코드 관리가 수월하다.
+
+### 내장 컴포넌트
+- 리액트 네이티브에서는 다양한 내장 컴포넌트들이 제공된다.
+<br>https://reactnative.dev/docs/components-and-apis
+
+
+### View와 Text
+#### View
+- 가장 기본적인 레이아웃 컴포넌트로, HTML의 \<div>와 유사한 역할을 한다.
+- 화면에 여러 요소를 그룹화하거나 레이아웃을 구성할 때 사용된다.
+####  Text
+- 텍스트를 표시할 때 사용하는 컴포넌트다. 
+- HTML의 \<p>, \<span>과 비슷하며, React Native에서 텍스트를 표시할 때 필수적으로 사용된다.
+```jsx
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+export default function App() {
+  return (
+    <View style={styles.container}>
+      <Text>Hello from View Component!</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+```
+
+### Button 컴포넌트
+- https://reactnative.dev/docs/button
+- Button 컴포넌트의 문서를 확인해보면 설명과 사용 예제가 있다.
+- 그리고 설정할 수 있는 속성들의 목록과 각 속성들의 설명을 볼 수 있다.
+- 다른 컴포넌트들에도 이와 같이 자세한 예제와 설정 가능한 속성에 대한 설명이 있으므로 컴포넌트 사용 시 참고 할 수 있다.
+- Button 컴포넌트를 사용하고 title과 onPress 속성을 지정해보자
+- title 속성은 버튼 내부에 출력되는 텍스트이며, onPress 속성에는 버튼이 눌렸을 때 호출되는 함수를 지정할 수 있다.
+- src 폴더를 생성하고 그 안에 App 컴포넌트를 작성할 App.js파일을 생성한다.
+```jsx
+import React from "react";
+import { View, Text, Button } from "react-native";
+
+const App = () => {
+    return(
+        <View
+            style={{
+                flex:1,
+                backgroundColor:'#fff',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}
+        >
+            <Text style={{fontSize:30, marginBottom:10}}>Button Component</Text>
+            <Button title="button" onPress={()=> alert('Click!!')}/>
+        </View>
+    )
+}
+
+export default App;
+```
+- 버튼에 출력될 텍스트는 title 속성을 이용해서 button이라고 지정하고, 버튼을 클릭했을 때 Click!!이라는 확인 창이 나타나도록 onPress 속성에 함수를 지정했다.
+- 작성이 완료되면 루트 디렉터리에 있는 App.js파일을 수정해 앞에서 작성한 App컴포넌트를 사용하도록 수정한다.
+```js
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View } from 'react-native';
+import App from './src/App';
+
+export default App;
+```
+- 에뮬레이터에 다음과 같이 반영된 모습을 볼 수 있다.
+
+![img](img/결과2.png)
+
+- 그런데 안드로이드와 ios에서의 버튼의 모습이 다른것을 볼 수 있다.
+- Button  컴포넌트의 문서에서 color 속성을 확인해보면 원인을 알 수 있다.
+https://reactnative.dev/docs/button#color<br>
+- Button 컴포넌트의 color 속성은, iOS에서는 텍스트 색을 나타내는 값이지만 안드로이드에서는 버튼의 바탕색을 나타내는 값이다.
+- 이렇게 iOS와 안드로이드가 약간씩 다르게 표현되거나 특정 플랫폼에서만 적용되는 속성이 있다.
+- 이런 부분은 문서로 확인할 수 있지만 모든 컴포넌트의 속성을 외우고 사용할 수는 없다.
+- 따라서 한 플랫폼만 테스트 하는 것이 아니라 iOS와 안드로이드 모두 확인하면서 개발하는 습관을 들이는것이 중요하다.
+
+### ScrollView
+- ScrollView는 스크롤이 가능한 뷰를 만들 때 사용하는 컴포넌트다.
+- 화면에 보여질 내용이 길어질 때 유용하다.
+```jsx
+import React from 'react';
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
+
+export default function App() {
+  return (
+    <ScrollView style={styles.container}>
+      {Array.from({ length: 20 }, (_, i) => (
+        <View key={i} style={styles.item}>
+          <Text>Item {i + 1}</Text>
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  item: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    alignItems: 'center',
+  },
+});
+```
+
+### 커스텀 컴포넌트 만들기
+- 리액트 네이티브에서 다양한 컴포넌트를 제공하고 있지만, 프로젝트를 진행하다 보면 여러 컴포넌트를 조합해서 새로운 컴포넌트를 제작하여 사용하게 된다.
+- 리액트 네이티브에서 제공하는 컴포넌트들을 이용해서 커스텀 컴포넌트를 만들어보자.
+- Pressable 컴포넌트와 Text 컴포넌트를 이용해서 MyButton 컴포넌트를 만들어보자.
+
+### Pressable 컴포넌트
+- 터치 이벤트에 대한 더 세부적인 제어를 제공하는 최신 터치 컴포넌트로, 다양한 상태와 조건을 다루기 위해 만들어졌다.
+- 터치 가능한 영역을 정의하는 컴포넌트로, 사용자가 터치, 길게 누름, 눌렀다 뗌 등의 여러 이벤트를 처리할 수 있다.
+- 각 이벤트에 따른 다양한 콜백 함수를 제공해 더 세밀하게 터치 상호작용을 제어할 수 있다.
+
+#### 주요 이벤트와 콜백함수
+- **onPress**: 사용자가 컴포넌트를 눌렀다 떼었을 때 호출된다. 일반적인 클릭 이벤트를 처리하는 데 사용된다.
+- **onPressIn**: 사용자가 컴포넌트를 누르는 순간 호출된다.
+- **onPressOut**: 사용자가 눌렀다 뗄 때 호출된다.
+- **onLongPress**: 사용자가 지정된 시간 이상 길게 눌렀을 때 호출된다. 길게 누르는 경우에만 특정 동작을 처리하고 싶을 때 유용하다.
+
+### components 폴더 만들기
+- 제작된 컴포넌트들을 관리할 components 폴더를 src 폴더 밑에 만든다.
+- MyComponent.js 파일을 만든다.
+
+```jsx
+import React from "react";
+import { Pressable, Text } from "react-native";
+
+const MyButton = () => {
+    return(
+        <Pressable>
+            <Text style={{fontSize : 24}}>My Button</Text>
+        </Pressable>
+    )
+}
+
+export default MyButton;
+```
+```jsx
+import React from "react";
+```
+- 이 코드는 리액트를 불러와서 사용할 수 있게 해준다.
+- JSX는 React.createElement를 호출하는 코드로 컴파일되므로 컴포넌트를 작성할 때 반드시 작성해야 하는 코드이다.
+
+```jsx
+import { Pressable, Text } from "react-native";
+```
+- 리액트 네이티브에서 제공하는 Pressable 컴포넌트와 Text 컴포넌트를 추가했다.
+
+```jsx
+const MyButton = () => {
+    return(
+        <Pressable>
+            <Text style={{fontSize : 24}}>My Button</Text>
+        </Pressable>
+    )
+}
+```
+- Pressable 컴포넌트를 사용해서 클릭에 대한 상호작용을 할 수 있도록 하고, 버튼에 내용을 표시하기 위해 Text 컴포넌트를 사용했다.
+- 이제 App 컴포넌트에서 MyButton 컴포넌트를 이용하도록 수정해보자.
+
+```jsx
+import React from "react";
+import { View, Text, Button, ScrollView } from "react-native";
+import MyButton from "./components/MyButton";
+
+const App = () => {
+    return(
+        <View
+            style={{
+                flex:1,
+                backgroundColor:'#fff',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}
+        >
+            <Text style={{fontSize:30, marginBottom:10}}>Button Component</Text>
+            {/* <Button title="button" onPress={()=> alert('Click!!')}/> */}
+            <MyButton />
+        </View>
+    )
+}
+
+export default App;
+```
+- 버튼이 만들어졌지만 클릭이 잘 됐는지에 대한 명령이 없다
+- MyButton 컴포넌트를 수정해보자
+```jsx
+import React from "react";
+import { Pressable, Text } from "react-native";
+
+const MyButton = () => {
+    return(
+        <Pressable
+            style={{
+                backgroundColor: '#3498db',
+                padding: 16,
+                margin: 10,
+                borderRadius: 8,
+            }}
+            onPress={()=>{alert('Click !!!')}}
+            >
+            <Text style={{color: 'white', fontSize : 24}}>My Button</Text>
+        </Pressable>
+    )
+}
+
+export default MyButton;
+```
+-
