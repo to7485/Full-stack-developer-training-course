@@ -312,3 +312,132 @@ const App = () => {
 
 export default App;
 ```
+- Header 컴포넌트와 Footer 컴포넌트의 높이를 80으로 고정하고, Contents 컴포넌트가 나머지 영역을 차지하도록 640이라는 값으로 설정했다.
+- 하지만 고정값을 이용하면 기기마다 화면 크기의 차이 때문에 서로 다른 모습으로 나타나고 이런 다양한 크기의 기기에 대응하기 어렵다.
+- 이때 flext를 이용하면 문제를 해결할 수 있다.
+- flex는 width나 height와 달리 항상 비율로 크기가 설정된다.
+- flex는 값으로 숫자를 받으며 값이 0일때는 설정된 width와 height값에 따라 크기가 결정되고, 양수인 경우 flex값에 비례하여 크기가 조절된다.
+- 우리가 만든 컴포넌트가 화면을 1:2:1 비율로 나눠 채우게 하려면 어떻게 해야할까?
+```js
+  header: {
+    flex: 1
+    backgroundColor: '#f1c40f',
+  },
+  contents: {
+    flex: 2
+    backgroundColor: '#1abc9c',
+    height: 640,
+  },
+  footer: {
+    flex: 1
+    backgroundColor: '#3498db',
+  },
+```
+- 결과를 보면 영역을 1:2:1 비율로 나눠 차지하고 있는 모습을 확인할 수 있다.
+- 원래 목적으로 돌아가서, 다양한 크기의 기기에 항상 동일하게 화면이 구성되도록 하려면 Header 컴포넌트와 Footer컴포넌트의 높이를 80으로 고정하고 Contents 컴포넌트가 나머지 부분을 차지하도록 설정하면 된다.
+```js
+  header: {
+    backgroundColor: '#f1c40f',
+  },
+  contents: {
+    flex: 1
+    backgroundColor: '#1abc9c',
+    height: 640,
+  },
+  footer: {
+    backgroundColor: '#3498db',
+  },
+```
+
+### 정렬
+- flex를 이용하면 컴포넌트가 원하는 영역을 차지하게 할 수 있다.
+- 이번에는 컴포넌트를 정렬하는 방법에 대해 알아보자
+
+### flexDirection
+- 지금까지 실습을 하면서 컴포넌트가 항상 위에서 아래로 쌓인다는 것을 살펴봤다.
+- 화면을 구성하다보면 컴포넌트가 쌓이는 방향을 변경하고 싶을 때가 있는데 이때 flexDirection을 이용하면 컴포넌트가 쌓이는 방향을 변경할 수 있다.
+- `flexDirection`은 요소들이 정렬되는 **주축의 방향**을 결정하는 속성이다. `row`와 `column`을 사용하여 가로 또는 세로 방향으로 정렬할 수 있다.
+
+### flexDirection의 속성값
+- **column** : 세로 방향으로 정렬
+- **column-reverse**: 자식 요소들을 세로 방향으로 정렬하되, 역방향으로 배치한다.
+- **row**: 자식 요소들을 **가로 방향**으로 정렬한다.
+- **row-reverse**: 자식 요소들을 가로 방향으로 정렬하되, 역방향으로 배치한다.
+
+![img](img/flex-direction.png)
+
+- components폴더에 flexDirectionTest.js 만들기
+```js
+import React from 'react';
+import { View, Text, Button } from 'react-native';
+import { box_styles } from '../styles';
+
+const FlexDirectionTest = () => {
+    const [direction, setDirection] = React.useState('row');
+
+    return (
+        <View style={box_styles.container}>
+            <Text style={box_styles.title}>flexDirection: {direction}</Text>
+            <View style={[box_styles.boxContainer, { flexDirection: direction }]}>
+                <View style={box_styles.box}><Text style={box_styles.boxText}>1</Text></View>
+                <View style={box_styles.box}><Text style={box_styles.boxText}>2</Text></View>
+                <View style={box_styles.box}><Text style={box_styles.boxText}>3</Text></View>
+            </View>
+
+            <View style={box_styles.buttons}>
+                <Button title="Row" onPress={() => setDirection('row')} />
+                <Button title="Column" onPress={() => setDirection('column')} />
+                <Button title="Row Reverse" onPress={() => setDirection('row-reverse')} />
+                <Button title="Column Reverse" onPress={() => setDirection('column-reverse')} />
+            </View>
+        </View>
+    );
+};
+
+export default FlexDirectionTest;
+```
+- styles.js에 코드 추가하기
+```js
+export const box_styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#f5f5f5',
+    },
+    title: {
+        fontSize: 18,
+        marginBottom: 20,
+    },
+    boxContainer: {
+        width: 200,
+        height: 200,
+        backgroundColor: '#ddd',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    box: {
+        width: 50,
+        height: 50,
+        backgroundColor: '#3498db',
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 5,
+    },
+    boxText: {
+        color: '#fff',
+        fontSize: 18,
+    },
+    buttons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+});
+```
+
+### justifyContent
+- 컴포넌트 내부의 자식 요소들이 주축(main axis)을 따라 정렬되는 방식을 설정하는 스타일 속성이다.
+- 
