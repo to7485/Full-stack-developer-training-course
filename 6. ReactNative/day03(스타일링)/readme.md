@@ -440,6 +440,61 @@ export const box_styles = StyleSheet.create({
 
 ### justifyContent
 - 컴포넌트 내부의 자식 요소들이 주축(main axis)을 따라 정렬되는 방식을 설정하는 스타일 속성이다.
+- flexDirection 속성에 따라 주축의 방향이 바뀌는데, 기본적으로 flexDirection: 'column'일 경우 세로 방향이 주축이 되고, flexDirection: 'row'일 경우 가로 방향이 주축이 된다.
+
+### 주요 속성값
+- flex-start: 자식 요소들을 주축의 시작 부분에 배치한다. (기본값)
+- center: 자식 요소들을 주축의 중앙에 배치한다.
+- flex-end: 자식 요소들을 주축의 끝 부분에 배치한다.
+- space-between: 첫 번째 자식 요소는 주축의 시작 부분에, 마지막 자식 요소는 주축의 끝 부분에 배치하며, 각 자식 요소 간에 동일한 간격을 둔다.
+- space-around: 자식 요소들 사이에 동일한 간격을 배치하되, 주축의 양 끝에도 반 간격만큼의 여백을 둔다.
+- space-evenly: 모든 자식 요소들 사이에 동일한 간격을 두며, 주축의 양 끝에도 동일한 간격을 둔다.
+```js
+import React, { useState } from "react";
+import { View, Text, Button } from 'react-native';
+import { box_styles } from '../styles';
+
+const JustifyContentTest = () => {
+    const [justifyContent, setJustifyContent] = useState('flex-start');
+
+    return (
+        <View style={box_styles.container}>
+            <Text style={box_styles.title}>JustifyContent: {justifyContent}</Text>
+            
+            {/* 아래의 View에 감싸진 요소들을 justifyContent로 수평 정렬을 설정 */}
+            <View style={[box_styles.boxContainer, { justifyContent: justifyContent }]}>
+                <View style={box_styles.box}><Text>1</Text></View>
+                <View style={box_styles.box}><Text>2</Text></View>
+                <View style={box_styles.box}><Text>3</Text></View>
+            </View>
+            
+            <View style={box_styles.buttons}>
+                <Button title="Flex Start" onPress={() => setJustifyContent('flex-start')} />
+                <Button title="Center" onPress={() => setJustifyContent('center')} />
+                <Button title="Flex End" onPress={() => setJustifyContent('flex-end')} />
+                <Button title="Space Between" onPress={() => setJustifyContent('space-between')} />
+                <Button title="Space Around" onPress={() => setJustifyContent('space-around')} />
+                <Button title="Space Evenly" onPress={() => setJustifyContent('space-evenly')} />
+            </View>
+        </View>
+    );
+}
+
+export default JustifyContentTest;
+```
+
+![img](img/justifyContent.jfif)
+
+### alignItems
+- flexDirection에서 정한 방향과 수직이 되는 방향으로 정렬할 때 사용하는 속성이다.
+
+### 주요 속성값
+- flex-start : 시작점에서부터 정렬(기본값)
+- flex-end : 끝에서부터 정렬
+- center : 중앙 정렬
+- stretch: alignItems의 방향으로 확대
+- baseline : 컴포넌트 내부의 텍스트 베이스라인을 기준으로 정렬
+
 ```js
 import React, { useState } from "react";
 import { View, Text, Button } from 'react-native';
@@ -470,4 +525,419 @@ const AlignItemsTest = () => {
 }
 
 export default AlignItemsTest;
+```
+
+### 그림자
+- 그림자는 리액트 네이티브에서 플랫폼마다 다르게 적용되는 스타일 속성이다.
+- 이 경우 리액트 네이티브에서 제공하는 Platform 모듈을 이용해 각 플랫폼마다 다른 코드가 적용되도록 코드를 작성할 수 있다.
+- 문서 : https://bit.ly/react-native-platform
+
+## Platform 모듈
+- 앱이 실행되는 **운영 체제에 따라 다른 코드를 실행**할 수 있게 도와주는 도구다. 
+- React Native로 앱을 개발하면 같은 코드로 iOS와 Android에서 동시에 실행할 수 있지만, **일부 기능이나 스타일은 플랫폼에 따라 다르게** 적용해야 할 때가 있다. 
+- 이때 `Platform` 모듈을 사용하면 앱이 실행 중인 플랫폼에 맞춰 필요한 코드를 쉽게 추가할 수 있다.
+
+### `Platform` 모듈 사용법
+#### 1. `Platform.OS` 사용하기
+- `Platform.OS`는 현재 앱이 실행 중인 플랫폼을 알려주는 값이다. 
+- iOS에서는 `"ios"`, Android에서는 `"android"` 값을 반환한다.
+```js
+import { Platform, Text, View } from 'react-native';
+
+const App = () => {
+  return (
+    <View>
+      {Platform.OS === 'ios' ? (
+        <Text>iOS에서 실행 중</Text>
+      ) : (
+        <Text>Android에서 실행 중</Text>
+      )}
+    </View>
+  );
+};
+
+export default App;
+```
+
+#### 2. `Platform.select` 사용하기
+- 운영 체제별로 서로 다른 값을 쉽게 설정할 수 있게 해준다.
+- iOS와 Android에서 각각 다르게 설정해야 할 스타일이나 속성을 지정할 때 유용하다.
+```js
+import { Platform, StyleSheet, Text, View } from 'react-native';
+
+const styles = StyleSheet.create({
+  container: {
+    paddingTop: Platform.select({
+      ios: 50,      // iOS에서 paddingTop 50 적용
+      android: 20,  // Android에서 paddingTop 20 적용
+    }),
+  },
+});
+
+const App = () => {
+  return (
+    <View style={styles.container}>
+      <Text>플랫폼별 스타일 적용하기</Text>
+    </View>
+  );
+};
+
+export default App;
+```
+
+#### 3. `Platform.Version` 사용하기
+- 운영 체제의 버전 번호를 가져오는 속성이다. 
+- 이 값을 사용하면 iOS나 Android 버전에 따라 다른 코드를 실행할 수 있다.
+```js
+import { Platform, Text, View } from 'react-native';
+
+const App = () => {
+  return (
+    <View>
+      <Text>현재 플랫폼 버전: {Platform.Version}</Text>
+      {Platform.OS === 'android' && Platform.Version < 30 ? (
+        <Text>이 기능은 Android 30 이상에서만 지원됩니다.</Text>
+      ) : (
+        <Text>현재 플랫폼에서 지원되는 기능입니다.</Text>
+      )}
+    </View>
+  );
+};
+
+export default App;
+```
+### 그림자 만들기
+- Platform을 이용하여 iOS와 안드로이드 두 플랫폼에서 그림자를 만들어보자.
+- components 폴더 밑에 ShadowBox.js 파일을 생성하고 platform을 이용하여 그림자가 있는 박스를 만들자
+```js
+import React from 'react';
+import { StyleSheet, View, Platform } from 'react-native';
+
+export default () => {
+  return <View style={styles.shadow}></View>;
+};
+
+const styles = StyleSheet.create({
+  shadow: {
+    backgroundColor: '#fff',
+    width: 200,
+    height: 200,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 10,
+          height: 10,
+        },
+        shadowOpacity: 0.5,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 20,
+      },
+    }),
+  },
+});
+```
+- 완성된 ShadowBox 컴포넌트를 App 컴포넌트에서 사용해보자
+```js
+import React from 'react';
+import { View } from 'react-native';
+import { viewStyles } from './styles';
+import ShadowBox from './components/ShadowBox';
+
+const App = () => {
+  return (
+    <View style={viewStyles.container}>
+      <ShadowBox />
+    </View>
+  );
+};
+
+export default App;
+```
+- Platform을 사용하지 않고 스타일 코드를 작성해도 각 속성들이 적용되는 플랫폼에서만 동작한다.
+- 하지만 어떤 코드가 어떤 플랫폼에 적용되는지, 코드의 역할은 무엇인지 알기 어려우므로 Platform을 이용해서 명확하게 작성하는 것을 추천한다.
+
+## Styled-component
+- 스타일드 컴포넌트는 자바스크립트 파일 안에 스타일을 작성하는 CSS-in-JS 라이브러리이며, 스타일이 적용된 컴포넌트라고 생각하면 이해하기 쉽다.
+  
+` ※ react-router-dom 과 충돌나는거 같다 최신버전으로는 설치가 안된다.`
+```
+npm install styled-components@5.3 --legacy-peer-deps
+```
+
+### 사용법
+- 리액트 네이티브의 컴포넌트 이름을 styled 뒤에 붙여 스타일링된 컴포넌트를 만든다.
+- 이때 styled 뒤에 작성하는 컴포넌트이름은 반드시 존재하는 컴포넌트여야 한다.
+- 백틱(\` \`)안에 CSS 스타일을 작성하며, 이 스타일은 해당 컴포넌트에서만 적용된다.
+
+```js
+const 컴포넌트명 = styled.View`
+  CSS코드
+`
+
+- 사용시
+<컴포넌트명 />
+```
+
+### 스타일 적용하기
+- components폴더에 Buttons.js파일을 생성하고 스타일드 컴포넌트를 이용해 다음과 같이 작성한다.
+```js
+import React from 'react';
+import { StyleSheet, Pressable, Text } from 'react-native';
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#9b59b6',
+    borderRadius: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    marginVertical: 10,
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#fff',
+  },
+});
+
+const Button = props => {
+  return (
+    <ButtonContainer>
+    <Title>{props.title}</Title>
+  </ButtonContainer>
+  );
+};
+
+export default Button;
+```
+- Pressable 컴포넌트에 스타일이 적용된 ButtonContainer라는 이름의 컴포넌트를 만들고 Text컴포넌트에 스타일이 적용된 Title 컴포넌트를 만들었다.
+- 미자막으로 스타일드 컴포넌트로 만들어진 컴포넌트를 이용해 Button 컴포넌트를 만들었다.
+- 스타일드 컴포넌트를 사용하면 이렇게 역할에 맞는 이름을 지정할 수 있다는 장점이 있다.
+- 이제 완성된 Button 컴포넌트를 App 컴포넌트에 사용해보자.
+
+```js
+...
+import Button from './components/Button';
+import styled from 'styled-components';
+
+const Container = styled.View`
+  flex: 1;
+  background-color: #ffffff
+  align-items: center;
+  justify-content: center;
+`;
+
+const App = () => {
+  return (
+    <Container>
+      <Button title="Hanbit" />
+      <Button title="React Native" />
+  </Container>
+  );
+};
+
+export default App;
+```
+
+![img](img/결과1.png);
+
+### props 사용하기
+- Button 컴포넌트에서 props로 전달되는 title의 값이 Hanbit인 경우 바탕색을 다르게 표현해보자
+```js
+import React from 'react';
+import styled from 'styled-components';
+
+const ButtonContainer = styled.Pressable`
+ background-color: ${props =>
+    props.title === 'Hanbit' ? '#3498db' : '#9b59b6'};
+  border-radius: 15px;
+  padding: 15px 40px;
+  margin: 10px 0px;
+  justify-content: center;
+`;
+...
+
+const Button = props => {
+  return (
+    <ButtonContainer title={props.title}>
+      <Title>{props.title}</Title>
+    </ButtonContainer>
+  );
+};
+
+export default Button;
+```
+
+- ButtonContainer 컴포넌트에 props로 title을 전달하여 배경색을 설정하는곳에서 title의 값에 따라 다른 색이 지정되도록 수정했다.
+- 스타일드 컴포넌트를 이용하면 이 코드 처럼스타일이 작성되는 부분과 컴포넌트가 사용되는 부분을 구분하여 코드를 조금 더 깔끔하게 관리할 수 있다.
+
+
+![img](img/결과2.png)
+
+### attrs 사용하기
+- 스타일드 컴포넌트를 사용하면 스타일을 작성하는 곳에서 컴포넌트의 속성도 설정할 수 있다.
+- 그리고 속성을 설정할 때고 전달된 props를 이용할 수 있으므로 props의 값에 따라 속성을 변경할 수 있다.
+- components 폴더 안에 Inputs.js파일을 생성한다.
+```js
+import React from 'react';
+import styled from 'styled-components/native';
+
+const StyledInput = styled.TextInput`
+  width: 200px;
+  height: 60px;
+  margin: 5px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px;
+  border-color: #3498db;
+  font-size: 24px;
+`;
+
+const Input = props => {
+  return <StyledInput placeholder="Enter a text..." placeholderTextColor="3498db" />;
+};
+
+export default Input;
+```
+- App.js
+```js
+<Button title="Hanbit" />
+<Button title="React Native" />
+<Input />
+```
+![img](img/결과3.png)
+
+- 스타일드 컴포넌트의 attrs를 이용해서 props로 전달된 borderColor값에 따라 Input 컴포넌트의 디자인이 변경되도록 수정해보자.
+```js
+import React from 'react';
+import styled from 'styled-components';
+
+const StyledInput = styled.TextInput.attrs(props => ({
+  placeholder: 'Enter a text...',
+  placeholderTextColor: props.borderColor,
+}))`
+  width: 200px;
+  height: 60px;
+  margin: 5px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px;
+  border-color: ${props => props.borderColor};
+  font-size: 24px;
+`;
+
+const Input = props => {
+  return <StyledInput borderColor={props.borderColor} />;
+};
+
+export default Input;
+```
+- 코드 수정이 완료되면 App 컴포넌트에서 Input 컴포넌트를 사용하면서 borderColor값을 전달하도록 수정하자
+
+```js
+<Button title="Hanbit" />
+<Button title="React Native" />
+<Input borderColor="#3498db" />
+<Input borderColor="#9b59b6" />
+```
+- 이렇게 attrs를 이용하면 스타일을 설정하는 곳에서 props의 값에 따라 컴포넌트의 속성을 다르게 적용할 수도 있고 항상 일정한 속성을 미리 정의해놓을 수도 있다.
+- 하지만 attrs를 이용하여 속성을 설정하는 것이 항상 좋은 것만은 아니다.
+- 컴포넌트가 어떻게 사용되는가에 따라 attrs를 이용하지 않고 컴포넌트에 직접 속성을 전달하는 것이 코드를 이해하는 데 더 도움이 되는 경우도 있다.
+
+### ThemeProvider
+- ThemeProvider는 Context API를 활용해 어플리케이션 전체에서 스타일드 컴포넌트를 이용할 때 미리 정의한 값을 사용할 수 있도록 props로 전달한다.
+- ThemeProvider를 이용하여 스타일을 정의할 때 미리 정의한 색을 사용해보자
+- src에 Theme.js파일을 생성하고 Button 컴포넌트에서 사용했던 색을 정의해놓자
+```js
+export const theme = {
+  purple: '#9b59b6',
+  blue: '#3498db',
+};
+```
+- 이제 모든 컴포넌트를 감싸는 최상위 컴포넌트로 ThemeProvider 컴포넌트를 사용하며, 앞에서 정의한 색을 ThemeProvider 컴포넌트의 theme 속성에 설정하자.
+- 그러면 ThemeProvider 컴포넌트의 자식 컴포넌트에서는 스타일드 컴포넌트를 이용할 때 props로 theme을 전달받아 미리 정의된 색을 이용할 수 있다.
+
+```js
+import styled, { ThemeProvider } from 'styled-components';
+import { theme } from './theme';
+<ThemeProvider theme={theme}>
+  <Container>
+    <Button title="Hanbit" />
+    <Button title="React Native" />
+    <Input borderColor="#3498db" />
+    <Input borderColor="#9b59b6" />
+  </Container>
+</ThemeProvider>
+
+```
+- 이제 Button 컴포넌트에서 스타일을 정의할 때 props로 전달되는 theme을 이용하여 수정해보자.
+```js
+background-color: ${props => props.title === 'Hanbit' ? props.theme.blue : props.theme.purple};
+```
+- 기존 화면과 동일하게 나오는 모습을 확인할 수 있다.
+- 스타일드 컴포넌트를 사용할 때 ThemeProvider를 활용하여 theme를 지정하면, 하나의 파일에서 미리 정의해둔 색을 하위 컴포넌트에서 사용할 수 있다.
+- 하나의 파일에서 모든 색을 관리하면 색의 사용이나 변경 등 유지보수에서 많은 이점을 얻을 수 있다.
+- ThemeProvider를 이용하여 두 개의 색을 정의해두고 사용자의 선택에 따라 theme에 알맞은 값을 설정하는 것만으로 애플리케이션의 색 테마를 쉽게 변경할 수 있다.
+```js
+export const lightTheme = {
+    background: '#ffffff',
+    text: '#ffffff',
+    purple: '#9b59b6',
+    blue: '#3498db',
+  };
+  
+  export const darkTheme = {
+    background: '#34495e',
+    text: '#34495e',
+    purple: '#9b59b6',
+    blue: '#3498db',
+  };
+```
+- theme.js 파일에 테마에 따라 사용할 색을 정의했다.
+- 이제 App 컴포넌트에서 테마를 변경할 수 있는 스위치를 추가하고, 테마에 따라 다른 색이 사용되도록 수정해보자
+```js
+import React, { useState } from 'react';
+import { Switch } from 'react-native';
+...
+import { lightTheme, darkTheme } from './theme';
+
+const Container = styled.View`
+  flex: 1;
+  background-color: ${props => props.theme.background};
+  align-items: center;
+  justify-content: center;
+`;
+
+const App = () => {
+  const [isDark, setIsDark] = useState(false);
+  const _toggleSwitch = () => setIsDark(!isDark);
+
+  return (
+    <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
+      <Container>
+        <Switch value={isDark} onValueChange={_toggleSwitch} />
+        <Button title="Hanbit" />
+        <Button title="React Native" />
+        <Input borderColor="#3498db" />
+        <Input borderColor="#9b59b6" />
+      </Container>
+    </ThemeProvider>
+  );
+};
+
+export default App;
+```
+- useState를 이용해 테마의 상태를 관리할 isDark와 상태를 변경할 setIsDark함수를 만들었다.
+- 그리고 리액트 네이티브의 Switch 컴포넌트를 활용해 isDark의 상태를 변경할 수 있도록 화면을 구성했다.
+- ThemeProvider 컴포넌트의 theme속성에는 isDark 상태에 따라 theme.js파일에 정의된 darkTheme또는 lightTheme이 적용되도록 수정되었고, App 컴포넌트에서 사용되는 Container컴포넌트의 스타일을 정의하는 곳에서 props로 전달된 theme을 이용하여 배경색을 설정했다.
+- Button 컴포넌트에서도 theme의 변화에 따라 값이 잘 바뀌는지 확인하기 위해 Title 컴포넌트의 스타일을 다음과 같이 수정하자.
+```js
+const Title = styled.Text`
+  font-size: 20px;
+  font-weight: 600;
+  color: ${props => props.theme.text};
+`;
 ```
