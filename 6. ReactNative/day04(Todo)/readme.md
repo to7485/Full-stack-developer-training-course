@@ -363,3 +363,203 @@ const StyledInput = styled.TextInput.attrs(({theme}) =>({
 />
 ```
 
+### 이벤트
+- 입력되는 값을 이용할 수 있도록 Input 컴포넌트에 이벤트를 등록하자.
+```js
+import React ,{useState} from "react";
+...
+
+중략
+...
+
+export default function App(){
+    const[newTask, setNewTask] = useState('');
+
+    const _addTask = () => {
+        alert(`Add: ${newTask}`);
+        setNewTask('');
+    }
+
+    const _handleTextChange = text =>{
+        setNewTask(text);
+    }
+
+    return(
+        <ThemeProvider theme={theme}>
+                <Container>
+                ...
+                <Input 
+                    placeholder="+ Add Task"
+                    value={newTask}
+                    onChangeText={_handleTextChange}
+                    onSubmitEditing={_addTask}/>
+                </Container>
+        </ThemeProvider>
+    )
+}
+```
+
+- useState를 이용하여 newTask 상태 변수와 세터 함수를 생성하고 Input 컴포넌트에서 값이 변할 때마다 newTask에 저장하도록 작성했다.
+- 완료 버튼을 누르면 입력된 내용을 확인하고 Input 컴포넌트를 초기화하도록 만들었다.
+- Input 컴포넌트에서 props로 전달된 값들을 이용해서 수정해보자.
+```js
+import PropTypes from 'prop-types';
+
+...
+
+const Input = ({placeholder, value, onChangeText, onSubmitEditing}) => {
+const width = useWindowDimensions().width;
+return (
+    <StyledInput 
+    width={width}
+    placeholder={placeholder}
+    maxLength={50}
+    autoCapitalize="none"
+    autoCorrect={false}
+    returnKeyType="done"
+    keyboardAppearance="dark" // iOS only
+    value={value}
+    onChangeText={onChangeText}
+    onSubmitEditing={onSubmitEditing}
+    />
+);
+};
+
+Input.propTypes = {
+placeholder: PropTypes.string,
+value: PropTypes.string.isRequired,
+onChangeText: PropTypes.func.isRequired,
+onSubmitEditing: PropTypes.func.isRequired,
+onBlur: PropTypes.func.isRequired,
+};
+```
+- props로 전달되는 값들을 설정하고 PropsTypes를 이용해 전달되는 값들의 타입과 필수 여부를 지정했다.
+
+## 할일 목록 만들기
+- Input 컴포넌트를 통해 입력받은 내용을 목록으로 출력하는 기능을 만들어보자.
+- 할 일 목록을 만들기 위해서는 2개의 컴포넌트를 만들어야 한다.
+  - IconButton : 완료, 수정, 삭제 버튼으로 사용할 컴포넌트
+  - Task : 목록의 각 항목으로 사용할 컴포넌트
+
+### 이미지 준비
+- IconButton 컴포넌트를 만들기 전에 프로젝트에서 사용할 아이콘 이미지를 다운로드 받자.
+- Google Material Design에서 iOS용 흰색 PNG 파일로 총 4개의 아이콘을 다운받자
+
+https://material.io/resources/icons/?style=baseline
+
+- 다운로드가 완료된 3개의 이미지의 이름을 각각 다음과 같이 변경한다.
+  - 파일명.png, 파일명@2x.png, 파일명@3x.png
+- 프로젝트의 assets 폴더 밑에 icon 폴더를 만들고 이미지를 복사하여 넣는다.
+- 파일명을 동일한 이름으로 사용하면서 뒤에 @2x,@3x를 붙이면 리액트 네이티브에서 화면 사이즈에 알맞은 크기의 이미지를 자동으로 불러와 사용한다.
+
+### IconButton 컴포넌트
+- 리액트 네이티브에서 제공하는 Image 컴포넌트는 프로젝트에 있는 이미지 파일의 경로나 URL을 이용하여 원격에 있는 이미지를 렌더링 할 수 있다.
+- 앞에서 준비한 아이콘의 경로를 이용해 Image 컴포넌트를 사용한다.
+- src아래에 아이콘 이미지를 관리할 image.js를 만든다.
+```js
+import CheckBoxOutline from '../assets/icons/check_box_outline.png';
+import CheckBox from '../assets/icons/check_box.png';
+import DeleteForever from '../assets/icons/delete_forever.png';
+import Edit from '../assets/icons/edit.png';
+
+export const images = {
+  uncompleted: CheckBoxOutline,
+  completed: CheckBox,
+  delete: DeleteForever,
+  update: Edit,
+};
+```
+- 준비한 이미지를 이용해 images.js파일 작성이 완료되면 components폴더 안에 IconButton컴포넌트를 만들자
+```js
+import React from 'react';
+import { Pressable } from 'react-native';
+import styled from 'styled-components/native';
+import PropTypes from 'prop-types';
+import { images } from '../images';
+
+const Icon = styled.Image`
+  tint-color: ${({ theme}) => theme.text};
+  width: 30px;
+  height: 30px;
+  margin: 10px;
+`;
+
+const IconButton = ({ type, onPressOut}) => {
+    return (
+      <Pressable onPressOut={onPressOut}>
+        <Icon source={type} />
+      </Pressable>
+    );
+  };
+
+  IconButton.propTypes = {
+    type: PropTypes.oneOf(Object.values(images)).isRequired,
+    onPressOut: PropTypes.func,
+  };
+  
+  export default IconButton;
+```
+- 이미지 종류별로 컴포넌트를 만들지 않고 IconButton 컴포넌트를 호출할 때 원하는 이미지의 종류를 props에 type으로 전달하도록 작성했으며, 아이콘의 색은 입력되는 텍스트와 동일한 색을 사용하도록 스타일을 적용했다.
+- 사람의 손가락이 버튼을 정확하게 클릭하지 못하는 경우가 많기 때문에, 사용자 편의를 위해 버튼 주변을 클릭해도 정확히 클릭된 것으로 인식하도록 일정 수준의 margin을 주어 여유공간을 확보했다.
+- 완성된 IconButton 컴포넌트를 App컴포넌트에서 사용해보자
+```js
+<Input 
+    placeholder="+ Add Task"
+    value={newTask}
+    onChangeText={_handleTextChange}
+    onSubmitEditing={_addTask}/>
+<IconButton type={images.uncompleted} />
+<IconButton type={images.completed} />
+<IconButton type={images.delete} />
+<IconButton type={images.update} />
+</Container>
+```
+
+### Task컴포넌트
+- 완성된 IconButton 컴포넌트를 이용해 Task 컴포넌트를 만들어보자
+- Task 컴포넌트는 완료 여부를 확인하는 버튼과 입력된 할 일 내용, 항목 삭제 버튼, 수정 버튼으로 구성된다.
+
+```js
+import React from 'react';
+import styled from 'styled-components/native';
+import PropTypes from 'prop-types';
+import IconButton from './IconButton';
+import { images } from '../images';
+
+const Container = styled.View`
+  flex-direction: row;
+  align-items: center;
+  background-color: ${({ theme }) => theme.itemBackground};
+  border-radius: 10px;
+  padding: 5px;
+  margin: 3px 0px;
+`;
+
+const Contents = styled.Text`
+  flex: 1;
+  font-size: 24px;
+  color: ${({ theme}) => theme.text};
+`;
+
+const Task = ({text}) => {
+    return(
+        <Container>
+            <IconButton type={images.uncompleted} />
+            <Contents>{text}</Contents>
+            <IconButton type={images.update}/>
+            <IconButton type={images.delete}/>
+        </Container>
+    )
+}
+
+Task.PropTypes = {
+    text: PropTypes.string.isRequired,
+}
+
+export default Task;
+```
+- 할 일 내용은 props로 전달되어 오는 값을 활용했으며, 완료 여부를 나타내는 체크 박스와 수정, 삭제 버튼을 IconButton 컴포넌트를 이용해 만들었다.
+- 이제 App 컴포넌트에서 Task 컴포넌트를 이용해 할일 목록을 만들어보자.
+```js
+
+```
