@@ -609,7 +609,6 @@ export default function App(){
     const _addTask = () => {
         alert(`Add: ${newTask}`);
         setNewTask('');
-        //id는 ID, text: newTask, completed:fase
     }
 
 
@@ -665,8 +664,11 @@ export default function App(){
 ### 삭제 기능
 ```js
 const _deleteTask = id => {
+  //상태 tasks를 복사하여 새로운 객체 currentTasks를 생성해.
   const currentTasks = Object.assign({}, tasks);
+  //currentTasks에서 특정 작업을 삭제해.
   delete currentTasks[id];
+  //업데이트된 객체를 설정하여 React 컴포넌트에서 작업이 삭제된 상태를 반영해.
   setTasks(currentTasks);
 };
 
@@ -685,6 +687,17 @@ const _deleteTask = id => {
 ```
 - 항목의 id를 이용하여 tasks에서 해당 항목을 삭제하는 _deleteTask함수를 만들었다.
 - Task 컴포넌트에 생성된 항목 삭제 함수와 함께 항목 내용 전체를 전달해 자식 컴포넌트에서도 항목의 id를 확인할 수 있도록 수정했다.
+
+### Object.assign()
+- 자바스크립트에서 객체의 속성을 다른 객체에 복사할 때 사용하는 함수이다.
+- 주로 여러 개의 객체를 하나의 객체로 합칠 때 사용한다.
+### 문법
+```js
+Object.assign(target, ...source);
+```
+- `target` : 속성을 복사할 대상 객체
+- `source` : 속성을 복사할 하나 이상의 원본 객체들
+
 - 이제 Task 컴포넌트를 전달받은 내용이 사용되도록 수정해보자
 
 ### Task 컴포넌트 수정하기
@@ -948,3 +961,82 @@ export default Task;
 - 수정 상태를 관리하기 위해 isEditing 변수를 생성하고 수정 버튼이 클릭되면 값이 변하도록 작성했다.
 - 수정되는 내용을 담을 text변수를 생성하고 Input 컴포넌트의 값으로 설정했다.
 - 화면은 isEditing의 값에 따라 항목 내용이 아닌 Input 컴포넌트가 렌도링되도록 수정되었고, Input컴포넌트에서 완료 버튼을 클릭하면 App 컴포넌트에서 전달된 updateTask 함수가 호출되도록했다.
+
+### 입력 취소하기
+- 항목을 추가하거나 수정하는 도중에는 입력을 취소할 방법이 없다.
+- 입력 중에 다른 영역을 클릭해서 Input 컴포넌트가 포커스를 잃으면 입력 중인 내용이 사라지고 취소되도록 Input 컴포넌트를 수정하자.
+```js
+...
+  const Input = ({
+    placeholder, 
+    value, 
+    onChangeText, 
+    onSubmitEditing,
+    onBlur
+    }) => {
+    const width = useWindowDimensions().width;
+    return (
+      <StyledInput 
+            ...
+        onSubmitEditing={onSubmitEditing}
+        onBlur={onBlur}
+        />
+    );
+  };
+
+  Input.propTypes = {
+    ...
+    onBlur: PropTypes.func.isRequired,
+  };
+
+  export default Input;
+```
+- Input 컴포넌트에 onBlur 함수가 반드시 전달되도록 propTypes를 수정하고 전달된 함수를 사용하도록 수정했다.
+- 이제 Input 컴포넌트를 사용하는 곳에서 onBlur함수를 전달하도록 하자.
+```js
+const _updateTask = item => {...}
+
+const _onBlur= () => {
+    setNewTask('');
+}
+
+<Input 
+    placeholder="+ Add Task"
+    value={newTask}
+    onChangeText={_handleTextChange}
+    onSubmitEditing={_addTask}
+    onBlur={_onBlur}/>
+```
+- App 컴포넌트에서 Input 컴포넌트가 포커스를 잃으면 추가 중이던 값을 초기화하는 onBlur 함수를 추가했다.
+- 이제 Task 컴포넌트에서도 수정 중 포커스를 잃으면 초기화되도록 수정하자
+```js
+const _onSubmitEditing = () => {
+      if (isEditing) {
+        const editedTask = Object.assign({}, item, { text });
+        setIsEditing(false);
+        updateTask(editedTask);
+      }
+    };
+
+    const _onBlur=() => {
+        if(isEditing){
+          setIsEditing(false);
+          setText(item.text);
+        }
+    }
+  
+    return isEditing ? (
+        <Input
+          value={text}
+          onChangeText={text => setText(text)}
+          onSubmitEditing={_onSubmitEditing}
+          onBlur={_onBlur}
+        />):(
+        <Container>
+            <IconButton 
+            type={item.completed ? images.completed : images.uncompleted} 
+            id={item.id}
+            onPressOut={toggleTask}
+            completed={item.completed}/>
+```
+- Task 컴포넌트에서도 수정 상태일 때 Input 컴포넌트의 포커스를 잃으면 수정 중인 내용을 초기화하고 수정 상태를 종료하는 함수를 추가했다.
