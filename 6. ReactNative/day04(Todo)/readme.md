@@ -597,12 +597,12 @@ const List = styled.ScrollView`
 export default function App(){
     const[newTask, setNewTask] = useState('');
 
-    const[Tasks, setTasks] = useState([
-        {id:'1',text:'Hanbit',completed:false},
-        {id:'2',text:'Study',completed:true},
-        {id:'3',text:'Sleep',completed:false},
-        {id:'4',text:'Game',completed:false},
-    ])
+    const [tasks, setTasks] = useState({
+        '1':{id:'1',text:'Hanbit',completed:false},
+        '2':{id:'2',text:'React Native',completed:true},
+        '3':{id:'3',text:'Study',completed:false},
+        '4':{id:'4',text:'Game',completed:false},
+    });
 
     const width = Dimensions.get('window').width;
     const ID = Date().now().toString();
@@ -631,9 +631,11 @@ export default function App(){
                     onChangeText={_handleTextChange}
                     onSubmitEditing={_addTask}/>
                 <List width={width}>
-                    {Tasks.reverse().map(item =>
-                        <Task key={item.id} text={item.text} />
-                    )}
+                    {Object.values(tasks)
+                        .reverse()
+                        .map(item =>(
+                            <Task key={item.id} text={item.text}/>
+                        ))}
                 </List>
             </Container>
         </ThemeProvider>
@@ -665,7 +667,7 @@ export default function App(){
 const _deleteTask = id => {
   const currentTasks = Object.assign({}, tasks);
   delete currentTasks[id];
-  _saveTasks(currentTasks);
+  setTasks(currentTasks);
 };
 
 ...
@@ -681,3 +683,268 @@ const _deleteTask = id => {
     ))}
 </List>
 ```
+- 항목의 id를 이용하여 tasks에서 해당 항목을 삭제하는 _deleteTask함수를 만들었다.
+- Task 컴포넌트에 생성된 항목 삭제 함수와 함께 항목 내용 전체를 전달해 자식 컴포넌트에서도 항목의 id를 확인할 수 있도록 수정했다.
+- 이제 Task 컴포넌트를 전달받은 내용이 사용되도록 수정해보자
+
+### Task 컴포넌트 수정하기
+```js
+...
+ 
+const Task = ({item,deleteTask}) => {
+    return(
+        <Container>
+            <IconButton type={images.uncompleted} />
+            <Contents>{item.text}</Contents>
+            <IconButton type={images.update}/>
+            <IconButton type={images.delete} id={item.id} onPressOut={deleteTask}/>
+        </Container>
+    )
+}
+
+Task.propTypes = {
+    item: PropTypes.object.isRequired,
+    deleteTask: PropTypes.func.isRequired,
+};
+```
+- PropTypes를 전달되는 props에 맞게 수정해줬다.
+- props로 전달된 deleteTask 함수는 삭제 버튼으로 전달했고, 함수에서 필요한 항목의 id도 함께 전달했다.
+- 이제 IconButton컴포넌트에서 전달된 함수를 이용하도록 수정하자
+
+### IconButton 수정하기
+```js
+...
+
+const IconButton = ({ type, onPressOut, id}) => {
+  const _onPressOut = () => {
+    onPressOut(id);
+  }
+
+    return (
+      <Pressable onPressOut={_onPressOut}>
+        <Icon source={type} />
+      </Pressable>
+    );
+  };
+
+  IconButton.propTypes = {
+    type: PropTypes.oneOf(Object.values(images)).isRequired,
+    onPressOut: PropTypes.func,
+    id:PropTypes.string,
+  };
+  
+  export default IconButton;
+```
+- props로 onPressOut이 전달되지 않았을 경우에도 문제가 발생하지 않도록 defaultProps를 이용해 onPressOut의 기본값을 지정했다.
+- props로 전달되는 값들의 propTypes를 지정하고 IconButton 컴포넌트가 클릭되었을 때 전달된 함수가 호출되도록 작성했다.
+- 삭제 버튼을 누르면 항목이 삭제되는 모습을 볼 수 있다.
+### 완료 기능
+- 완료 여부를 선택하는 버튼의 기능을 구현해보자
+- 항목을 완료 상태로 만들어도 다시 미완료 상태로 돌아올 수 있도록 완료 버튼을 만들어보자.
+
+### App.js 코드 추가하기
+```js
+...
+
+const _deleteTask = id => {
+    const currentTasks = Object.assign({}, tasks);
+    delete currentTasks[id];
+    setTasks(currentTasks);
+  };
+
+const _toggleTask = id => {
+    const currentTasks = Object.assign({},tasks);
+    currentTasks[id]['completed'] = !currentTasks[id]['completed'];
+    setTasks(currentTasks);
+}
+
+...
+<Task 
+    key={item.id} 
+    item={item} 
+    deleteTask={_deleteTask}
+    toggleTask={_toggleTask}/>
+
+```
+- 함수가 호출될 때마다 완료 여부를 나타내는 completed값이 전환되는 함수를 작성했다.
+- 삭제 기능과 마찬가지로 작성된 함수를 Task 컴포넌트로 전달했다.
+- 이제 Task 컴포넌트를 수정해서 완료 기능을 완성해보자
+
+```js
+const Task = ({item,deleteTask, toggleTask}) => {
+    return(
+        <Container>
+            <IconButton 
+            type={item.completed ? images.completed : images.uncompleted} 
+            id={item.id}
+            onPressOut={toggleTask}/>
+            <Contents>{item.text}</Contents>
+            <IconButton type={images.update}/>
+            <IconButton type={images.delete} id={item.id} onPressOut={deleteTask}/>
+        </Container>
+    )
+}
+
+Task.propTypes = {
+    item: PropTypes.object.isRequired,
+    deleteTask: PropTypes.func.isRequired,
+    toggleTask:PropTypes.func.isRequired,
+};
+```
+- props로 전달된 toggleTask함수를 완료 상태를 나타내는 버튼의 onPressOut으로 설정하고, 항목 완료 여부에 따라 버튼 이미지가 다르게 나타나도록 수정했다.
+- 완료된 항목은 아이콘 이미지만 변경되는 것이 아니라, 수정 기능을 사용하지 않도록 수정 버튼이 나타나지 않게 Task 컴포넌트를 수정한다.
+- 추가적으로 미완료 항목과 조금 더 명확하게 구분되도록 디자인도 수정하자
+
+### Task 컴포넌트 수정하기
+```js
+...
+
+const Contents = styled.Text`
+  flex: 1;
+  font-size: 24px;
+  color: ${({ theme, completed}) => (completed? theme.done : theme.text)};
+  text-decoration-line: ${({completed}) => completed ? 'line-throuth':'none'}
+`;
+
+const Task = ({item,deleteTask, toggleTask}) => {
+    console.log(item.completed)
+    return(
+        <Container>
+            <IconButton 
+            type={item.completed ? images.completed : images.uncompleted}  
+            id={item.id}
+            onPressOut={toggleTask}
+            completed={item.completed}/>
+
+            <Contents completed={item.completed}>{item.text}</Contents>
+            {item.completed || (<IconButton type={images.update}/>)}
+
+            <IconButton 
+              type={images.delete} 
+              id={item.id} 
+              onPressOut={deleteTask}
+              completed={item.completed}/>
+
+        </Container>
+    )
+}
+```
+- 항목의 completed값에 따라 수정 버튼이 렌더링되지 않도록 수정했다.
+- Contents 컴포넌트에 completed를 전달한 후로 완료 여부에 따라 취소선이 나타나고 글자 색이 변경되도록 스타일이 변경되었고, 아이콘 버튼에도 completed를 전달했다.
+- 이제 IconButton컴포넌트에서 completed의 값에 따라 다른 스타일이 적용되도록 수정하자.
+
+```js
+import React from 'react';
+import { Pressable } from 'react-native';
+import styled from 'styled-components/native';
+import PropTypes from 'prop-types';
+import { images } from '../images';
+
+const Icon = styled.Image`
+  tint-color: ${({ theme, completed}) => completed ? theme.done: theme.text};
+  width: 30px;
+  height: 30px;
+  margin: 10px;
+`;
+
+const IconButton = ({ type, onPressOut, id, completed}) => {
+
+...
+    return (
+      <Pressable onPressOut={_onPressOut}>
+        <Icon source={type} completed={completed} />
+      </Pressable>
+    );
+  };
+
+...
+
+  IconButton.propTypes = {
+    type: PropTypes.oneOf(Object.values(images)).isRequired,
+    onPressOut: PropTypes.func,
+    id:PropTypes.string,
+    completed: PropTypes.bool,
+  };
+  
+  export default IconButton;
+```
+- IconButton 컴포넌트에서도 항목 완료 여부에 따라 아이콘 이미지의 색이 변경되도록 수정했다.
+
+### 수정기능
+- 수정 버튼을 클릭하며 해당 항목이 Input 컴포넌트로 변경되면서 내용을 수정할 수 있도록 구현해보자
+- 우선 App 컴포넌트에서 수정 완료된 항목이 전달되면 tasks에서 해당 항목을 변경하는 함수를 작성하자
+```js
+    const _toggleTask = id => {...}
+
+    const _updateTask = item => {
+        const currentTasks = Object.assign({},tasks);
+        currentTasks[item.id] = item;
+        setTasks(currentTasks);
+    }
+
+    <Task 
+      key={item.id} 
+      item={item} 
+      deleteTask={_deleteTask}
+      toggleTask={_toggleTask}
+      updateTask={_updateTask}/>
+```
+- 수정된 항목이 전달되면 할 일 목록에서 해당 항목을 수정하는 _updateTask함수를 작성하고 Task컴포넌트에서 사용할 수 있도록 함수를 전달했다.
+- 이제 Task 컴포넌트에서 수정 버튼을 클릭하면 항목의 현재 내용을 가진 Input컴포넌트가 렌더링되어 사용자가 수정할 수 있도록 만들어보자
+
+```js
+import React, {useState} from 'react';
+import Input from '../Input';
+
+...
+
+const Task = ({item,deleteTask, toggleTask, updateTask }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [text, setText] = useState(item.text);
+
+    const _handleUpdateButtonPress = () => {
+      setIsEditing(true);
+    };
+    const _onSubmitEditing = () => {
+      if (isEditing) {
+        const editedTask = Object.assign({}, item, { text });
+        setIsEditing(false);
+        updateTask(editedTask);
+      }
+    };
+  
+    return isEditing ? (
+        <Input
+          value={text}
+          onChangeText={text => setText(text)}
+          onSubmitEditing={_onSubmitEditing}
+        />):(
+        <Container>
+            <IconButton 
+            type={item.completed ? images.completed : images.uncompleted} 
+            id={item.id}
+            onPressOut={toggleTask}
+            completed={item.completed}/>
+            <Contents completed={item.completed}>{item.text}</Contents>
+            {item.completed || (<IconButton type={images.update} onPressOut={_handleUpdateButtonPress}/>)}
+            <IconButton 
+              type={images.delete} 
+              id={item.id} 
+              onPressOut={deleteTask}
+              completed={item.completed}/>
+        </Container>
+    )
+}
+
+Task.propTypes = {
+    item: PropTypes.object.isRequired,
+    deleteTask: PropTypes.func.isRequired,
+    toggleTask:PropTypes.func.isRequired,
+    updateTask:PropTypes.func.isRequired
+};
+
+export default Task;
+```
+- 수정 상태를 관리하기 위해 isEditing 변수를 생성하고 수정 버튼이 클릭되면 값이 변하도록 작성했다.
+- 수정되는 내용을 담을 text변수를 생성하고 Input 컴포넌트의 값으로 설정했다.
+- 화면은 isEditing의 값에 따라 항목 내용이 아닌 Input 컴포넌트가 렌도링되도록 수정되었고, Input컴포넌트에서 완료 버튼을 클릭하면 App 컴포넌트에서 전달된 updateTask 함수가 호출되도록했다.
