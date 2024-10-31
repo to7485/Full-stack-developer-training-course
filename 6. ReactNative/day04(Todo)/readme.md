@@ -558,8 +558,126 @@ Task.PropTypes = {
 
 export default Task;
 ```
+## 기능 구현하기
+
+### 추가기능
 - 할 일 내용은 props로 전달되어 오는 값을 활용했으며, 완료 여부를 나타내는 체크 박스와 수정, 삭제 버튼을 IconButton 컴포넌트를 이용해 만들었다.
 - 이제 App 컴포넌트에서 Task 컴포넌트를 이용해 할일 목록을 만들어보자.
 ```js
+import React, { useState } from "react";
+import styled,{ThemeProvider} from "styled-components";
+import { theme } from "./theme";
+import { StatusBar, Dimensions } from "react-native";
+import Input from "./components/Input";
+import IconButton from "./components/IconButton";
+import { images } from "./image"; 
+import Task from "./components/Task";
 
+
+const Container = styled.SafeAreaView`
+    flex: 1;
+    background-color: ${({theme}) => theme.background};
+    align-items:center;
+    justify-content:flex-start;
+`
+
+const Title = styled.Text`
+    font-size:40px;
+    font-weight:600;
+    color:${({theme})=>theme.main};
+    align-self:flex-start;
+    margin:20px;
+`
+
+const List = styled.ScrollView`
+    flex: 1;
+    width: ${({width})=> width - 40}px;
+`
+
+export default function App(){
+    const[newTask, setNewTask] = useState('');
+
+    const[Tasks, setTasks] = useState([
+        {id:'1',text:'Hanbit',completed:false},
+        {id:'2',text:'Study',completed:true},
+        {id:'3',text:'Sleep',completed:false},
+        {id:'4',text:'Game',completed:false},
+    ])
+
+    const width = Dimensions.get('window').width;
+    const ID = Date().now().toString();
+    const _addTask = () => {
+        alert(`Add: ${newTask}`);
+        setNewTask('');
+        //id는 ID, text: newTask, completed:fase
+    }
+
+
+    const _handleTextChange = text => {
+        setNewTask(text);
+    }
+
+    return(
+        <ThemeProvider theme={theme}>
+            <Container>
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor={theme.background}
+                />
+                <Title>TODO List</Title>
+                <Input 
+                    placeholder="+Add Task"
+                    value={newTask}
+                    onChangeText={_handleTextChange}
+                    onSubmitEditing={_addTask}/>
+                <List width={width}>
+                    {Tasks.reverse().map(item =>
+                        <Task key={item.id} text={item.text} />
+                    )}
+                </List>
+            </Container>
+        </ThemeProvider>
+    )
+}
+```
+
+- _addTask 함수가 호출되면 task에 새로운 할 일이 추가되도록 수정해보자.
+
+```js
+export default function App(){
+  ...
+  const _addTask = () => {
+    const ID = Date.now().toString();
+    const newTaskObject = {[ID]:{id: ID, text: newTask, completed: false},}
+    setNewTask('');
+    setTasks({...tasks, ...newTaskObject})
+  }
+}
+```
+- id는 할 일 항목이 추가되는 시간의 타임스탬프를 이용한다.
+- 내용에는 Input컴포넌트에 입력된 값을 지정한다.
+- 새로 입력되는 항목이므로 완료 엽를 나타내는 completed는 항상 false가 된다.
+- 마지막으로 newTask의 값을 빈 문자열로 지정해서 Input컴포넌트는 초기화 한다.
+- 기존의 목록을 유지한 채 새로운 항목이 추가되도록 구성했다.
+
+### 삭제 기능
+```js
+const _deleteTask = id => {
+  const currentTasks = Object.assign({}, tasks);
+  delete currentTasks[id];
+  _saveTasks(currentTasks);
+};
+
+...
+<List width={width}>
+  {Object.values(tasks)
+    .reverse()
+    .map(item => (
+      <Task
+        key={item.id}
+        item={item}
+        deleteTask={_deleteTask}
+      />
+    ))}
+</List>
 ```
