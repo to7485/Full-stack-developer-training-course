@@ -82,30 +82,6 @@ const[state, setState] = useState(initialState);
 - useState로 만든 상태는 컴포넌트가 리렌더링되더라도 값이 유지된다.
 - 상태가 업데이트되면 리액트가 이를 감지해 자동으로 컴포넌트를 다시 렌더링하여 최신 상태가 화면에 반영된다.
 - 즉, 상태 값의 변화를 반영하려면 useState가 필요하다.
-
-```js
-import React, { useState } from 'react';
-
-const Counter = () => {
-  let count = 0; // 변수로 선언
-  const [stateCount, setStateCount] = useState(0); // useState로 선언
-
-  const increaseCount = () => {
-    count += 1; // 변수로 값 증가
-    setStateCount(stateCount + 1); // 상태로 값 증가
-  };
-
-  return (
-    <div>
-      <p>변수 count: {count}</p>
-      <p>useState로 만든 count: {stateCount}</p>
-      <button onClick={increaseCount}>증가</button>
-    </div>
-  );
-};
-
-export default Counter;
-```
 - 리액트 컴포넌트는 props를 통해 다른 컴포넌트와 데이터를 주고받는다.
 - useState로 관리하는 값은 props로 하위 컴포넌트에 전달할 수 있어 부모와 자식 컴포넌트 간에 상태를 공유하거나 데이터를 전달할 수 있게 된다. 
 - 변수를 통해 만든 값은 상태가 아니기 때문에 다른 컴포넌트에 props로 전달해도 리렌더링에 따라 값이 초기화될 수 있어 예기치 않은 동작을 초래할 수 있다.
@@ -160,8 +136,6 @@ console.log(updatedPerson === person); // false (다른 객체를 참조)
 - 여기서는 불변성을 유지하기 위해 스프레드연산자를 사용하여 기존 객체의 값을 복사하고, age 속성만 새 값으로 변경한 새로운 객체를 반환했다.
 - 이렇게 하면 updatePerson과 person이 서로 다른 객체이므로, 리액트는 상태가 변경되었다고 인식해 컴포넌트를 다시 렌더링하게 된다.
 
-
-
 ### 2. 참조 비교(reference comparison)를 이용한 변경 감지
 - 리액트는 **얕은 비교(shallow comparison)**를 사용해 이전 상태와 새로운 상태를 비교한다.
 - 얕은 비교는 객체의 참조를 비교하는 방식으로, 성능이 뛰어나고 불필요한 렌더링을 줄이는 데 효과적이다.
@@ -191,3 +165,155 @@ console.log(deepEqual(object1, object2)); // true
 
 // 이유: object1과 object2의 내부 구조와 값이 같기 때문에 깊은 비교에서는 true가 됨
 ```
+
+
+### useState 사용하기
+- components 폴더 안에 Counter.js 파일을 생성하고 useState를 사용해서 다음과 같이 작성하자
+```js
+import React, {useState} from "react";
+import styled from "styled-components";
+import Button from "./Button";
+
+const StyledText = styled.Text`
+    font-size : 24px;
+    margin: 10px;
+`
+
+const Counter = () => {
+    const[count, setCount] = useState(0);
+    return(
+        <>
+            <StyledText>
+                Count: {count}
+            </StyledText>
+            <Button
+                title="+"
+                onPress={() => {
+                    setCount(count +1);
+                }}
+            />
+            <Button
+                title="-"
+                onPress={() => {
+                    setCount(count -1);
+                }}
+            />
+        </>
+    )
+}
+export default Counter;
+```
+
+### ※ 화살표함수로 호출하는 이유
+#### 1. 즉시 호출 방지
+- onPress={setCount(count - 1)}와 같이 함수 호출 문법으로 작성하면 컴포넌트가 렌더링될 때 setCount(count - 1)이 즉시 실행되어, onPress 이벤트가 발생할 때가 아닌 렌더링 시점에 setCount가 호출되게된다.
+
+#### 2. this 바인딩 문제 해결
+- 리액트 클래스 컴포넌트에서는 일반적으로 이벤트 핸들러에서 this가 현재 컴포넌트를 참조하도록 bind(this)를 사용해야 했다.
+```js
+class MyComponent extends React.Component {
+  constructor() {
+    super();
+    this.state = { count: 0 };
+  }
+
+  handleClick = () => {
+    this.setState({ count: this.state.count + 1 }); // this가 컴포넌트를 가리킴
+  }
+
+  render() {
+    return <button onClick={this.handleClick}>Click me</button>;
+  }
+}
+```
+- 화살표 함수는 this를 호출한 컨텍스트에 바인딩하지 않고, 상위 스코프의 this를 그대로 사용하게 돼서 this 바인딩 문제를 피할 수 있다.
+```js
+function Person() {
+  this.name = 'Alice';
+  
+  // setTimeout의 콜백 함수에서 일반 함수를 사용
+  setTimeout(function() {
+    console.log(this.name); // undefined가 출력됨
+  }, 1000);
+}
+
+const person = new Person();
+```
+- 화살표함수 사용시
+```js
+function Person() {
+  this.name = 'Alice';
+
+  // setTimeout의 콜백 함수에서 화살표 함수 사용
+  setTimeout(() => {
+    console.log(this.name); // 'Alice'가 출력됨
+  }, 1000);
+}
+
+const person = new Person();
+```
+
+#### 요약
+- 화살표 함수는 함수형 컴포넌트에서 이벤트 발생 시점에만 함수를 실행하도록 돕는 깔끔한 패턴이다.
+
+### Counter.js 사용하기
+- App 컴포넌트에서 Counter컴포넌트 사용하기
+```js
+import React from 'react'
+import styled from 'styled-components'
+import Counter from './components/Counter'
+
+const Container = styled.View`
+    flex:1;
+    background-color: #fff;
+    justify-content : center;
+    align-items: center;
+`
+
+const App = () => {
+    return (
+    <Container>
+        <Counter />
+    </Container>
+    )
+}
+
+export default App;
+```
+
+
+### 세터 함수
+- useState에서 반환된 세터 함수를 사용하는 방법은 두가지이다.
+- 첫번재는 우리가 지금까지 사용했던 방법으로 세터 함수에 변경될 상태의 값을 전달하는 방법이다.
+- 두번째는 세터 함수의 파라미터에 함수를 전달하는 방법이다.
+```js
+setState(prevState => {});
+```
+- 전달된 함수에는 변경되기 전의 상태 값이 파라미터로 전달되며 이 값을 어떻게 수정할지 정의하면 된다.
+- 세터 함수는 비동기로 동작하기 때문에 상태 변경이 여러번 일어날 경우 상태가 변경되기 전에 또 다시 상태에 대한 업데이트가 실행되는 상황이 발생할 수 있다.
+
+```js
+<Button
+    title="+"
+    onPress={() => {
+        setCount(count +1);
+        setCount(count +1);
+        console.log(`count: ${count}`)
+    }}
+/>
+```
+- Counter 컴포넌트에서 증가 버튼을 클릭했을 때, 세터 함수를 두 번 호출하도록 수정을 했다.
+- 증가 버튼을 클릭해도 1씩 증가하는 모습을 볼 수 있다.
+- 세터 함수가 비동기로 동작하기 때문에 세터 함수를 호출해도 바로 상태가 변경되지 않는다는 점에서 발생하는 문제다.
+- 이렇게 상태에 대해 여러 업데이트가 함께 발생할 경우, 세터 함수에 함수를 인자로 전달하여 이전 상태값을 이용하면 문제를 해결할 수 있다.
+```js
+<Button
+    title="+"
+    onPress={() => {
+        setCount(prevCount => prevCount +1);
+        setCount(prevCount => prevCount +1);
+        console.log(`count: ${count}`)
+    }}
+/>
+```
+- 이전 상태의 값에 의존하여 상태를 변경할 경우, 세터 함수에 함수를 인자로 전달하여 이전 값을 이용하도록 작성해야 문제가 생기지 않는다.
