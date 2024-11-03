@@ -317,3 +317,79 @@ setState(prevState => {});
 />
 ```
 - 이전 상태의 값에 의존하여 상태를 변경할 경우, 세터 함수에 함수를 인자로 전달하여 이전 값을 이용하도록 작성해야 문제가 생기지 않는다.
+
+## useEffect
+- 컴포넌트가 렌더링 될 때마다 원하는 작업이 실행되도록 설정할 수 있는 기능이다.
+```js
+useEffect(() => {}, []);
+```
+- 첫번째 파라미터로 전달된 함수는 조건을 만족할 때마다 호출된다.
+- 두번째 파라미터로 전달되는 배열을 이용해 함수가 호출되는 조건을 설정할 수 있다.
+
+### useEffect 사용하기
+- 두번째 파라미터에 어떤 값도 전달하지 않으면 useEffect의 첫 번째 파라미터로 전달된 함수는 컴포넌트가 렌더링 될 때마다 호출된다.
+- components에 Form.js파일을 생성하고 이메일과 이름을 입력받는 컴포넌트를 작성해보자.
+```js
+import React, {useState, useEffect} from "react";
+import styled from "styled-components";
+
+const StyledTextInput = styled.TextInput.attrs({
+    autoCapitalize: 'none',
+    autoCorrect : false
+})`
+    border : 1px solid #757575;
+    padding : 10px;
+    margin : 10px 0;
+    width : 200px;
+    font-size : 20px;
+`;
+
+const StyledText = styled.Text`
+    font-size : 24px;
+    margin : 10px;
+`
+
+const Form = () => {
+    const[name,setName] = useState('');
+    const[email,setEmail] = useState('');
+
+    useEffect(() => {
+        console.log(`name: ${name}, email: ${email}\n`);
+    })
+
+    return(
+        <>
+            <StyledText> Name : {name} </StyledText>
+            <StyledText> Email : {email} </StyledText>
+            <StyledTextInput
+                value={name}
+                onChangeText={text => setName(text)}
+                placeholder="name"
+            />
+            <StyledTextInput
+                value={email}
+                onChangeText={text => setEmail(text)}
+                placeholder="email"
+            />
+        </>
+    )
+}
+
+export default Form;
+```
+- TextInput 컴포넌트를 이용해서 이메일과 이름을 입력받는 컴포넌트를 만들고, useEffect를 사용해서 컴포넌트가 다시 렌더링될 때마다 name과 email을 출력한다.
+- App컴포넌트에서 작성한 Form 컴포넌트를 사용해보자.
+
+```js
+import Form from './components/Form'
+
+...
+
+const App = () => {
+    return (
+    <Container>
+        <Form />
+    </Container>
+    )
+}
+```
