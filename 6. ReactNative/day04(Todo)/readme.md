@@ -1040,3 +1040,130 @@ const _onSubmitEditing = () => {
             completed={item.completed}/>
 ```
 - Task 컴포넌트에서도 수정 상태일 때 Input 컴포넌트의 포커스를 잃으면 수정 중인 내용을 초기화하고 수정 상태를 종료하는 함수를 추가했다.
+
+## 부가기능
+- 현재 애플리케이션을 재시작 할 대마다 내용이 초기화되고, 로딩될 때 나타나는 화면은 미완성된 애플리케이션처럼 느껴진다.
+
+### 데이터 저장하기
+- 리액트 네이티브에서는 AsyncStorage를 이용해 로컬에 데이터를 저장하고 불러오는 기능을 구현할 수 있다.
+- AsyncStorage는 비동기로 동작하며 문자열로 된 키-값 형태의 데이터를 기기에 저장하고 불러올 수 있는 기능을 제공한다.
+
+### 개념
+- `키-값 저장소`
+  - AsyncStorage는 JSON 형식의 키-값 쌍으로 데이터를 저장할 수 있는 구조다.
+  - 키로 데이터에 접근하고 값을 불러오거나 저장할 수 있다.
+- `비동기 방식`
+  - AsyncStorage는 비동기 API를 제공하므로, 데이터 저장과 로딩이 메인 쓰레드를 차단하지 않는다. 
+  - 이는 앱의 성능을 유지하는 데 도움이 된다.
+- `영구적 저장`
+  - 한 번 저장된 데이터는 앱을 종료하거나 기기를 재부팅하더라도 유지된다.. 단, 사용자가 앱을 삭제하면 함께 삭제된다.
+
+### 주요 사용 사례
+- `사용자 설정`: 테마, 언어, 알림 설정 같은 개인화 옵션을 저장하고 불러올 때 유용하다.
+- `세션 관리`: 인증 토큰이나 사용자 상태를 저장해 로그인 상태를 유지할 때 사용할 수 있다.
+- `앱 초기화 상태`: 사용자가 앱을 처음 열 때 실행되는 초기 설정이나 튜토리얼 진행 상태 등을 저장할 수 있다.
+- `간단한 데이터 캐싱`: 네트워크 데이터를 캐싱하거나 오프라인 상태에서 사용할 간단한 데이터를 저장할 수 있다.
+
+### 라이브러리 설치하기
+```js
+ npm install @react-native-async-storage/async-storage --legacy-peer-dep
+```
+
+### 기본 메서드
+- setItem(key,value) : 데이터를 문자열로 저장하기 때문에 객체를 저장하려면 JSON.stringify로 변환해야 한다.
+```js
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const saveData = async () => {
+    try {
+        await AsyncStorage.setItem('user_name', 'John Doe');
+    } catch (error) {
+        console.error('Data saving error:', error);
+    }
+};
+```
+- getItem(key) : key를 통해 저장된 데이터를 불러온다. 불러온 데이터는 문자열 형태로 반환되기 때문에 JSON객체로 변환할 필요가 있다면 JSON.parse를 해야 한다.
+```js
+const loadData = async () => {
+    try {
+        const value = await AsyncStorage.getItem('user_name');
+        if (value !== null) {
+            console.log('User Name:', value);
+        }
+    } catch (error) {
+        console.error('Data loading error:', error);
+    }
+};
+```
+### App.js 코드 추가하기
+```js
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+...
+
+export default function App(){
+    const width= useWindowDimensions().width;
+    const[newTask, setNewTask] = useState();
+    const [tasks, setTasks] = useState({});
+
+    const _saveTasks = async tasks => {
+        try {
+            await AsyncStorage.setItem('tasks', JSON.stringify(tasks));
+            setTasks(tasks);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const _addTask = () => {
+        const ID = Date.now().toString();
+        const newTaskObject = {
+        [ID]: { id: ID, text: newTask, completed: false },
+        }
+        setNewTask('');
+        _saveTasks({ ...tasks, ...newTaskObject })
+        //setTasks({ ...tasks, ...newTaskObject })
+    }
+
+    const _handleTextChange = text =>{
+        setNewTask(text);
+    }
+
+    const _deleteTask = id => {
+        const currentTasks = Object.assign({}, tasks);
+        delete currentTasks[id];
+        _saveTasks(currentTasks)
+        //setTasks(currentTasks);
+      };
+
+    const _toggleTask = id => {
+        const currentTasks = Object.assign({},tasks);
+        currentTasks[id]['completed'] = !currentTasks[id]['completed'];
+        _saveTasks(currentTasks)
+        //setTasks(currentTasks);
+    }
+
+    const _updateTask = item => {
+        const currentTasks = Object.assign({},tasks);
+        currentTasks[item.id] = item;
+        _saveTasks(currentTasks)
+        //setTasks(currentTasks);
+    }
+```
+
+### 데이터 불러오기
+- 이번에는 저장된 데이터를 불러오는 함수를 만들어보자
+- App.js에 함수 추가하기
+```js
+    const _saveTasks = async tasks => {...};
+
+    const _loadTasks = async () => {
+        const loadedTasks = await AsyncStorage.getItem('tasks');
+        console.log("Loaded Tasks from AsyncStorage:", loadedTasks);
+        setTasks(JSON.parse(loadedTasks|| '{}'));
+    }
+
+        useEffect(() => {
+        _loadTasks(); // 컴포넌트가 마운트될 때 _loadTasks 호출
+      }, []);
+```
