@@ -788,7 +788,7 @@ const Dog = () => {
 
     return(
         <>
-            <StyledImage source={data?.message ? { uri : data.message} : nul} />
+            <StyledImage source={data?.message ? { uri : data.message} : null} />
             <ErrorMessage>{error ?.message} </ErrorMessage>
         </>
     )
@@ -796,7 +796,6 @@ const Dog = () => {
 
 export default Dog;
 ```
-
 ## 옵셔널 체이닝
 - JavaScript에서 객체의 속성에 안전하게 접근하기 위한 문법이다.
 - 이 문법을 사용하면, 중첩된 객체 속성에 접근할 때 객체나 속성이 존재하지 않아도 에러를 발생시키지 않고 undefined를 반환하도록 한다.
@@ -903,4 +902,116 @@ console.log(email); // "alice@example.com"
 - 안정성 : null 또는 undefined인 값에 접근할 때 발생하는 오류를 방지한다.
 - 가독성 : 여러 중첩된 속성에 접근할 때 코드를 짧고 명확하게 작성할 수 있다.
 - 간편한 에러 처리 : 값이 없을 경우 undefined를 반환하기 때문에 별도의 if문이나 try-catch문 없이도 에러 처리가 가능하다.
+<br>
+
+### 이제 작성한 Dog 컴포넌트를 App 컴포넌트에서 사용하고 결과를 확인해보자.
+```js
+import React, { useState } from 'react';
+import Dog from './components/Dog';
+
+...
+
+const App = () => {
+    return (
+      <Container>
+        <Dog />
+      </Container>
+    );
+  };
+
+
+export default App;
+```
+- 결과를 확인하면 다음과 같은 경고가 발생한다.
+```js
+useEffect(() => {
+  async function fetchData() {
+    // You can await here
+    const response = await MyAPI.getData(someId);
+    // ...
+  }
+  fetchData();
+}, [someId]); // Or [] if effect doesn't need props or state
+
+Learn more about data fetching with Hooks: https://reactjs.org/link/hooks-data-fetching
+```
+- 이 메시지는 useEffect의 첫번째 파라미터로 비동기 함수를 전달했기 때문에 나타나는 경고메시지이다.
+- 비동기 함수를 이용해야 하는 상황에서는 useEffect에 전달되는 함수 내부에 비동기 함수를 정의하고 사용하는 방법으로 이 문제를 해결할 수 있다.
+```js
+useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const res = await fetch(url);
+            const result = await res.json();
+            if (res.ok){
+                setData(result);
+                setError(null);
+            } else {
+                throw result;
+            }
+        } catch (error) {
+            setError(error);
+        }
+    };
+    fetchData();
+},[]);
+```
+- 강아지 사진이 잘 나오는것을 볼 수 있다.
+- 대부분의 비동기 작업 화면에서는 작업이 완료되기 전에 화면 전체 혹은 특정 버튼들이 사용할 수 없는 상태로 변경된다.
+- API 요청을 보내는 비동기 동작에서는 선형된 작업이 마무리되기 전에 추가적인 요청이 들어오지 않도록 화면을 구성하는 것이 좋다.
+- 이를 위해 useFetch로부터 API 요청의 진행 상태를 알 수 있어야 비동기 요청의 작업 상태에 따라 화면 구성을 다르게 할 수 있다.
+```js
+import { useState,useEffect } from "react";
+
+export const useFetch = url => {
+    ...
+    const [inProgress, setInProgress] = useState(false);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setInProgress(true);
+                ...
+
+            } catch (error) {
+                setError(error);
+            } finally{
+                setInProgress(false);
+            }
+        };
+        fetchData();
+    },[]);
+    return {data, error, inProgress};
+}
+```
+- API의 진행 상태를 관리하는 inProgress를 만들고, API 요청 시작 전과 완료 후 상태를 변경해서 useFetch의 API 진행 상태를 확인할 수 있도록 수정했다.
+- 이제 Dog 컴포넌트에서 API의 진행 상태를 확인하는 코드를 추가하자
+```js
+
+...
+
+const LoadingMessage = styled.Text`
+    font-size : 18px;
+    color: #2ecc71;
+`
+
+const URL = 'https://dog.ceo/api/breeds/image/random';
+const Dog = () => {
+    const {data, error, inProgress } = useFetch(URL);
+
+    return(
+        <>
+           
+           {inProgress &&( <LoadingMessage> The API request is in progress</LoadingMessage>)}
+            <StyledImage source={data?.message ? { uri : data.message} : null} />
+            <ErrorMessage>{error ?.message} </ErrorMessage>
+        </>
+    )
+}
+
+export default Dog;
+```
+- API 요청이 진행되는 중에 LoadingMessage 컴포넌트가 잘 렌더링 되는 모습을 볼 수 있다.
+
+
 
