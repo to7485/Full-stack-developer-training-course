@@ -393,3 +393,67 @@ const App = () => {
     )
 }
 ```
+
+### 특정 조건에서 실행하기
+- useEffect에 설정한 함수를 특정 상태가 변경될 때만 호출하고 싶은 경우, useEffect의 두 번째 파라미터에 해당 상태를 관리하는 변수를 배열로 전달하면 된다.
+- 상태의 값을 변경하는 세터 함수가 비동기로 동작하므로 상태의 값이 변경되면 실행할 함수를 useEffect를 이용해서 정의해야 한다.
+- email이 변경될 때만 useEffect가 동작하도록 Form 컴포넌트를 수정하자.
+
+```js
+const Form = () => {
+    ...
+    useEffect(() => {
+        console.log(`name : ${name}, email : ${email}\n`);
+    },[email])
+}
+```
+- name이 변경될 때는 실행되지 않지만 email이 변경될 대는 함수가 잘 실행되는 것을 확인할 수 있다.
+
+### 마운트 될 때 실행하기
+- 컴포넌트가 마운트 될 때 useEffect에 전달된 함수를 실행시켜보자.
+- useEffect의 두 번째 파라미터에 빈 배열을 전달하면 컴포넌트가 처음 렌더링 될 때만 함수가 호출되도록 작성할 수 있습니다.
+
+```js
+  useEffect(() => {
+    console.log('\n===== Form Component Mount =====\n');
+  }, []);
+```
+- 컴포넌트가 처음 렌더링 될 때 함수가 호출되고, 이후에는 상태가 변해 컴포넌트가 다시 렌더링 되어도 함수가 실행되지 않는다는 것을 확인할 수 있다.
+
+### 언마운트 될 때 실행하기
+- 컴포넌트가 언마운트될 때 useEffect의 함수가 실행되게 해보자
+```js
+useEffect(() => {
+console.log('\n===== Form Component Mount =====\n');
+refName.current.focus();
+return () => console.log('\n===== Form Component Unmount =====\n');
+}, []);
+```
+- Form 컴포넌트가 언마운트 되는 상황을 테스트하기 위해 App 컴포넌트를 다음과 같이 수정하자
+```js
+import React, { useState } from 'react';
+import styled from 'styled-components/native';
+import Counter from './components/Counter';
+import Form from './components/Form';
+import Button from './components/Button';
+
+
+const App = () => {
+    const [isVisible, setIsVisible] = useState(true);
+  
+    return (
+      <Container>
+        <Button
+          title={isVisible ? 'Hide' : 'Show'}
+          onPress={() => setIsVisible(prev => !prev)}
+        />
+        {isVisible && <Form />}
+      </Container>
+    );
+  };
+```
+- useState를 이용해 Form 컴포넌트의 렌더링 상태를 관리할 isVisible을 생성하고, 버튼을 클릭할 때마다 상태를 변경해서 Form 컴포넌트의 렌더링 상태를 관리하도록 수정했다.
+
+
+
+
