@@ -429,6 +429,14 @@ refName.current.focus();
 return () => console.log('\n===== Form Component Unmount =====\n');
 }, []);
 ```
+### 클린업 함수
+- 클린업(clean-up) 함수는 컴포넌트가 언마운트되거나, useEffect가 다시 실행되기 전에 실행되는 함수다.
+- 주로 리소스를 정리하거나, 이벤트 리스너를 제거하거나, 타이머를 정리하는 등 필요한 뒷처리를 수행하기 위해 사용한다.
+
+#### 클린업 함수 사용 방법
+- useEffect는 첫 번째 인자로 함수를 받는데, 이 함수는 다시 함수를 반환할 수 있다. 
+- 반환된 이 함수가 바로 클린업 함수로, 컴포넌트가 언마운트될 때 실행되거나, useEffect의 의존성이 변경될 때 실행된다.
+
 - Form 컴포넌트가 언마운트 되는 상황을 테스트하기 위해 App 컴포넌트를 다음과 같이 수정하자
 ```js
 import React, { useState } from 'react';
@@ -455,5 +463,444 @@ const App = () => {
 - useState를 이용해 Form 컴포넌트의 렌더링 상태를 관리할 isVisible을 생성하고, 버튼을 클릭할 때마다 상태를 변경해서 Form 컴포넌트의 렌더링 상태를 관리하도록 수정했다.
 
 
+## useRef
+- 특정 DOM 요소나 값의 변화를 추적하거나 유지할 때 사용되는 객체를 반환해 주는 역할을 한다.
+- DOM 요소에 접근하기 위해 사용하거나, 리렌더링 없이 상태를 유지할 때 사용하는 경우다.
 
+### 주요 특징
+- `초기 값 유지`: useRef의 초기 값은 컴포넌트가 마운트될 때 한 번만 설정되며 이후에는 유지된다.
+- `리렌더링 없이 값 유지`: useRef의 값이 바뀌어도 컴포넌트는 리렌더링되지 않으므로, 값의 변경이 UI에 즉각적인 영향을 주지 않아야 할 때 유용하다.
+- `DOM 접근`: useRef는 컴포넌트의 특정 DOM 요소에 접근할 때 사용할 수 있다. 
+  - 주로 input, button 등 특정 DOM 요소에 직접 접근해 포커스를 설정하거나, 요소의 값을 직접 조작할 때 사용된다.
+
+useRef를 이용해 지금까지 작성한 Form 컴포넌트를 수정해보자.
+
+```js
+import React, { useState, useEffect, useRef } from 'react';
+import styled from 'styled-components/native';
+
+const StyledTextInput = styled.TextInput.attrs({
+  autoCapitalize: 'none',
+  autoCorrect: false,
+})`
+  border: 1px solid #757575;
+  padding: 10px;
+  margin: 10px 0;
+  width: 200px;
+  font-size: 20px;
+`;
+const StyledText = styled.Text`
+  font-size: 24px;
+  margin: 10px;
+`;
+
+const Form = () => {
+    ...
+
+  const refName = useRef(null);
+  const refEmail = useRef(null);
+
+  useEffect(() => {
+    console.log('\n===== Form Component Mount =====\n');
+    refName.current.focus();
+    return () => console.log('\n===== Form Component Unmount =====\n');
+  }, []);
+
+  return (
+    <>
+      <StyledText>Name: {name}</StyledText>
+      <StyledText>Email: {email}</StyledText>
+      <StyledTextInput
+        value={name}
+        onChangeText={text => setName(text)}
+        placeholder="name"
+        ref={refName}
+        returnKeyType="next"
+        onSubmitEditing={() => refEmail.current.focus()}
+      />
+      <StyledTextInput
+        value={email}
+        onChangeText={text => setEmail(text)}
+        placeholder="email"
+        ref={refEmail}
+        returnKeyType="done"
+      />
+    </>
+  );
+};
+
+export default Form;
+```
+- useRef 함수를 이용하여 refName과 refEmail를 생성해 각각 이름과 이메일을 입력받는 TextInput 컴포넌트의 ref로 설정했고, 키보드의 완료 버튼을 각각 next와 done으로 변경했다.
+- 또한 이름을 받는 컴포넌트의 확인(next)버튼을 클릭하면 이메일을 입력받는 컴포넌트로 포커스가 이동하도록 작성했으며, Form 컴포넌트가 마운트될 때 포커스가 이름을 입력받는 컴포넌트에 있도록 수정했다.
+
+## useMemo
+- useMemo는 React에서 제공하는 훅으로, 메모이제이션을 활용해 특정 연산의 결과를 저장해두고, 불필요한 반복 계산을 피하도록 도와준다.
+- 이 훅은 복잡한 계산이 매번 다시 이루어지지 않도록 최적화하는 역할을 하며, 의존성 배열에 따라 값이 바뀔 때만 연산이 다시 수행되도록 설정할 수 있다.
+
+### 메모제이션와 useMemo
+- 메모이제이션이란 같은 계산을 반복해야 할 때 그 결과를 저장해두고, 다시 필요할 때 저장된 값을 꺼내 사용하는 기법이다.
+- 반복적으로 동일한 연산을 수행하지 않아도 되어, 성능이 크게 향상된다.
+- useMemo는 이 메모이제이션을 React 컴포넌트에서 사용할 수 있도록 지원하는 훅이다.
+
+### useMemo의 동작 방식
+- useMemo는 특정 계산의 결과를 기억하고 있다가, 다음에 해당 계산이 필요할 때 의존하는 값이 바뀌지 않았으면 이전 결과를 그대로 반환한다.
+- 만약 의존하는 값이 바뀌었다면, 새로운 결과를 계산해 반환하고, 그 결과를 다시 기억한다.
+
+```js
+useMemo(()=>{},[]);
+```
+
+- 첫 번째 파라미터에는 함수를 전달하고, 두 번째 파라미터에는 함수 실행 조건을 배열로 전달하면 지정된 값에 변화가 있는 경우에만 함수가 호출된다.
+
+- components폴더에 Length.js파일을 생성하고 문자열의 길이를 계산하는 컴포넌트를 만들자
+```js
+import React, { useState, useMemo } from 'react';
+import styled from 'styled-components/native';
+import Button from './Button';
+
+const StyledText = styled.Text`
+  font-size: 24px;
+`;
+
+const getLength = text => {
+  console.log(`Target Text: ${text}`);
+  return text.length;
+};
+
+const list = ['JavaScript', 'Expo', 'Expo', 'React Native'];
+
+let idx = 0;
+const Length = () => {
+  const [text, setText] = useState(list[0]);
+  const [length,setLength] = useState('');
+
+  const _onPress = () => {
+    setLength(getLength(text));
+    ++idx;
+    if (idx < list.length) setText(list[idx]);
+  };
+
+  return (
+    <>
+      <StyledText>Text: {text}</StyledText>
+      <StyledText>Length: {length}</StyledText>
+      <Button title="Get Length" onPress={_onPress} />
+    </>
+  );
+};
+
+export default Length;
+```
+- 4칸짜리 배열을 생성하고, 버튼을 클릭할 때마다 배열을 순환하면서 문자열의 길이를 구하는 컴포넌트를 작성했다.
+- 이제 Length 컴포넌트를 App 컴포넌트에서 사용하도록 수정하자
+
+```js
+import Length from './components/Length'
+
+const App = () => {
+  return (
+    <Container>
+      <Length />
+    </Container>
+  );
+};
+```
+- 화면에서 버튼을 클릭하면 현재 문자열의 길이를 구하는 것을 확인할 수 있다.
+- 마지막 문자열 이후에는 더 이상 문자열의 변화가 없기 때문에 같은 문자열의 길이를 반복해서 구한다.
+- 특별한 문제 없이 잘 동작하지만 두 번째와 세 번째는 Expo라는 동일한 문자열의 길이를 계산했고, 배열의 마지막 값 이후에는 문자열의 변화가 없는데도 계속해서 getLength 함수가 호출된다.
+- 이런 상황에서 useMemo를 이용하면 계산하는 값에 변화가 있는 경우에만 함수가 호출되므로 중복되는 불필요한 연산을 제거할 수 있다.
+- Length 컴포넌트에 useMemo를 사용해서 계산할 값에는 변화가 없는 경우 getLength 함수가 호출되지 않도록 수정하자
+```js
+const Length = () => {
+  const [text, setText] = useState(list[0]);
+
+  const _onPress = () => {
+    ++idx;
+    if (idx < list.length) setText(list[idx]);
+  };
+  const length = useMemo(() => getLength(text), [text]);
+
+  ...
+
+```
+- useMemo를 사용해 text의 값이 변경되었을 때만 text 길이를 구하도록 수정했다.
+- 결과를 보면 동일한 문자열인 Expo를 다시 계산하지 않고, 배열의 마지막 값이 이후에는 문자열의 변화가 없기 때문에 더 이상 getLength 함수를 호출하지 않는다는 것을 확인할 수 있다.
+
+### 언제 useMemo를 사용해야 할까?
+### `비용이 큰 계산이나 반복 작업이 있을 때`
+- 복잡한 배열 연산이나 필터링, 정렬 등의 작업을 useMemo로 최적화할 수 있다.
+```js
+import React, { useState, useMemo } from 'react';
+import { View, Text, TextInput, ScrollView } from 'react-native';
+
+function ExpensiveFilter() {
+    const [query, setQuery] = useState('');
+    const items = Array.from({ length: 1000 }, (_, i) => `Item ${i + 1}`); // 큰 배열 예시
+
+    // query가 변경될 때만 필터링 작업을 수행
+    const filteredItems = useMemo(() => {
+        console.log("Filtering items...");
+        return items.filter(item => item.toLowerCase().includes(query.toLowerCase()));
+    }, [query]);
+
+    return (
+        <View style={{ padding: 20 }}>
+            <TextInput
+                style={{ height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10 }}
+                placeholder="Search..."
+                value={query}
+                onChangeText={setQuery}
+            />
+            <ScrollView>
+                {filteredItems.map((item, index) => (
+                    <Text key={index} style={{ fontSize: 16 }}>{item}</Text>
+                ))}
+            </ScrollView>
+        </View>
+    );
+}
+
+export default ExpensiveFilter;
+```
+- 여기서는 query가 변경될 때만 필터링 작업이 다시 수행되며, items 배열이 커도 불필요한 연산을 줄여 성능을 높일 수 있다.
+
+### `렌더링 성능이 중요한 경우`
+- 불필요한 재계산이 자주 발생하는 경우, 이를 방지해 렌더링 성능을 높일 수 있다.
+```js
+import React, { useState, useMemo } from 'react';
+import { View, Text, Button } from 'react-native';
+
+function RenderOptimizedComponent() {
+    const [count, setCount] = useState(0);
+    const [expensiveValue, setExpensiveValue] = useState(100);
+
+    // expensiveValue가 변경될 때만 복잡한 계산을 수행
+    const computedValue = useMemo(() => {
+        console.log("Calculating expensive value...");
+        let result = expensiveValue;
+        for (let i = 0; i < 1000000; i++) {
+            result += i;
+        }
+        return result;
+    }, [expensiveValue]);
+
+    return (
+        <View style={{ padding: 20 }}>
+            <Text style={{ fontSize: 18 }}>Expensive Calculation Result: {computedValue}</Text>
+            <Button title="Increment Count" onPress={() => setCount(count + 1)} />
+            <Text style={{ fontSize: 18, marginTop: 10 }}>Count: {count}</Text>
+            <Button title="Increase Expensive Value" onPress={() => setExpensiveValue(expensiveValue + 10)} />
+        </View>
+    );
+}
+
+export default RenderOptimizedComponent;
+```
+- 여기서 count가 변경될 때는 computedValue가 다시 계산되지 않으므로, 렌더링 성능을 높일 수 있다. 
+- expensiveValue가 변경될 때만 복잡한 계산을 다시 수행하게 된다.
+
+### `상태 값이 변경되지 않는 한 같은 계산 결과를 사용하고 싶을 때`
+- 특정 상태 값이 변하지 않는다면, 이전에 계산한 값을 재사용하여 성능을 개선할 수 있다. 
+```js
+import React, { useState, useMemo } from 'react';
+import { View, Text, Button } from 'react-native';
+
+function AverageCalculator() {
+    const [numbers, setNumbers] = useState([10, 20, 30, 40, 50]);
+    const [extra, setExtra] = useState(0);
+
+    // numbers 배열이 변경될 때만 평균을 재계산
+    const average = useMemo(() => {
+        console.log("Calculating average...");
+        const sum = numbers.reduce((acc, curr) => acc + curr, 0);
+        return sum / numbers.length;
+    }, [numbers]);
+
+    return (
+        <View style={{ padding: 20 }}>
+            <Text style={{ fontSize: 18 }}>Average: {average}</Text>
+            <Button title="Add Number" onPress={() => setNumbers([...numbers, Math.floor(Math.random() * 100)])} />
+            <Button title="Change Extra State" onPress={() => setExtra(extra + 1)} />
+            <Text style={{ fontSize: 18, marginTop: 10 }}>Extra Value (unrelated): {extra}</Text>
+        </View>
+    );
+}
+
+export default AverageCalculator;
+```
+- 여기서는 numbers 배열이 변경될 때만 average가 다시 계산된다. 
+- extra 상태는 average 계산에 영향을 주지 않기 때문에, 불필요한 재계산을 방지하고 성능을 높일 수 있다.
+
+## 커스텀 Hooks 만들기
+- 우리만의 hook를 만들 수 있다.
+- 우리가 만들 hook 함수는 특정 API에 GET요청을 보내고 응답을 받는 함수이다.
+- 리액트 네이티브에서는 네트워크 통신을 위해 Fetch와 XMLHttpRequest를 제공하고, 추가적으로 WebSocket도 지원한다.
+- 이번에는 Fecth를 이용하여 useFetch라는 이름의 hook을 만들어보자
+- src안에 hooks라는 폴더를 만들고 안에 useFetch.js파일을 만들자
+
+```js
+import { useState,useEffect } from "react";
+
+export const useFetch = url => {
+    const [data, setData] = useState(null);
+    const [error, setError] = useState(null);
+
+    useEffect(async() => {
+        try {
+            const res = await fetch(url);
+            const result = await res.json();
+            if (res.ok){
+                setData(result);
+                setError(null);
+            } else {
+                throw result;
+            }
+        } catch (error) {
+            setError(error);
+        }
+    },[]);
+    return {data, error};
+}
+```
+- 전달받은 API의 주소로 요청을 보내고 그 결과를 성공 여부에 따라 data 혹은 error에 담아서 반환하는 useFetch를 만들었다.
+- 이제 만들어진 useFetch를 이용해 API 요청하는 Dog 컴포넌트를 작성해보자.
+- components 폴더에 Dog.js 파일 만들기
+```js
+import React from "react";
+import styled from "styled-components";
+import { useFetch } from "../hooks/useFetch";
+
+const StyledImage = styled.Image`
+    background-color : #7f8c8d;
+    width : 300px;
+    height : 300px;
+`;
+
+const ErrorMessage = styled.Text`
+    font-size : 18px;
+    color : #e74c3c;
+`;
+
+const URL = 'https://dog.ceo/api/breeds/image/random';
+const Dog = () => {
+    const {data, error} = useFetch(URL);
+
+    return(
+        <>
+            <StyledImage source={data?.message ? { uri : data.message} : nul} />
+            <ErrorMessage>{error ?.message} </ErrorMessage>
+        </>
+    )
+}
+
+export default Dog;
+```
+
+## 옵셔널 체이닝
+- JavaScript에서 객체의 속성에 안전하게 접근하기 위한 문법이다.
+- 이 문법을 사용하면, 중첩된 객체 속성에 접근할 때 객체나 속성이 존재하지 않아도 에러를 발생시키지 않고 undefined를 반환하도록 한다.
+- 옵셔널 체이닝을 통해 코드가 중단되지 않고 안전하게 실행될 수 있다.
+
+### 옵셔널 체이닝 문법
+- 셔널 체이닝은 ?.를 사용하여 작성한다. 
+- 이 문법은 다음과 같은 상황에서 유용하게 쓰인다
+
+#### 1. 객체 속성에 접근하기
+- 중첩된 객체의 속성에 접근할 때 객체가 null 또는 undefined이면 에러가 발생할 수 있다. 
+```js
+const user = {
+    profile: {
+        name: "Alice"
+    }
+};
+
+// 중첩된 객체 속성에 접근할 때 매번 null 체크가 필요함
+let age;
+if (user && user.profile && user.profile.age) {
+    age = user.profile.age;
+} else {
+    age = undefined;
+}
+
+console.log(age); // undefined
+-------------------------------------------------
+const user = {
+    profile: {
+        name: "Alice"
+    }
+};
+
+// 옵셔널 체이닝을 통해 더 간단하게 안전하게 접근 가능
+const age = user.profile?.age;
+console.log(age); // undefined
+
+```
+
+#### 2. 배열 요소에 접근하기
+- 옵셔널 체이닝을 사용하면 배열이 존재하지 않거나, 해당 인덱스의 요소가 없어도 안전하게 접근할 수 있다.
+```js
+const users = [{ name: "Alice" }, null, { name: "Bob" }];
+
+// 배열의 요소가 null인지 확인하는 코드가 필요함
+let userName;
+if (users[1] && users[1].name) {
+    userName = users[1].name;
+} else {
+    userName = undefined;
+}
+
+console.log(userName); // undefined
+---------------------------------------------
+const users = [{ name: "Alice" }, null, { name: "Bob" }];
+
+// 옵셔널 체이닝으로 더 간결하게 배열 요소에 접근 가능
+const userName = users[1]?.name;
+console.log(userName); // undefined
+```
+
+#### 3. 함수 호출하기
+- 객체에 함수가 있을 때만 안전하게 호출할 수 있다.
+- 함수가 undefined일 경우 호출하려고 하면 에러가 발생하지만, 옵셔널 체이닝을 사용하면 안전하게 함수가 있는 경우에만 호출할 수 있다.
+```js
+const apiResponse = {
+    data: {
+        user: {
+            profile: {
+                email: "alice@example.com"
+            }
+        }
+    }
+};
+
+// 중첩된 데이터에 접근할 때 null 확인이 필요함
+let email;
+if (apiResponse && apiResponse.data && apiResponse.data.user && apiResponse.data.user.profile) {
+    email = apiResponse.data.user.profile.email;
+} else {
+    email = undefined;
+}
+
+console.log(email); // "alice@example.com"
+
+------------------------------------------------
+const apiResponse = {
+    data: {
+        user: {
+            profile: {
+                email: "alice@example.com"
+            }
+        }
+    }
+};
+
+// 옵셔널 체이닝으로 중첩된 데이터에 간단하게 접근 가능
+const email = apiResponse.data?.user?.profile?.email;
+console.log(email); // "alice@example.com"
+```
+
+### 옵셔널 체이닝의 장점
+- 안정성 : null 또는 undefined인 값에 접근할 때 발생하는 오류를 방지한다.
+- 가독성 : 여러 중첩된 속성에 접근할 때 코드를 짧고 명확하게 작성할 수 있다.
+- 간편한 에러 처리 : 값이 없을 경우 undefined를 반환하기 때문에 별도의 if문이나 try-catch문 없이도 에러 처리가 가능하다.
 
