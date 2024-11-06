@@ -84,3 +84,160 @@ export default App;
 ```
 
 - 이번에는 src 폴더 밑에 화면으로 사용하는 컴포넌트를 관리할 screens 폴더와 작성되는 네비게이션 코드를 관리할 navigations 폴더를 생성
+- 폴더 생성이 완료되면 리액트 네비게이션 실습을 위해 라이브러리를 설치하자.
+```js
+npm install --save @react-navigation/native --force
+```
+- 리액트 네비게이션은 각 기능별로 모듈이 분리되어 있어, 이후에도 사용하는 내비게이션의 종류에 따라 개별적으로 추가 라이브러리를 설치해야 한다.
+- 이번에는 대부분의 내비게이션에서 반드시 필요한 종속성을 설치해보자.
+```js
+npx expo install react-native-gesture-handler react-native-reanimated react-native-screens react-native-safe-area-context @react-native-community/masked-view -- --force 
+```
+
+## 스택 네비게이션
+- 가장 기본적인 네비게이션인 스택에 대해 알아보자.
+- 먼저 명령어를 이용해 스택 네비게이션 활용에 필요한 라이브러리를 설치하자
+```js
+npm install @react-navigation/stack --force`
+```
+- 스택 네비게이션은 일반적으로 가장 많이 사용되는 네비게이션으로, 현재 화면 위에 다른 화면을 쌓으면서 화면을 이동하는 것이 특징이다.
+- 예를 들면 채팅 어플리케이션에서 채팅방에 입장하는 상황이나 여러 목록 중에서 특정 항목의 상세 화면으로 이동할 때 많이 사용한다.
+- 스택 네비게이션은 화면위에 새로운 화면을 쌓으면서(push) 이동하기 때문에 이전 화면을 계속 유지한다.
+- 이런 구조 때문에 가장 위에 있는 화면을 들어내면(pop)이전화면으로 돌아갈 수 있다는 특징이 있다.
+
+![img](img/스택네비게이션.png)
+
+### 화면 구성
+- 스택 네비게이션을 이용해서 화면을 구성하고 이동시켜보자.
+
+#### screens 폴더에 Home.js만들기 
+- 스택 네비게이션의 화면으로 사용할 화면을 만든다.
+```js
+import React from 'react';
+import { Button } from 'react-native';
+import styled from 'styled-components';
+
+const Container = styled.View`
+  align-items: center;
+`;
+const StyledText = styled.Text`
+  font-size: 30px;
+  margin-bottom: 10px;
+`;
+
+const Home = ({ navigation }) => {
+  return (
+    <Container>
+      <StyledText>Home</StyledText>
+      <Button title="go to the list screen"/>
+    </Container>
+  );
+};
+
+export default Home;
+```
+- 첫 화면으로 사용할 Home 화면을 작성했다.
+- 화면을 확인하기 위한 텍스트와 다음 화면인 List 화면으로 이동하기 위한 버튼 화면으로 구성했다.
+
+#### screens폴더에 List.js 만들기
+```js
+import React from 'react';
+import { Button } from 'react-native';
+import styled from 'styled-components';
+
+const Container = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
+const StyledText = styled.Text`
+  font-size: 30px;
+  margin-bottom: 10px;
+`;
+
+const items = [
+  { _id: 1, name: 'React Native' },
+  { _id: 2, name: 'React Navigation' },
+  { _id: 3, name: 'Hanbit' },
+];
+
+const List = () => {
+  const _onPress = item => {};
+
+  return (
+    <Container>
+      <StyledText>List</StyledText>
+      {items.map(item => (
+        <Button
+          key={item._id}
+          title={item.name}
+          onPress={() => _onPress(item)}
+        />
+      ))}
+    </Container>
+  );
+};
+
+export default List;
+```
+- List 화면으로 사용될 컴포넌트를 작성했다.
+- 화면에서 사용할 임시 목록을 만들고 항목 수 만큼 버튼을 생성하도록 만들었다.
+- 각자의 임시 데이터를 만들면서 진행을 해보자.
+
+#### screens 폴더에 Item.js만들기
+- 목록의 상세 정보를 보여주는 컴포넌트 만들기
+```js
+import React, { useLayoutEffect } from 'react';
+import styled from 'styled-components/native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+const Container = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
+const StyledText = styled.Text`
+  font-size: 30px;
+  margin-bottom: 10px;
+`;
+
+const Item = () => {
+  return (
+    <Container>
+      <StyledText>Item</StyledText>
+    </Container>
+  );
+};
+
+export default Item;
+```
+- 이제 navigation 폴더 안에 Stack.js 파일을 생성하고 생성된 컴포넌트를 이용해 스택 네비게이션을 구성해보자.
+
+```js
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import Home from "../screens/Home";
+import List from "../screens/List";
+import Item from "../screens/Item";
+
+const Stack = createStackNavigator();
+
+const StackNavigation = () => {
+    return(
+        <Stack.Navigator>
+            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="List" component={List} />
+            <Stack.Screen name="Item" component={Item} />
+        </Stack.Navigator>
+    )
+}
+export default StackNavigation;
+```
+- 가장 먼저 createStackNavigator함수를 이용해서 스택 네비게이션을 생성했다.
+- 생성된 스택 네비게이션에는 화면을 구성하는 Screen 컴포넌트와 Screen 컴포넌트를 관리하는 Navigator 컴포넌트가 있다.
+- Navigator 컴포넌트 안에 Screen 컴포넌트를 자식 컴포넌트로 작성하고, 앞에서 만든 컴포넌트를 Screen 컴포넌트의 component로 지정했다.
+- name에는 화면의 이름을 작성하는데, Screen 컴포넌트의 name은 반드시 서로 다른 값을 가져야 한다는 점에서 유의해야 한다.
+- 이제 App 컴포넌트에서 완성된 스택 네비게이션을 사용해보자.
+```js
+
+```
