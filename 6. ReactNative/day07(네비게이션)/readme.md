@@ -7,7 +7,7 @@
 ## 프로젝트 생성하기
 ```js
 expo init react-native-navigation
-npm install styled-components --froce
+npm install styled-components --force
 ```
 
 ## 리액트 네비게이션
