@@ -615,11 +615,9 @@ const Container = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
-  background-color: #54b7f9;
 `;
 const StyledText = styled.Text`
   font-size: 30px;
-  color: #ffffff;
 `;
 
 export const Mail = () => {
@@ -701,3 +699,236 @@ const App = () => {
 
 export default App;
 ```
+
+- 결과를 ㅂ며 화면 하단에 3개의 버튼이 놓인 탭 바 가 있고, 탭의 버튼을 클릭할 때마다 화면이 변경되는 것을 확인할 수 있다.
+- 탭 바에 있는 버튼 순서는 Navigator 컴포넌트의 자식으로 있는 Screen 컴포넌트의 순서와 동일하며 첫 번째 자식 컴포넌트를 첫 화면으로 사용한다.
+- 탭 버튼의 순서는 변경하지 않고 렌더링 되는 첫 번째 화면을 변경하고 싶은 경우 initialRouteName속성을 이용한다.
+```js
+<Tab.Navigator
+  initialRouteName='Settings'>
+    <Tab.Screen name="Mail" component={Mail} />
+    <Tab.Screen name="Meet" component={Meet} />
+    <Tab.Screen name="Settings" component={Settings} />
+  </Tab.Navigator>
+```
+
+### 탭 바 수정하기
+- 탭 바와 탭 버튼을 수정해보자
+#### 버튼 아이콘 설정하기
+- 탭 네비게이션의 기본 설정에는 탭 버튼 아이콘이 지정되어있지 않다.
+- 탭 버튼에 아이콘을 렌더링하는 방법은 tabBarIcon을 이용하는 것이다.
+- 스택 네비게이션에서 타이틀 컴포넌트를 변경하거나 헤더 버튼 컴포넌트를 변경했던 것처럼 tabBarIcon에 컴포넌트를 반환하는 함수를 지정하면 버튼의 아이콘이 들어갈 자리에 해당 컴포넌트를 렌더링한다.
+- tabBarIcon에 설정된 함수에는 color, size, focused값을 표함한 객체가 props로 전달된다는 특징이 있다.
+
+```js
+...
+import {MaterialCommunityIcons} from '@expo/vector-icons'
+
+const TabIcon = ({name, size, color}) => {
+    return <MaterialCommunityIcons name={name} size={size} color={color} />;
+}
+
+const Tab = createBottomTabNavigator();
+
+const TabNavigation = () => {
+    return (
+      <Tab.Navigator
+      initialRouteName='Settings'>
+        <Tab.Screen 
+            name="Mail" 
+            component={Mail}
+            options={{
+                tabBarIcon: props => TabIcon({...props, name:'email'}),
+            }} />
+        <Tab.Screen 
+            name="Meet" 
+            component={Meet}
+            options={{
+                tabBarIcon: props => TabIcon({...props, name:'video'}),
+            }} />
+        <Tab.Screen 
+            name="Settings" 
+            component={Settings}
+            options={{
+                tabBarIcon: props => TabIcon({...props, name:'settings'}),
+            }} />
+      </Tab.Navigator>
+    );
+  };
+
+  export default TabNavigation;
+
+```
+- 화면을 구성하는 Screen 컴포넌트마다 tabBarIcon에 MaterialCommunityIcons컴포넌트를 반환하는 함수를 지정했다.
+- 반환되는 컴포넌트의 색과 크기는 tabBarIcon에 지정된 함수의 파라미터로 전달되는 color와 size를 이용해서 설정했다.
+- 만약 Screen 컴포넌트마다 탭 버튼 아이콘을 지정하지 않고 한곳에서 모든 버튼의 아이콘을 관리하고 싶은 경우 Navigator 컴포넌트의 screenOptions 속성을 사용해서 관리할 수 있다.
+
+```js
+<Tab.Navigator
+  initialRouteName='Settings'
+  screenOptions={({ route }) => ({
+      tabBarIcon: props => {
+        let name = '';
+        if (route.name === 'Mail') name = 'email';
+        else if (route.name === 'Meet') name = 'video';
+        else name = 'settings';
+        return TabIcon({ ...props, name });
+      },
+    })}
+  >
+  <Tab.Screen name="Mail" component={Mail} />
+  <Tab.Screen name="Meet" component={Meet} />
+  <Tab.Screen name="Settings" component={Settings} />
+</Tab.Navigator>
+```
+- Screen 컴포넌트마다 options에 tabBarIcon을 설정하는 방법과 Navigator 컴포넌트에서 screenOptions를 이용하는 방법의 결과는 동일하다.
+
+#### 라벨 수정하기
+- 버튼 아이콘 아래에 렌더링되는 라벨은 Screen컴포넌트의 name값을 기본값으로 사용한다.
+- 탭 버튼의 라벨은 tabBarLabel을 이용해서 변경할 수 있다.
+- 탭 네비게이션의 Screen컴포넌트에서 tabBarLabel값을 설정하여 탭 버튼의 라벨을 변경해보자.
+
+```js
+<Tab.Screen name="Mail" component={Mail} options={{tabBarLabel:'Inbox'}} />
+```
+- 라벨을 버튼 아이콘의 아래가 아닌 옆에 렌더링되도록 변경하고 싶으면 tabBarLabelPosition 값을 변경해서 조정할 수 있다.
+- tabBarLabelPosition은 below-icon과 beside-icon 두 값만 설정할 수 있으며, beside-icon으로 설정하면 아이콘 오른쪽에 라벨이 렌더링 된다.
+```js
+ <Tab.Navigator
+  initialRouteName='Settings'
+  screenOptions={({ route }) => ({
+      tabBarIcon: props => {
+        let name = '';
+        if (route.name === 'Mail') name = 'email';
+        else if (route.name === 'Meet') name = 'video';
+        else name = 'cog';
+        return TabIcon({ ...props, name });
+      },
+      tabBarLabelPosition:'beside-icon',
+    })}
+  >
+```
+- 프로젝트의 기획이나 디자인에 따라 라벨을 렌더링하지 않고 아이콘만 사용하는 경우도 많다.
+- tabBarShowLabel 이용하면 탭 바에서 라벨이 렌더링되지 않도록 설정할 수 있다.
+```js
+tabBarLabelPosition:'beside-icon', 
+tabBarShowLabel:false,
+```
+
+#### 스타일 수정하기
+- 탭 네비게이션의 탭 바 배경색은 흰색이 기본이다.
+- 만약 화면의 배경색이 탭 바의 기본색과 어울리지 않는다면 탭 바의 배경색 등을 수정해야 할 것이다.
+- 먼저 TabScreens.js에서 화면의 배경색을 다음과 같이 변경한다.
+```js
+const Container = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: #54b7f9;
+`;
+const StyledText = styled.Text`
+  font-size: 30px;
+  color: #ffffff;
+`;
+```
+- 화면의 스타일 수정이 완료되면 탭 바의 스타일을 변경한다.
+- 탭 바의 스타일은 screenOptions에 tabBarStyle의 값으로 스타일 객체를 설정하여 변경할 수 있다.
+```js
+<Tab.Navigator
+  initialRouteName='Settings'
+  screenOptions={({ route }) => ({
+      tabBarIcon: props => {
+        let name = '';
+        if (route.name === 'Mail') name = 'email';
+        else if (route.name === 'Meet') name = 'video';
+        else name = 'cog';
+        return TabIcon({ ...props, name });
+      },
+      tabBarLabelPosition:'beside-icon', 
+      tabBarShowLabel:false,
+      tabBarStyle: {
+          backgroundColor: '#54b7f9',
+          borderTopColor: '#ffffff',
+          borderTopWidth: 2,
+      }
+    })}
+  >
+```
+- 탭 바의 배경색을 화면의 배경색과 동일한 색으로 변경하고, 화면과 명확히 구분되도록 하기 위해 경계선의 색과 두께를 조절했다.
+- 탭 바의 배경색은 잘 변경되었지만, 탭 버튼의 아이콘 색이 배경색과 어울리지 않아 수정이 필요해보인다.
+- 탭 버튼의 아이콘은 선택되어 활성화된 상태의 색과 선택되지 않아 비활성화된 상태의 색을 각각 tabBarActiveTintColor와 tabBarInactiveTintColor를 이용해 설정할 수 있다.
+- Tab.js 파일 수정하기
+```js
+  tabBarLabelPosition:'beside-icon', 
+  tabBarShowLabel:false,
+  tabBarStyle: {
+      backgroundColor: '#54b7f9',
+      borderTopColor: '#ffffff',
+      borderTopWidth: 2,
+  },
+  tabBarActiveTintColor: '#ffffff',
+  tabBarInactiveTintColor : '#0b92e9'
+})}
+```
+- 만약 라벨이 렌더링 되도록 설정되었다면 라벨의 색도 버튼의 활성화 상태에 따라 tabBarActiveTintColor와 tabBarInactiveTintColor에 설정된 값으로 나타난다.
+- 앞에서 버튼의 아이콘을 설정하기 위해 barTabIcon에 설정한 함수에는 파라미터로 size, color, focused를 가진 객체가 전달된다.
+- 이 값중 focused는 버튼의 선택된 상태를 나타내는 값인데, 이 값을 이용하면 버튼의 활성화 상태에 따라 다른 버튼을 렌더링하거나 스타일을 변경할 수 있다.
+- Tab.js에 코드 추가하기
+```js
+<Tab.Navigator
+  initialRouteName='Settings'
+  screenOptions={({ route }) => ({
+      tabBarIcon: props => {
+        let name = '';
+        if (route.name === 'Mail') name = 'email';
+        else if (route.name === 'Meet') name = 'video';
+        else name = 'cog';
+        return TabIcon({ ...props, name });
+      },
+      tabBarLabelPosition:'beside-icon', 
+      tabBarShowLabel:false,
+      tabBarStyle: {
+          backgroundColor: '#54b7f9',
+          borderTopColor: '#ffffff',
+          borderTopWidth: 2,
+      },
+      tabBarActiveTintColor: '#ffffff',
+      tabBarInactiveTintColor : '#cfcfcf'
+    })}
+  >
+  <Tab.Screen 
+      name="Mail" 
+      component={Mail} 
+      options={{
+          tabBarLabel:'Inbox',
+          tabBarIcon: props =>
+              TabIcon({
+                  ...props,
+                  name: props.focused ? 'email':'email-outline',
+              })
+          }} 
+  />
+  <Tab.Screen 
+      name="Meet" 
+      component={Meet}
+      options={{
+          tabBarIcon: props =>
+              TabIcon({
+                  ...props,
+                  name: props.focused ? 'video':'video-outline',
+              })
+          }} />
+  <Tab.Screen 
+      name="Settings" 
+      component={Settings}
+      options={{
+          tabBarIcon: props =>
+              TabIcon({
+                  ...props,
+                  name: props.focused ? 'cog':'cog-outline',
+              })
+          }} />
+</Tab.Navigator>
+```
+- focused의 값에 따라 버튼이 활성화되었을 때는 내부가 채워진 이미지가 렌더링되고, 비활성화 상태에서는 내부가 빈 아이콘이 렌더링되도록 작성했다
+- 버튼의 아이콘으로 활성화 상태를 구분할 수 있기 때문에 비활성화 상태의 색도 활성화 상태의 색과 비슷하게 변경했다.
