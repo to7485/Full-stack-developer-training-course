@@ -457,3 +457,247 @@ import {MaterialCommunityIcons} from '@expo/vector-icons'
     }}
 >
 ```
+- 함수의 파라미터로 전달되는 style을 이용하여 headerTitleStyle에 지정한 스타일과 동일한 스타일이 적용되도록 작성했다.
+- 반환되는 컴포넌트는 vector-icons에서 제공하는 컴포넌트를 이용해서 리액트 로고가 렌더링되도록 작성했다.
+
+#### 버튼 수정하기
+- 스택 네비게이션에서 화면을 이동하면 헤더 왼쪽에 이전 화면으로 이동하는 뒤로 가기 버튼이 나타난다.
+- 만약 첫 화면처럼 이전화면이 없는 경우에는 버튼이 생기지 않는다.
+- 헤더 왼쪽 뒤로 가기 버튼이 생성되는것은 동일하지만, iOS와 안드로이드의 모습에는 차이가 있다.
+- 안드로이드는 버튼의 타이틀을 보여주지 않고, iOS는 이전 화면의 타이틀을 버튼의 타이틀로 보여주는것이 그 차이점이다.
+- headerBackTitleVisible을 이용하면 두 플랫폼의 버튼 타이틀 렌더링 여부를 동일하게 설정할 수 있다.
+```js
+<Stack.Screen 
+  name="List" 
+  component={List}
+  options={{headerTitle : 'List Screen', headerBackTitleVisible : true}} />
+```
+
+- 결과를 보면 안드로이드에도 버튼의 타이틀이 나타나는것을 확인할 수 있다.
+- 버튼의 타이틀은 나타나게 하지만, 이전 화면의 이름이 아닌 다른 값을 사용하고 싶은 경우 headerBackTitle을 사용한다.
+```js
+<Stack.Screen 
+  name="List" 
+  component={List}
+  options={{headerTitle : 'List Screen', headerBackTitleVisible : true, headerBackTitle: 'Prev'}} />
+```
+- headerBackTitle에 빈 문자열을 입력하면 버튼 타이틀에 Back이라는 문자열이 나타난다.
+- 버튼의 타이틀에 빈 값을 주고 싶은 경우 headerBackTitle이 아니라 headerBackTitleVisible을 이용해서 타이틀이 보이지 않게 해야 한다.
+
+#### 버튼 스타일 수정하기
+- 버튼의 타이틀도 헤더의 타이틀처럼 우리가 원하는 스타일을 지정할 수 있다.
+- headerBackTitleStyle을 이용하면 글자의 색뿐만아니라 글자 크기 등 다양한 스타일을 지정할 수 있지만 버튼의 타이틀에만 적용된다.
+- 버튼의 타이틀과 이미지의 색을 동일하게 변경하려면 headerTintColor를 이용해야한다.
+- headerTintColor에 지정된 색은 버튼뿐만 아니라 타이틀에도 적용되지만, headerTitleStyle혹은 headerBackTitleStyle이 우선순위가 높으므로 headerTintColor에 설정한색으로 나타나게 하고 싶다면 다른 스타일과 겹치지 않도록 하는것이 중요하다.
+- Stack에 List에 코드 추가하기
+```js
+<Stack.Screen 
+    name="List" 
+    component={List}
+    options={{
+        headerTitle : 'List Screen', 
+        headerBackTitleVisible : true, 
+        headerBackTitle: 'Prev',
+        headerTitleStyle:{fontSize : 24},
+        headertintColor : '#e74c3c',
+    }} />
+```
+- headerTintColor의 값을 설정하고 headerTitleStyle을 재정의하여 헤더의 타이틀도 함께 적용되도록 수정했다.
+
+#### 버튼 컴포넌트 변경
+- headerBackImage에 반환하는 함수를 전달해서 두 플랫폼이 동일한 이미지를 렌더링 하도록 변경해보자.
+- Stack.js의 List 코드 수정하기
+```js
+...
+
+    headertintColor : '#e74c3c',
+    headerBackImage : ({tintColor}) => {
+        const style = {
+            marginRight : 5,
+            marginLeft : Platform.OS === 'ios' ? 11 : 0,
+        };
+        return(
+            <MaterialCommunityIcons
+                name="keyboard-backspace"
+                size={30}
+                color={tintColor}
+                style={style}
+            />
+        )
+    }
+}} />
+```
+- headerBackImage의 함수 파라미터에 전달되는 tintColor값을 이용해 아이콘의 색을 지정하고, 두 플랫폼의 버튼 위치를 동일하게 만들기 위해 플랫폼에 따라 스타일을 다르게 적용했다.
+- 뒤로 가기 버튼의 이미지가 아니라 헤더의 왼쪽 버튼 전체를 변경하고 싶다면 headerLeft에 컴포넌트를 반환하는 함수를 지정한다.
+- 이와 동일한 방법으로 headerRight에 컴포넌트를 반환하는 함수를 지정하면 헤더의 오른쪽에 원하는 컴포넌트를 렌더링 할 수 있다.
+- Item.js 코드 수정하기
+```js
+const Item = ({ navigation, route }) => {
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerBackTitleVisible: false,
+      headerTintColor: '#ffffff',
+      headerLeft: ({ onPress, tintColor }) => {
+        return (
+          <MaterialCommunityIcons
+            name="keyboard-backspace"
+            size={30}
+            style={{ marginLeft: 11 }}
+            color={tintColor}
+            onPress={onPress}
+          />
+        );
+      },
+      headerRight: ({ tintColor }) => (
+        <MaterialCommunityIcons
+          name="home-variant"
+          size={30}
+          style={{ marginRight: 11 }}
+          color={tintColor}
+          onPress={() => navigation.popToTop()}
+        />
+      ),
+    });
+  }, []);
+```
+- useLayoutEffect 훅은 useEffect 훅과 사용법이 동일하며 거의 같은 방식으로 동작한다.
+- 주요 차이점은 컴포넌트가 업데이트된 직후 화면이 렌더링되기 전에 실행된다는 것이다.
+- 이 특징 때문에 화면을 렌더링하기 전에 변경할 부분이 있거나 수치 등을 측정해야 하는 상황에서 많이 사용된다.
+- headerLeft 함수의 파라미터에는 다양한 값들이 전달되는데, 그중 onPress는 뒤로가기 버튼 기능이 전달된다.
+  - 화면의 왼쪽 버튼을 변경하면서 전혀 다른 기능을 설정하는 경우에는 필요없지만, 뒤로 가기 버튼의 긴을 그대로 기용하고 싶은 경우 유용하게 사용할 수 있다.
+- headerRight 함수의 파라미터에는 tintColor만 전달되므로 onPress에 원하는 행동을 정의해줘야 한다.
+- navigation에서 제공하는 다양한 함수 중 popToTop함수는 현재 쌓여 있는 모든 화면을 내보내고 첫 화면으로 돌아가는 기능이다.
+
+#### 헤더 감추기
+- 화면의 종류나 프로젝트 기획에 따라 헤더를 감춰야 하는 상황이 있다.
+
+### headerMode
+- headerMode는 Stack.Navigator에서 모든 화면의 헤더가 표시되는 방식을 설정한다. 
+- headerMode에는 다음과 같은 세 가지 설정 값이 있다
+  - screen: 각 화면마다 개별적으로 헤더가 나타난다. 화면이 전환될 때마다 새로운 헤더가 렌더링된다. 화면 전환 시 이전 화면의 헤더가 사라지고, 새 화면의 헤더가 나타나는 방식이다.
+  - float : 헤더가 모든 화면을 관통하여 부드럽게 애니메이션되며, 화면 간의 전환 시 부드러운 전환 효과가 있다. 두 화면 간 전환 시 헤더는 이동하지 않고 그대로 유지되는 느낌을 준다.
+  - none: 헤더를 표시하지 않는다. 모든 화면에서 헤더가 사라지며, 이를 통해 전체 화면을 사용하거나 커스텀 헤더를 구현할 수 있다.
+
+### headerShown
+- headerShown은 각 Screen에 대해 헤더를 개별적으로 표시할지 여부를 설정하는 옵션이다. 
+- headerShown 옵션은 true 또는 false 값을 가진다.
+- headerShown: false로 설정하면 특정 화면에서 헤더가 표시되지 않는다. 이 옵션을 통해 특정 화면에서만 헤더를 숨길 수 있다.
+```js
+<Stack.Screen name="Home" component={Home} options={{headerShown:false}}/>
+```
+- 헤더가 사라지면서 노치 디자인 문제로 화면의 일부가 가려지는 문제를 해결하기 위해 Home 화면을 다음과 같이 수정하자.
+- Home.js 코드 수정하기
+```js
+const Container = styled.SafeAreaView`
+  align-items: center;
+  background-color : #ffffff;
+`;
+```
+
+## 탭 네비게이션
+- 보통 화면 위나 아래에 위치하며, 탭 버튼을 누르면 버튼과 연결된 화면으로 이동하는 방식으로 동작한다.
+- 많이 사용되는 카카오톡, 왓츠앱등의 채팅 애플리케이션에서 쉽게 확인할 수 있다.
+- 그 외에도 인스타그램, 유튜브 등 다수의 애플리케이션에서 탭 네비게이션을 사용하여 화면을 구성한다.
+
+### 라이브러리 설치하기
+```js
+npm install @react-navigation/bottom-tabs@6.5.20 --force
+```
+
+### 화면 구성
+- 3개의 버튼과 해당 버튼에 연결된 화면으로 구성된 탭 네비게이션을 만들어보자
+- src 폴더 밑에 있는 screens 폴더 내에 TabScreens.js 파일을 만들고 화면으로 사용할 컴포넌트를 만든다.
+```js
+import React from 'react';
+import styled from 'styled-components/native';
+
+const Container = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: #54b7f9;
+`;
+const StyledText = styled.Text`
+  font-size: 30px;
+  color: #ffffff;
+`;
+
+export const Mail = () => {
+  return (
+    <Container>
+      <StyledText>Mail</StyledText>
+    </Container>
+  );
+};
+
+export const Meet = () => {
+  return (
+    <Container>
+      <StyledText>Meet</StyledText>
+    </Container>
+  );
+};
+
+export const Settings = () => {
+  return (
+    <Container>
+      <StyledText>Settings</StyledText>
+    </Container>
+  );
+};
+```
+
+- 특별한 작업을 하지 않을 것이기 때문에 하나의 파일에다 다 만들었지만, 스택 네비게이션처럼 각각의 파일로 만들어도 상관 없다.
+
+- 현재 화면을 확인할 수 있는 텍스트가 나타나는 간단한 컴포넌트 3개를 만들었다.
+- 이제 생성된 컴포넌트를 이용해서 탭 네비게이션을 만들어보자.
+```js
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Mail, Meet, Settings } from '../screens/TabScreens';
+
+const Tab = createBottomTabNavigator();
+
+const TabNavigation = () => {
+    return (
+      <Tab.Navigator
+        initialRouteName="Settings"
+        screenOptions={({ route }) => ({
+          tabBarIcon: props => {
+            let name = '';
+            if (route.name === 'Mail') name = 'email';
+            else if (route.name === 'Meet') name = 'video';
+            else name = 'settings';
+            return TabIcon({ ...props, name });
+          },
+        })}
+      >
+        <Tab.Screen name="Mail" component={Mail} />
+        <Tab.Screen name="Meet" component={Meet} />
+        <Tab.Screen name="Settings" component={Settings} />
+      </Tab.Navigator>
+    );
+  };
+
+  export default TabNavigation;
+```
+- createBottomTabNavigator 함수를 이용해 탭 네비게이션을 생성했다.
+- 탭 네비게이션에도 스택 네비게이션과 동일하게 Navigator 컴포넌트, Screen 컴포넌트가 있다.
+- 앞에서 만든 컴포넌트들을 Screen 컴포넌트의 component로 지정해 화면으로 사용하고 Navigator컴포넌트로 감싸주었다.
+- 이제 완성될 탭 네비게이션을 App 컴포넌트에서 사용해보자.
+
+```js
+import TabNavigation from './navigations/Tab';
+
+...
+
+const App = () => {
+  return (
+    <NavigationContainer>
+        <TabNavigation />
+    </NavigationContainer>
+  );
+};
+
+export default App;
+```
