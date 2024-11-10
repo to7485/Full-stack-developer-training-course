@@ -932,3 +932,180 @@ const StyledText = styled.Text`
 ```
 - focused의 값에 따라 버튼이 활성화되었을 때는 내부가 채워진 이미지가 렌더링되고, 비활성화 상태에서는 내부가 빈 아이콘이 렌더링되도록 작성했다
 - 버튼의 아이콘으로 활성화 상태를 구분할 수 있기 때문에 비활성화 상태의 색도 활성화 상태의 색과 비슷하게 변경했다.
+
+## Drawer Navigation
+- 화면을 옆에서 슬라이드하여 나타나는 메뉴를 통해 다른 화면으로 이동할 수 있게 한다.
+- 주로 좌측이나 우측에서 나타나는 메뉴 형식으로 구현되며, 사용자 경험을 높이는 데 도움이 된다. 
+- 앱의 주요 메뉴나 설정 화면 등 쉽게 접근할 수 있는 화면을 배치할 때 유용하다.
+
+#### 라이브러리 설치
+```js
+npm install @react-navigation/drawer@6.7.2
+```
+
+### Drawer.js만들기
+- navigations에 Drawer.js파일 만들기
+```js
+import React from "react";
+import { createDrawerNavigator } from '@react-navigation/drawer';
+
+const Drawer = createDrawerNavigator();
+
+const DrawerkNavigation = () => {
+
+    return(
+        <Drawer.Navigator>
+            
+        </Drawer.Navigator>
+    )
+}
+```
+#### Drawer.Navigator
+- 전체 Drawer 네비게이션의 컨테이너 역할을 한다.
+- `initialRouteName` 속성을 통해 기본 화면을 설정할 수 있다.
+- Drawer 메뉴(화면 옆에서 슬라이드되는 메뉴)를 구성하고, Drawer.Screen으로 정의된 각 화면을 연결한다.
+- screenOptions, drawerContent, drawerStyle 등의 옵션을 통해 Drawer 메뉴의 스타일과 동작을 커스터마이징할 수 있다.
+### 화면만들기
+- 스크린으로 사용할 HomeScreen, ProfileScreen파일 만들기
+```js
+// screens/HomeScreen.js
+import React from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+
+const HomeScreen = ({ navigation }) => {
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Home Screen</Text>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9f9f9',
+    },
+    title: {
+        fontSize: 24,
+        marginBottom: 20,
+    },
+});
+
+export default HomeScreen;
+
+// screens/ProfileScreen.js
+import React from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+
+const ProfileScreen = ({ navigation }) => {
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Profile Screen</Text>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9f9f9',
+    },
+    title: {
+        fontSize: 24,
+        marginBottom: 20,
+    },
+});
+
+export default ProfileScreen;
+
+```
+
+### DrawerkNavigatitor에 스크린 등록하기
+```js
+...
+import HomeScreen from "../screens/HomeScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+const Drawer = createDrawerNavigator();
+
+const DrawerkNavigation = () => {
+
+    return(
+        <Drawer.Navigator>
+            <Drawer.Screen name="Home" component={HomeScreen} />
+            <Drawer.Screen name="Profile" component={ProfileScreen} />
+        </Drawer.Navigator>
+    )
+}
+
+export default DrawerkNavigation
+```
+
+#### Drawer.Screen
+- 개별 화면을 등록하며, 각 화면은 name과 component 속성을 가져야 한다.
+- name은 화면의 이름, component는 화면의 컴포넌트를 지정한다.
+
+### App컴포넌트에서 Navigator 사용하기
+```js
+...
+import DrawerkNavigation from './navigations/Drawer';
+
+const App = () => {
+  return (
+    <NavigationContainer>
+        <DrawerkNavigation />
+    </NavigationContainer>
+  );
+};
+
+export default App;
+```
+
+### DrawerNavigation 커스터마이징
+- Drawer.Navigator에서 screenOptions를 이용하여 네비게이터의 전체 옵션을 설정할 수 있다.
+```js
+        <Drawer.Navigator
+        screenOptions={{
+            drawerStyle: { backgroundColor: '#e6e6e6', width: 240 },
+            drawerLabelStyle: { fontSize: 18 },
+            drawerActiveTintColor: '#4CAF50',
+            drawerInactiveTintColor: '#757575',
+            borderWidth: 3, 
+            borderColor: '#ccc', 
+            headerShown: false,
+            }}
+        >
+```
+### Drwaer.Navigator에서 사용할 수 있는 속성
+
+#### 1. initialRouteName: "Home"
+- 네비게이터가 처음 시작될 때 표시될 기본 화면을 지정한다.
+- "Home"을 설정하면 Drawer 네비게이션이 처음 열릴 때 Home 화면이 기본으로 나타난다.
+
+### screenOptions에 쓸 수 있는 속성
+#### 1. drawerPosition
+- Drawer가 나타나는 위치를 설정한다. 
+- 기본값은 "left"이며, "right"로 설정하면 오른쪽에서 나온다.
+#### 2. drawerType
+- Drawer가 열릴 때의 애니메이션 방식과 형태를 설정한다.
+- `front`: Drawer가 앞쪽에 표시된다.
+- `back`: Drawer가 뒤쪽에 고정된 상태로, 본문이 위로 이동한다.
+- `slide`: Drawer가 왼쪽이나 오른쪽에서 슬라이드로 나타난다. 화면도 같이 밀린다.
+- `permanent`: Drawer가 항상 화면에 고정되어 있다.
+
+#### 3. drawerStyle
+- Drawer의 스타일을 설정하는 옵션이다.
+- `backgroundColor`: Drawer 메뉴의 배경 색상을 지정한다.
+- `width`: Drawer의 너비를 설정한다.기본적으로 화면에서 Drawer가 차지하는 공간의 크기를 픽셀 단위로 조정한다. 
+- `height`: Drawer의 높이를 설정한다. 기본적으로 Drawer는 화면 높이를 전부 차지하지만, 특정 높이만큼만 Drawer를 나타내고 싶을 때 유용하다.
+- `borderWidth`: Drawer의 테두리 두께를 설정한다.
+- `borderColor`: Drawer의 테두리 색상을 지정한다.
+- 
+
+#### 3. drawerLabelStyle
+- Drawer 메뉴의 라벨 텍스트 스타일을 설정한다.
+- `fontSize`: 각 메뉴 항목의 글꼴 크기를 설정할 수 있다.
+
