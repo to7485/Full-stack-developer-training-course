@@ -175,3 +175,221 @@ export default App;
 - navigations : 네비게이션 파일 관리
 - screens : 화면 파일 관리
 - utils : 프로젝트에서 이용할 기타 기능 관리
+
+# 파이어베이스
+- 구글에서 제공하는 **클라우드 기반 개발 플랫폼**으로, 서버리스 애플리케이션을 쉽게 개발하고 배포할 수 있도록 다양한 백엔드 서비스를 제공한다. 
+- 주로 모바일 앱과 웹 애플리케이션 개발에 사용되며, 실시간 데이터베이스, 인증, 클라우드 저장소, 푸시 알림 등의 기능을 손쉽게 구현할 수 있다.
+- 파이어베이스가 제공하는 기능을 이용하면 대부분의 서비스에서 필요한 서버와 데이터베이스를 직접 구축하지 않아도 개발이 가능하다는 장점이 있다.
+
+## 주요 기능과 서비스
+1. **Firebase Authentication**
+   - 다양한 인증 방식을 지원하여 사용자의 로그인과 회원가입을 간편하게 구현할 수 있다.
+   - 이메일/비밀번호, 전화번호, 소셜 로그인(Google, Facebook, Twitter 등), 익명 인증 등을 제공한다.
+
+2. **Firebase Realtime Database**
+   - 클라우드 기반의 NoSQL 데이터베이스로, 데이터가 실시간으로 동기화된다.
+   - 사용자가 데이터베이스의 업데이트를 즉시 받을 수 있어, 실시간 채팅, 라이브 업데이트 기능 등을 구현할 때 유용하다.
+
+3. **Cloud Firestore**
+   - 확장성과 유연성을 갖춘 NoSQL 문서형 데이터베이스로, Realtime Database와 유사하지만 더 강력하고 복잡한 쿼리를 지원한다.
+   - 서버리스 아키텍처로, 데이터베이스를 서버에 배포하지 않고도 대규모 데이터베이스를 관리할 수 있다.
+
+4. **Firebase Storage**
+   - 이미지, 동영상, 파일 등을 저장하고 관리할 수 있는 클라우드 스토리지 서비스다.
+   - 대용량 파일을 안전하게 저장하고, 업로드 및 다운로드 기능을 손쉽게 구현할 수 있다.
+
+5. **Firebase Cloud Messaging (FCM)**
+   - 푸시 알림을 전송할 수 있는 무료 메시징 서비스다.
+   - 기기 간의 푸시 알림이나 주제별 메시지를 손쉽게 전송할 수 있어, 사용자에게 실시간 알림을 보낼 때 유용하다.
+
+6. **Firebase Hosting**
+   - 정적 웹사이트나 단일 페이지 애플리케이션(SPA)을 위한 빠르고 안전한 호스팅 서비스다.
+   - Firebase CLI를 통해 빠르게 배포할 수 있으며, SSL 인증서가 자동으로 적용되어 안전한 HTTPS 통신을 제공한다.
+
+7. **Firebase Analytics**
+   - 앱 사용자 행동을 분석하여 사용자 인터랙션에 대한 인사이트를 제공하는 분석 도구다.
+   - Google Analytics 기반으로, 실시간 사용자 정보, 사용자 속성, 이벤트 추적 등을 지원한다.
+
+8. **Firebase Cloud Functions**
+   - 서버리스 환경에서 백엔드 코드를 실행할 수 있는 기능이다.
+   - 이벤트 기반으로 트리거되는 함수로, 데이터베이스 변경, 인증, FCM 등을 활용하여 백엔드 로직을 처리할 수 있다.
+
+## 파이어베이스 사용하기
+- 파이어베이스를 이용하려면 파이어베이스 콘솔에서 프로젝트를 생성해야 한다.
+https://console.firebase.google.com/
+
+![img](img/파이어베이스1.png)
+
+![img](img/파이어베이스3.png)
+
+- 앱을 추가하는 과정에서 입력해야 하는 앱의 닉네임은 편의상 지정하는 내부용 식별자이므로 여러분이 지정하고 싶은 이름을 입력하면 된다.(simplechat)
+
+![img](img/파이어베이스2.png)
+
+- 파이어베이스를 사용하기 위한 설정갑들을 확인할 수 있다.
+- 이 값들은 외부에 노출되면 안되는 중요한 값들이므로 잘 관리해야 한다.
+- 이제 프로젝트의 루트 디렉터리에 firebase.json 파일을 생성한 후 이 코드를 다음과 같은 형태로 복사하고 .gitignore파일에 firebase.json을 추가해주자.
+```json
+{
+  "apiKey": "...",
+  "authDomain": "...",
+  "projectId": "...",
+  "storageBucket": "...",
+  "messagingSenderId": "...",
+  "appId": "...",
+  "measurementId": "..."
+}
+```
+- .gitignore에 추가하기
+```
+...
+# firebase
+firebase.json
+```
+- 이제 프로젝트에서 파이어베이스를 사용하기위한 준비가 완료되었다.
+- 채팅 어플리케이션을 만들기 위해 알아야 할 인증, 데이터베이스, 스토리지 기능에 대해서 알아보자.
+
+### 인증
+- 파이어베이스 인증 기능에서는 다양한 인증 방법을 제공한다.
+- 우리는 이메일과 비밀번호를 이용하여 인증할 수 있는 기능을 만들 예정이므로 "이메일/비밀번호"부분만 활성화 하고 진행한다.
+
+![img](img/파이어베이스4.png)
+
+- 로그인 방법 설정 버튼을 누른다.
+- 이메일/비밀번호 버튼을 누른다.
+
+![img](img/파이어베이스5.png)
+
+- 토글을 활성화하고 저장버튼을 누른다.
+
+### 데이터베이스
+- 생성되는 채널과 각 채널에서 발생하는 메시지를, 파이어베이스의 데이터베이스를 이용하여 관리한다.
+- 데이터베이스의 경우 파이어스토어와 실시간 데이터베이스 두 가지 종류를 제공하는데, 우리는 파이어스토어를 이용할 것이다.
+- 데이터베이스를 사용하려면 데이터베이스 메뉴에서 데이터베이스 만들기를 진행해야 한다.
+- 데이터베이스 만들기의 첫 번째 단계인 보안 규칙은 뒤에서 조금 더 다루고, 두번째 단계인 위치를 선택하는 화면에서는 여러분이 서비스하는 지역과 가장 가까운 지역을 선택하는 것이 좋다.
+
+![img](img/파이어베이스6.png)
+
+- 지역만 asia-northeast3(서울)을 선택하고 다른것은 건드리지말고 넘어갑니다.
+
+### 스토리지
+- 서버 코드 없이 사용자의 사진, 동영상 등을 저장할 수 있는 기능을 쉽게 개발할 수 있도록 기능을 제공한다.
+- 여기서는 스토리지를 이용해 채팅 어플리케이션에 가입한 사용자의 사진을 저장하고 가져오는 기능을 만들어볼 것이다.
+- 2024년 부터 블레이즈 요금제로 바꿔야 스토리지를 사용가능하다.
+- 무료 사용량이 있고 그 이후에 과금이 된다.
+- 모든 위치에서 서울로 바꾸자
+
+### 라이브러리 설치
+- 리액트 네이티브에서 파이어베이스를 사용하기 위해 라이브러리를 설치하자
+```
+npm install firebase --legacy-peer-deps
+```
+- 라이브러리 설치가 완료되면 utils폴더 아래에 firebase.js파일을 생성하고 다음과 같이 작성한다.
+```js
+import * as firebase from 'firebase'
+import config from '../../firebase.json'
+
+const app = firebase.initializeApp(config);
+```
+
+## 앱 아이콘과 로딩화면
+- 프로젝트의 기능과 화면 개발에 앞서 앱의 아이콘과 로딩 화면을 먼저 변경해보자.
+- assets 폴더에 아이콘으로 사용할 1024x1024크기의 이미지를 icon.png로, 로딩화면에 사용할 1242x2436크기의 이미지를 splash.png파일로 교체해 넣는다.
+- 그리고 src폴더에 App.js를 수정한다.
+
+### expo-splash-screen
+- expo-app-loading패키지는 expo sdk 46부터 더이상 사용되지 않으며, expo-splash-screen을 사용하도록 권장된다.
+### 설치
+```js
+npm install expo-splash-screen
+```
+
+```js
+import React, { useState, useEffect } from 'react';
+import { StatusBar, Image } from 'react-native';
+import { Asset } from 'expo-asset';
+import * as Font from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen'; // expo-splash-screen을 불러옴
+import { ThemeProvider } from 'styled-components/native';
+import { theme } from './theme';
+
+// 스플래시 화면이 자동으로 숨겨지지 않도록 설정하여 초기화 작업이 완료될 때까지 유지함
+SplashScreen.preventAutoHideAsync();
+
+const cacheImages = images => {
+    // 이미지 캐싱 함수: 문자열로 전달된 URL 이미지와 로컬 파일 이미지에 따라 각각 적절한 캐싱 방식으로 처리
+    return images.map(image => {
+        if (typeof image === 'string') {
+            return Image.prefetch(image); // URL로 제공된 이미지의 경우, Image.prefetch로 캐싱
+        } else {
+            return Asset.fromModule(image).downloadAsync(); // 로컬 파일의 경우, expo-asset에서 제공하는 다운로드 방식으로 캐싱
+        }
+    });
+};
+```
+- `prefetch()`는 원격 URL의 이미지를 캐싱하기 위해 사용된다. 주로 웹에서 이미지를 가져올 때 사용하며, 이미지가 앱 내에서 사용되기 전에 미리 로드해두어 로딩 속도를 높인다.
+- `fromModule()`는 로컬 파일을 Asset 모듈로 가져와 관리한다. 주로 require()로 가져온 로컬 파일을 expo-asset의 Asset 객체로 변환할 때 사용된다.
+- `downloadAsync()`는 로컬 리소스(이미지, 동영상 등)를 미리 캐싱하는 기능을 제공한다. 이 함수는 Asset 객체에서 사용할 수 있으며, 로컬 파일을 캐싱하고 디바이스에 다운로드해 빠르게 접근할 수 있게 한다.
+
+```js
+const cacheFonts = fonts => {
+    // 폰트 캐싱 함수: 폰트 배열을 받아 각 폰트를 로드
+    return fonts.map(font => Font.loadAsync(font));
+};
+
+const App = () => {
+    const [isReady, setIsReady] = useState(false); // 초기화 여부를 추적하는 상태 변수
+
+    useEffect(() => {
+        // useEffect에서 비동기 함수 호출하여 리소스를 로드
+        const prepareResources = async () => {
+            try {
+                await _loadAssets(); // 리소스를 로드하는 비동기 함수 호출
+            } catch (error) {
+                console.warn(error); // 오류 발생 시 경고 메시지 출력
+            } finally {
+                setIsReady(true); // 로딩이 완료되면 isReady를 true로 설정
+                await SplashScreen.hideAsync(); // 스플래시 화면 숨김
+            }
+        };
+
+        prepareResources(); // 준비 함수 호출
+    }, []); // 빈 의존성 배열을 전달하여 컴포넌트가 마운트될 때 한 번만 실행
+
+    const _loadAssets = async () => {
+        // 이미지와 폰트를 캐싱하여 리소스를 로드
+        const imageAssets = cacheImages([require('../assets/splash.png')]); // 로컬 스플래시 이미지 캐싱
+        const fontAssets = cacheFonts([]); // 추가적인 폰트가 있다면 이 배열에 추가 가능
+
+        await Promise.all([...imageAssets, ...fontAssets]); // 모든 비동기 작업이 완료될 때까지 기다림
+    };
+
+```
+#### require()
+- 로컬 파일 리소스(이미지, 동영상, 사운드 파일 등)를 가져오는 데 사용된다. 
+- React Native에서는 앱 내부의 파일 경로나 네트워크에서 동적으로 가져오는 파일을 사용하기 어렵기 때문에, 정적인 파일을 불러오는 방식으로 require()가 자주 사용된다.
+
+#### 사용방식
+1. 정적 파일 경로 요구
+    - React Native에서 require()는 정적 경로로 파일을 가져와야 한다. 즉, 경로가 런타임에서 동적으로 결정될 수 없다.
+    - ```const image = require('./assets/icon.png');```
+
+
+```js
+    if (!isReady) {
+        return null; // 로딩이 완료되지 않은 경우 화면을 빈 상태로 유지
+    }
+
+    return (
+        // 로딩 완료 시 앱의 실제 UI를 렌더링
+        <ThemeProvider theme={theme}>
+            <StatusBar barStyle="dark-content" /> {/* 상태 바 스타일 설정 */}
+        </ThemeProvider>
+    );
+};
+
+export default App;
+```
+- 앞으로 프로젝트에서 사용할 이미지와 폰트를 미리 불러와서 사용할 수 있도록 cacheImages와 cacheFonts함수를 작성하고 이를 이용해 _loadAssets함수를 구성했다.
+- 이미지나 폰트를 미리 불러오면 애플리케이션을 사용하는 환경에 따라 이미지나 폰트가 느리게 적용되는 문제를 개선할 수 있다.
+- 어플리케이션은 미리 불러와야 하는 항목들을 모두 불러오고 완료되었을 때 isReady상태를 변경해서 렌더링되도록한다.
