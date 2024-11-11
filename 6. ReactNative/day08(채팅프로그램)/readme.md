@@ -393,3 +393,537 @@ export default App;
 - 앞으로 프로젝트에서 사용할 이미지와 폰트를 미리 불러와서 사용할 수 있도록 cacheImages와 cacheFonts함수를 작성하고 이를 이용해 _loadAssets함수를 구성했다.
 - 이미지나 폰트를 미리 불러오면 애플리케이션을 사용하는 환경에 따라 이미지나 폰트가 느리게 적용되는 문제를 개선할 수 있다.
 - 어플리케이션은 미리 불러와야 하는 항목들을 모두 불러오고 완료되었을 때 isReady상태를 변경해서 렌더링되도록한다.
+
+## 인증 화면
+- 파이어베이스의 인증 기능을 이용해서 로그인 화면과 회원가입 화면을 만들어보자.
+- 인증을 위해 이메일과 비밀번호가 필요하므로 로그인 및 회원가입 화면에서는 이메일과 비밀번호를 필수로 입력받고, 회원가입 시 사용자가 서비스에서 사용할 이름과 프로필 사진을 받도록 화면을 구성하도록 하자.
+
+### Stack네비게이션 설치
+```js
+npm install @react-navigation/stack@6.4.1
+```
+
+### 네비게이션
+- 먼저 로그인 화면과 회원가입 화면으로 사용할 컴포넌트를 screens 폴더 밑에 만든다.
+
+### Login.js
+```js
+import React from 'react';
+import styled from 'styled-components';
+import { Text,Button } from 'react-native';
+
+const Container = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: ${({ theme }) => theme.background};
+`;
+
+const Login = ({ navigation }) => {
+    return (
+        <Container>
+          <Text style={{fontSize: 30}}>Login Screen</Text>
+          <Button title="Signup" onPress={() => navigation.navigate('Signup')}/>
+        </Container>
+    );
+};
+  
+export default Login;
+```
+- 회원가입 화면으로 이동할 수 있는 버튼이 있는 간단한 로그인 화면을 만들었다.
+- 이번에는 회원가입 화면을 만들어보자.
+
+### Signup.js
+```js
+import React from 'react';
+import styled from 'styled-components';
+import { Text } from 'react-native';
+
+const Container = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: ${({ theme }) => theme.background};
+`;
+
+const Signup = () => {
+  return (
+      <Container>
+        <Text style={{fontSize : 30}}>Signup Screen</Text>
+      </Container>
+    
+  );
+};
+
+export default Signup;
+```
+- 회원가입 화면도 로그인 화면과 마찬가지로 화면을 확인할 수 있는 텍스트가 있는 간단한 화면으로 구성했다.
+- 두 화면이 완성되면 screens폴더에 index.js파일을 생성하고 다음과 같이 작성한다.
+```js
+import Login from "./Login";
+import Signup from "./Signup";
+
+export {Login,Signup}
+```
+- 이제 화면 준비가 완료되었으므로 네비게이션 파일을 작성해보자.
+- 네비게이션 파일을 관리하는 navigations폴더에 스택 네비게이션을 이용해서 다음과 같이 작성하자.
+
+### AuthStack.js
+```js
+import React, { useContext } from 'react';
+import { ThemeContext } from 'styled-components/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { Login, Signup } from '../screens';
+
+const Stack = createStackNavigator();
+
+const AuthStack = () => {
+  const theme = useContext(ThemeContext);
+  return (
+    <Stack.Navigator
+      initialRouteName="Login"
+      screenOptions={{
+        headerTitleAlign: 'center',
+        cardStyle: { backgroundColor: theme.background },
+      }}
+    >
+      <Stack.Screen
+        name="Login"
+        component={Login}
+      />
+      <Stack.Screen
+        name="Signup"
+        component={Signup}
+      />
+    </Stack.Navigator>
+  );
+};
+
+export default AuthStack;
+```
+- 첫 화면을 로그인 화면으로 하고 로그인 화면과 회원가입 화면을 가진 네비게이션을 만들었다.
+- 스타일드 컴포넌트에서 제공하는 ThemeContext와 useContext Hook 함수를 이용해 theme을 받아오고, 네비게이션 화면의 배경색을 theme에 정의된 배경색으로 설정했다.
+- 마지막으로 헤더의 타이틀 위치를 안드로이드와 iOS에서 동일한 위치에 렌더링하기 위해 headerTitleAlign의 값을 center로 설정했다.
+- AuthStack 네비게이션 작성이 완료되면 navigation 폴더 안에 index.js파일을 생성하고 다음과 같이 작성한다.
+```js
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import AuthStack from "./AuthStack";
+
+const Navigation = () => {
+    return(
+        <NavigationContainer>
+            <AuthStack />
+        </NavigationContainer>
+    )
+}
+
+export default Navigation;
+```
+- NavigationContainer 컴포넌트를 사용하고 자식 컴포넌트로 AuthStack 네비게이션을 사용했다.
+- 이제 작성된 네비게이션이 렌더링되도록 App컴포넌트를 다음과 같이 수정하자.
+```js
+...
+import Navigation from './navigations'
+
+...
+
+return (
+    <ThemeProvider theme={theme}>
+        <StatusBar barStyle="dark-content" />
+        <Navigation />
+    </ThemeProvider>
+);
+
+
+```
+
+![img](img/로그인화면.png) ![img](img/회원가입화면.png)
+
+
+### 로그인 화면
+- 로그인 화면에서 사용자의 이메일과 비밀번호를 입력받을 수 있도록 화면을 만들어보자.
+- 로그인 화면에서는 로고를 렌더링하는 컴포넌트와 사용자의 입력을 받는 컴포넌트, 그리고 클릭과 그에 따른 이벤트가 발생하는 컴포넌트가 필요하다.
+
+#### Image 컴포넌트
+- 먼저 url을 전달받아 원격에 있는 이미지를 렌더링하는 Image컴포넌트를 만들어보자.
+- 로그인 화면에서는 Image 컴포넌트를 이용해 어플리케이션의 로고를 렌더링한다.
+- 우선 Image 컴포넌트의 배경색으로 사용할 값을 theme.js에 정의한다.
+
+```js
+export const theme = {
+    background : colors.white,
+    text : colors.black,
+    ImageBackground: colors.grey_0,
+}
+```
+- Image 컴포넌트를 작성할 Image.js파일을 components폴더 안에 만든다.
+```js
+import React from 'react';
+import styled from 'styled-components/native';
+import PropTypes from 'prop-types';
+
+const Container = styled.View`
+  align-self: center;
+  margin-bottom: 30px;
+`;
+const StyledImage = styled.Image`
+  background-color: ${({ theme }) => theme.imageBackground};
+  width: 100px;
+  height: 100px;
+`;
+
+const Image = ({ url, imageStyle}) => {
+    return (
+      <Container>
+        <StyledImage source={{uri:url }} style={imageStyle} />      
+      </Container>
+    );
+  };
+  
+  Image.propTypes = {
+    uri: PropTypes.string,
+    imageStyle: PropTypes.object,
+  };
+  
+  export default Image;
+```
+- props로 전달되는 url을 렌더링하고 imageStyle을 전달받아 컴포넌트의 스타일을 수정할 수 있는 Image 컴포넌트를 만들었다.
+- Image 컴포넌트 작성이 완료되면 components 폴더에 index.js파일을 생성하고 다음과 같이 작성한다.
+
+```js
+import Image from "./Image";
+
+export {Image};
+```
+- 이제 Image 컴포넌트를 사용해서 Login 화면을 수정해보자.
+
+```js
+...
+import { Image } from '../components';
+
+...
+<Container>
+    <Image />
+    <Button title="Signup" onPress={() => navigation.navigate('Signup')}/>
+</Container>
+```
+
+#### 로고 적용하기
+- 이번에는 어플리케이션의 로고를 파이어베이스 스토리지에 업로드하고 로그인 화면에서 사용하도록 만들어보자.
+- 앞에서 작성한 Image 컴포넌트의 크기인 100x100보다 큰 사이즈 로고 이미지를 준비하고, 파일을 파이어베이스의 스토리지에 업로드한다.
+
+![img](img/파이어베이스7.png)
+
+- 스토리지에 파일을 업로드하고 파일 정보에서 이름을 클릭하면 해당 파일의 url을 얻을 수 있다.
+
+![img](img/파이어베이스8.png)
+
+![img](img/파이어베이스9.png)
+
+- 스토리지에 업로드된 이미지의 url을 관리하기 위해 utils폴더에 images.js파일을 생성하고 앞에서 얻은 url을 이용해 다음과 같이 생성한다.
+- 복사된 주소의 쿼리 스트링에서 token 부분을 제외하고 사용해야 한다.
+- 쿼리 스트링에 있는 token은 현재 로그인된 사용자에게 발급된 값이다.
+- 실제 사용할 때는 token이 변경될 뿐만 아니라, 로그인 화면에서는 아직 로그인 전이므로 token이 없는 상태로 접근이 가능해야 한다.
+
+```js
+const prefix = 'url경로'
+
+export const images = {
+    logo : `${prefix}/logo.png?alt=media`;
+}
+```
+
+- 이제 로고 이미지도 로딩 과정에서 미리 불러오도록 App컴포넌트를 수정하자.
+```js
+...
+import { images } from './utils/images';
+...
+const _loadAssets = async () => {
+    const imageAssets = cacheImages([
+        require('../assets/splash.png'),
+        ...Object.values(images),
+    ]);
+    const fontAssets = cacheFonts([]);
+
+    await Promise.all([...imageAssets, ...fontAssets]);
+};
+```
+- 마지막으로 로그인 화면에서 준비된 로고 이미지를 불러오자
+```js
+...
+import { images } from '../utils/images';
+
+...
+<Container>
+    <Image url={images.logo}/>
+    <Button title="Signup" onPress={() => navigation.navigate('Signup')}/>
+</Container>
+```
+- 결과를 보면 업로드한 이미지가 나타나지 않고 다음과 같은 경고 메시지가 뜬다.
+```
+[Error: Unexpected HTTP code Response{protocol=h2, code=403, message=, url=https://firebasestorage.googleapis.com/v0/b/react-native-simple-chat-13746.firebasestorage.app/o/logo.png?alt=media}]
+```
+- 이 문제는 스토리지의 파일 접근 권한 문제로, 보안 규칙을 수정해서 해결해야 한다.
+- 스토리지 메뉴의 "Rules"탭에서 로그인하지 않아도 파일을 읽을 수 있도록 다음과 같이 규칙을 수정해주자.
+
+![img](img/파이어베이스10.png)
+
+![img](img/파이어베이스11.png)
+
+- 규칙을 적용시키고 화면을 다시 확인하면 스토리지에 업로드한 로고가 잘 나타나는 것을 볼 수 있다.
+- 마지막으로 로그인 화면에서 Image 컴포넌트에 imageStyle을 전달해 렌더링되는 로고의 모습을 조금만 변경하자.
+
+```js
+const Login = ({ navigation }) => {
+    
+    return (
+        <Container>
+          <Image url={images.logo} style={{borderRadius : 8}}/>
+          <Button title="Signup" onPress={() => navigation.navigate('Signup')}/>
+        </Container>
+
+    );
+  };
+
+```
+
+#### Input 컴포넌트
+- 아이디와 비밀번호를 입력받을 수 있도록 Input 컴포넌트를 만들어보자.
+- theme.js에 먼저 Input컴포넌트에서 placeholder등에 사용할 색을 정의하자.
+```js
+export const theme = {
+    ...
+    label : colors.grey_1,
+    inputPlaceholder : colors.grey_1,
+    inputBorder : colors.grey_1,
+}
+```
+- 동일한 색을 사용했지만 이후 유지보수를 위해 적용되는 부분을 명확하게 알 수 있도록 정의했다.
+- 이제 components 폴더에 Input.js파일을 생성하고 Input 컴포넌트를 만들자.
+```js
+import React, { useState, forwardRef } from 'react';
+import styled from 'styled-components/native';
+import PropTypes from 'prop-types';
+
+const Container = styled.View`
+  flex-direction: column;
+  width: 100%;
+  margin: 10px 0;
+`;
+const Label = styled.Text`
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: ${({ theme, isFocused }) => (isFocused ? theme.text : theme.label)};
+`;
+
+const StyledTextInput = styled.TextInput.attrs(({ theme }) => ({
+  placeholderTextColor: theme.inputPlaceholder,
+}))`
+  background-color: ${({theme}) => theme.background};
+  color: ${({ theme }) => theme.text};
+  padding: 20px 10px;
+  font-size: 16px;
+  border: 1px solid
+    ${({ theme, isFocused }) => (isFocused ? theme.text : theme.inputBorder)};
+  border-radius: 4px;
+`;
+
+const Input = ({
+    label,
+    value,
+    onChangeText,
+    onSubmitEditing,
+    onBlur,
+    placeholder,
+    isPassword,
+    returnKeyType,
+    maxLength
+}) => {
+    const [isFocused, setIsFocused] = useState(false);
+    return (
+      <Container>
+        <Label isFocused={isFocused}>{label}</Label>
+        <StyledTextInput
+          isFocused={isFocused}
+          value={value}
+          onChangeText={onChangeText}
+          onSubmitEditing={onSubmitEditing}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur();
+          }}
+          placeholder={placeholder}
+          secureTextEntry={isPassword}
+          returnKeyType={returnKeyType}
+          maxLength={maxLength}
+          autoCapitalize="none"
+          autoCorrect={false}
+          textContentType="none" // iOS only
+          underlineColorAndroid="transparent" // Android only
+        />
+      </Container>
+    );
+  }
+
+Input.defaultProps = {
+  onBlur: () => {},
+};
+
+Input.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChangeText: PropTypes.func,
+  onSubmitEditing: PropTypes.func,
+  onBlur: PropTypes.func,
+  placeholder: PropTypes.string,
+  isPassword: PropTypes.bool,
+  returnKeyType: PropTypes.oneOf(['done', 'next']),
+  maxLength: PropTypes.number,
+};
+
+export default Input;
+```
+- 라벨을 TextInput 컴포넌트 위에 렌더링하고 포커스 여부에 따라 스타일이 변경되는 Input 컴포넌트를 만들었다.
+- secureTextEntry 속성은 입력되는 문자를 감추는 기능으로 비밀번호를 입력하는 곳에서 많이 사용된다.
+- Input 컴포넌트 작성이 완료되면 components 폴더의 index.js를 수정한다.
+```js
+import Image from "./Image";
+import Input from "./Input";
+
+export {Image, Input};
+```
+- 이제 사용자의 이메일과 비밀번호를 입력받을 수 있도록 Input 컴포넌트를 이용해 로그인 화면을 다음과 같이 수정하자.
+```js
+import React, {useState} from 'react';
+...
+import { Image,Input } from '../components';
+...
+
+const Container = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: ${({ theme }) => theme.background};
+  padding : 20px;
+`;
+
+const Login = ({ navigation }) => {
+    const[email, setEmail] = useState('');
+    const[password,setPassword] = useState('');
+    
+    return (
+        <Container>
+          <Image url={images.logo} style={{borderRadius : 8}}/>
+          <Input
+          label="Email"
+          value={email}
+          onChangeText={text => setEmail(text)}
+          onSubmitEditing={() => {}}
+          placeholder="Email"
+          returnKeyType="next"
+        />
+        <Input
+          label="Password"
+          value={password}
+          onChangeText={text=>setPassword(text)}
+          onSubmitEditing={() => {}}
+          placeholder="Password"
+          returnKeyType="done"
+          isPassword
+        />
+        </Container>
+
+    );
+  };
+  
+  export default Login;
+```
+
+- 입력되는 이메일과 비밀번호를 관리할 email과 password를 useState 함수로 생성하고 각각 이메일과 비밀번호를 입력받는 Input 컴포넌트의 value로 지정했다.
+- 비밀번호를 입력받는 Input 컴포넌트는 입력되는 값이 보이지 않도록 isPassword 속성을 추가했다.
+
+![img](img/로그인화면2.png)
+
+- 로그인 화면에서 이메일을 입력받는 Input 컴포넌트의 returnKeyType을 next로 설정하고 비밀번호를 입력받는 Input 컴포넌트는 done으로 설정했다.
+- 이번에는 useRef를 이용해 이메일을 입력받는 Input컴포넌트에서 키보드의 next버튼을 클릭하면 비밀번호를 입력하는 Input 컴포넌트로 포커스가 이동하는 기능을 추가해보자.
+
+```js
+import React, {useState,useRef} from 'react';
+...
+const Login = ({ navigation }) => {
+    const[email, setEmail] = useState('');
+    const[password,setPassword] = useState('');
+    const passwordRef = useRef();
+
+...
+
+<Input
+        label="Email"
+        value={email}
+        onChangeText={text => setEmail(text)}
+        onSubmitEditing={() => passwordRef.current.focus()}
+        placeholder="Email"
+        returnKeyType="next"
+    />
+    <Input
+        ref={passwordRef}
+...
+```
+
+- useRef를 이용하여 passwordRef를 만들고 비밀번호를 입력하는 Input 컴포넌트의 ref로 지정했다.
+- 이메일을 입력하는 Input 컴포넌트의 onSubmitEditing함수를 passwordRef를 이용해서 비밀번호를 입력하는 Input 컴포넌트로 포커스가 이동되도록 수정했다.
+- 이제 Input 컴포넌트에 전달된 ref를 이용해 TextInput 컴포넌트의 ref로 지정해야한다.
+- 하지만 ref는 key처럼 리액트에서 특별히 관리도기 때문에 자식 컴포넌트의 props로 전달되지 않는다.
+- 이런 상황에서 forwardRef함수를 이용하면 ref를 전달받을 수 있다.
+- Input.js 수정하기
+```js
+import React, { useState, forwardRef } from 'react';
+...
+
+const Input = forwardRef(
+    (
+      {
+        label,
+        value,
+        onChangeText,
+        onSubmitEditing,
+        onBlur,
+        placeholder,
+        isPassword,
+        returnKeyType,
+        maxLength,
+      },
+      ref
+    ) => {
+    const [isFocused, setIsFocused] = useState(false);
+    return (
+      <Container>
+        <Label isFocused={isFocused}>{label}</Label>
+        <StyledTextInput
+          ref={ref}
+          isFocused={isFocused}
+          value={value}
+          onChangeText={onChangeText}
+          onSubmitEditing={onSubmitEditing}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur();
+          }}
+          placeholder={placeholder}
+          secureTextEntry={isPassword}
+          returnKeyType={returnKeyType}
+          maxLength={maxLength}
+          autoCapitalize="none"
+          autoCorrect={false}
+          textContentType="none" // iOS only
+          underlineColorAndroid="transparent" // Android only
+        />
+      </Container>
+    );
+  }
+);
+```
