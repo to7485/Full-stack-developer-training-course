@@ -927,3 +927,268 @@ const Input = forwardRef(
   }
 );
 ```
+
+#### 키보드 감추기
+- 키보드가 Input태그를 가리는 문제와 다른곳을 클릭했을 때 키보드가 사라지게 만들어보자.
+```js
+npm install react-native-keyboard-aware-scroll-view
+```
+- react-native-keyboard-aware-scroll-view 라이브러리는 포커스가 있는 TextInput 컴포넌트의 위치로 자동 스크롤되는 기능 등 Input 컴포넌트에 필요한 기능들을 제공한다.
+
+- Login.js 코드 수정하기
+```js
+...
+
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
+ <KeyboardAwareScrollView
+        contentContainerStyle={{flex:1}}
+        extraScrollHeight={20}
+      >
+      <Container>
+        ...
+        
+      </Container>
+ </KeyboardAwareScrollView>
+```
+
+### 오류 메시지
+- Input 컴포넌트에 입력되는 값이 올바른 형태로 입력되었는지 확인하고, 잘못된 값이 입력되면 오류 메시지를 보여주는 기능을 만들어보자.
+- 먼저 오류 메시지에서 사용할 색을 theme.js파일에 정의하고 진행하자.
+```js
+export const theme = {
+    ...
+    errorText : colors.red,
+}
+
+```
+- 색의 정의가 완료되면 utils 폴더에 common.js파일을 생성하고 올바른 이메일 형식인지 확인하는 함수와 입력된 문자열에서 공배을 모두 제거하는 함수를 만들자.
+
+```js
+export const validateEmail = email => {
+  const regex = /^[0-9?A-z0-9?]+(\.)?[0-9?A-z0-9?]+@[0-9?A-z]+\.[A-z]{2}.?[A-z]{0,3}$/;
+  return regex.test(email);
+};
+
+export const removeWhitespace = text => {
+  const regex = /\s/g; //문자열 전체에서 공백을 찾는다.
+  return text.replace(regex, '');
+};
+```
+
+### 정규표현식
+#### 대괄호 : 괄호 안의 하나의 문자와 일치
+- [abc] : a또는 b 또는 c 중 하나와 일치
+- [a-z] : 소문자 알파벳중 하나
+- [A-Z] : 대문자 알파벳중 하나
+- [0-9] : 숫자 중 하나와 일치
+- [a-zA-Z0-9]: 알파벳 대소문자, 숫자 중 하나와 일치
+- [^abc] : a,b,c가 아닌 문자
+
+- . : 모든 문자 하나와 일치
+- \d : [0-9]
+- \D : [^0-9]
+- \w : [A-Za-z_]
+- \W : [^A-Za-z_]
+- \s : 공백을 찾는다.
+
+#### 반복
+
+- \* : 앞의 패턴이 0번이상 반복
+  - ex) a* : a가 없거나 여러번 반복되는 경우와 일치
+
+- \+ : 앞의 패턴이 1번 이상 반복
+  - ex) a+ : a가 한번 이상 나타나는 경우와 일치
+
+- ? : 앞의 패턴이 0번 또는 1번 나타나는 경우와 일치
+  - ex) a? : a가 없거나 1번 나타나는 경우와 일치
+
+- {n} : 정확히 n번 반복
+  - ex) a{3} : a가 정확히 3번 나오는 경우와 일치
+
+- {n,} : 최소 n번 반복
+  - ex) a{2,} : a가 최소 2번 나타나는 경우와 일치
+
+- {n,m} : n번에서 m번 사이 반복
+  - ex) a{1,3} : a가 1번 이상 3번 이하로 나타나는 경우와 일치
+
+#### Login.js 코드 수정하기
+```js
+import {validateEmail, removeWhitespace} from '../utils/common'
+
+const ErrorText = styled.Text`
+  align-items : flex-start;
+  width: 100%;
+  height: 20px;
+  margin-bottom: 10px;
+  line-height: 20px;
+  color: ${({theme}) => theme.errorText};
+`
+
+const Login = ({ navigation }) => {
+    ...
+
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const _handleEmailChange = email => {
+      const changedEmail = removeWhitespace(email);
+      setEmail(changedEmail);
+      setErrorMessage(
+        validateEmail(changedEmail) ? '' : 'Please verify your email.'
+      );
+    };
+
+    const _handlePasswordChange = password => {
+      setPassword(removeWhitespace(password));
+    };
+    return(
+      ...
+       <Input
+          label="Email"
+          value={email}
+          onChangeText={_handleEmailChange}
+          ...
+        />
+        <Input
+          ref={passwordRef}
+          label="Password"
+          value={password}
+          onChangeText={_handlePasswordChange}
+          ...
+        />
+        <ErrorText>{errorMessage}</ErrorText>
+        ...
+    )
+```
+- 이메일에는 공백이 존재하지 않으므로 email의 값이 변경될 때마다 공백을 제고하도록 수정하고 validateEmail 함수를 이용해 공백이 제거된 이메일이 올바른 형식인지 검사했다.
+- 마지막으로 검사 결과에 따라 오류 메시지가 나타나도록 로그인 화면을 수정했다.
+- 비밀번호도 공백을 허용하지 않기 위해 제거하는 코드가 추가됐다.
+
+![img](img/로그인화면3.png)
+
+### Button 컴포넌트
+- 로그인 버튼 등으로 활용될 Button 컴포넌트를 만들어보자.
+- 먼저 버튼에서 사용할 색을 theme.js파일에 정의한다.
+```js
+export const theme = {
+    ...
+    buttonBackground : colors.blue,
+    buttonTitle : colors.white,
+    buttonUnfilledTitle : colors.blue,
+}
+```
+- 내부가 채워지지 않은 버튼은 버튼의 타이틀 색을 다르게 사용하기 위한 값을 정의했다.
+- 이제 정의된 색을 이용해 Button 컴포넌트를 만들어보자.
+- components폴더에 Button.js만들기
+```js
+import React from 'react';
+import styled from 'styled-components/native';
+import PropTypes from 'prop-types';
+
+const TRANSPARENT = 'transparent';
+
+const Container = styled.TouchableOpacity`
+  background-color: ${({ theme, isFilled }) =>
+    isFilled ? theme.buttonBackground : TRANSPARENT};
+  align-items: center;
+  border-radius: 4px;
+  width: 100%;
+  padding: 10px;
+`;
+const Title = styled.Text`
+  height: 30px;
+  line-height: 30px;
+  font-size: 16px;
+  color: ${({ theme, isFilled }) =>
+    isFilled ? theme.buttonTitle : theme.buttonUnfilledTitle};
+`;
+
+const Button = ({ containerStyle, title, onPress, isFilled}) => {
+  return (
+    <Container
+      style={containerStyle}
+      onPress={onPress}
+      isFilled={isFilled}
+    >
+      <Title isFilled={isFilled}>{title}</Title>
+    </Container>
+  );
+};
+
+Button.defaultProps = {
+  isFilled: true,
+};
+
+Button.propTypes = {
+  containerStyle: PropTypes.object,
+  title: PropTypes.string,
+  onPress: PropTypes.func.isRequired,
+  isFilled: PropTypes.bool,
+};
+
+export default Button;
+```
+- props로 전달된 isFilled의 값에 따라 버튼 내부를 채우거나 투명하게 처리하는 Button 컴포넌트를 만들었다.
+- isFilled의 기본값을 true로 지정해서 색이 채워진 상태가 기본 상태로 되도록 하고, 버튼 내부가 채워지지 않았을 경우 props로 전달된 title의 색이 변경되도록 작성했다.
+- 사용되는 곳에 따라 버튼의 스타일을 수정하기 위해 containerStyle을 props로 전달받아 적용하도록 작성했다.
+- Button 컴포넌트의 작성이 완료되면 components 폴더의 index.js파일에 컴포넌트를 추가하자.
+```js
+import Image from "./Image";
+import Input from "./Input";
+import Button from "./Button";
+
+export {Image, Input,Button};
+```
+- 이제 로그인 화면에서 Button 컴포넌트를 사용해보자.
+```js
+...
+import { Image,Input,Button } from '../components';
+...
+
+const _handleLoginButtonPress = () => {};
+
+...
+
+<Input
+  ref={passwordRef}
+  label="Password"
+  value={password}
+  onChangeText={_handlePasswordChange}
+  onSubmitEditing={_handleLoginButtonPress}
+  placeholder="Password"
+  returnKeyType="done"
+  isPassword
+/>
+<ErrorText>{errorMessage}</ErrorText>
+  <Button title="Login" onPress={_handleLoginButtonPress} />
+  <Button 
+    title="Sign up with email"
+    onPress={() => navigation.navigate('Signup')}
+    isFilled={false}
+  />
+  </Container>
+```
+- Button 컴포넌트를 사용해서 로그인 버튼과 회원가입 화면으로 이동하는 버튼을 만들었다
+- 로그인 버튼을 클릭했을 때 해야 하는 작업과 비밀번호를 입력받는 Input 컴포넌트의 onSubmitEditing 함수가 하는 역할이 같으므로 동일한 작업이 수행되도록 수정했다.
+- 이번에는 이메일과 비밀번호가 입력되지 않으면 Button 컴포넌트가 동작하지 않도록 수정해보자.
+- Button 컴포넌트의 onPress에 전달하는 함수에서 버튼의 클릭 가능 여부를 확인하는 방법이 있지만, 사용자에게 버튼 동작 여부를 시각적으로 명확하게 알려주자.
+```js
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
