@@ -97,13 +97,9 @@ npm install @react-navigation/bottom-tabs@6.5.20
 npm install styled-components prop-types
 ```
 
-<span style="color:red">
-※ styled-components를 설치할 때 주의할 점<br>
-react와 react-dom의 버전이 맞지 않을 때 설치가 안될 수 있다.<br>
-<b>npm install react-dom@18.3.1</b>을 해서 버전을 맞추고 다시 설치 해보자
-</span>
-
-<p>$\it{\large{\color{#DD6565}이텔릭체,\ 큰글씨,\ 빨간색}}$</p>
+<p>$\it{\large{\color{#DD6565}※ styled-components를\ 설치할\ 때\ 주의할 점}}$</p>
+<p>$\it{\large{\color{#DD6565} react와\ react-dom의\ 버전이\ 맞지\ 않아\ 에러가\ 날\ 수\ 있다.}}$</p>
+<p>$\it{\large{\color{#DD6565} <b>npm install react-dom@18.3.1</b>을\ 해서\ 버전을\ 맞추고\ 다시\ 설치해보자}}$</p>
 
 
 
