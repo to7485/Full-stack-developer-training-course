@@ -103,6 +103,9 @@ react와 react-dom의 버전이 맞지 않을 때 설치가 안될 수 있다.<b
 <b>npm install react-dom@18.3.1</b>을 해서 버전을 맞추고 다시 설치 해보자
 </span>
 
+<p>$\it{\large{\color{#DD6565}이텔릭체,\ 큰글씨,\ 빨간색}}$</p>
+
+
 
 #### prop-types
 - `prop-types`는 React 컴포넌트에서 전달받는 `props`의 타입을 검증해주는 라이브러리다. 
