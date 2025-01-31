@@ -99,7 +99,7 @@ npm install styled-components prop-types
 
 <p>$\it{\large{\color{#DD6565}※ styled-components를\ 설치할\ 때\ 주의할 점}}$</p>
 <p>$\it{\large{\color{#DD6565} react와\ react-dom의\ 버전이\ 맞지\ 않아\ 에러가\ 날\ 수\ 있다.}}$</p>
-<p>$\it{\large{\color{#DD6565} <b>npm install react-dom@18.3.1</b>을\ 해서\ 버전을\ 맞추고\ 다시\ 설치해보자}}$</p>
+<p>$\bf{\large{\color{#6580DD} npm install react-dom@18.3.1을}}$ $\it{\large{\color{#DD6565}\ 해서\ 버전을\ 맞추고\ 다시\ 설치해보자}}$</p>
 
 
 
