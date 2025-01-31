@@ -370,7 +370,6 @@ const App = () => {
 
         await Promise.all([...imageAssets, ...fontAssets]); // 모든 비동기 작업이 완료될 때까지 기다림
     };
-
 ```
 #### require()
 - 로컬 파일 리소스(이미지, 동영상, 사운드 파일 등)를 가져오는 데 사용된다. 
@@ -1177,10 +1176,104 @@ const _handleLoginButtonPress = () => {};
 ```
 - Button 컴포넌트를 사용해서 로그인 버튼과 회원가입 화면으로 이동하는 버튼을 만들었다
 - 로그인 버튼을 클릭했을 때 해야 하는 작업과 비밀번호를 입력받는 Input 컴포넌트의 onSubmitEditing 함수가 하는 역할이 같으므로 동일한 작업이 수행되도록 수정했다.
-- 이번에는 이메일과 비밀번호가 입력되지 않으면 Button 컴포넌트가 동작하지 않도록 수정해보자.
-- Button 컴포넌트의 onPress에 전달하는 함수에서 버튼의 클릭 가능 여부를 확인하는 방법이 있지만, 사용자에게 버튼 동작 여부를 시각적으로 명확하게 알려주자.
-```js
 
+## 버튼 활성/비활성화
+- 이메일과 비밀번호가 입력되지 않으면 Button 컴포넌트가 동작하지 않도록 수정해보자.
+- Button 컴포넌트의 onPress에 전달하는 함수에서 버튼의 클릭 가능 여부를 확인하는 방법이 있지만, 사용자에게 버튼 동작 여부를 시각적으로 명확하게 알려주자.
+
+### Button.js에 코드 추가하기
+- Button 컴포넌트에서 props를 통해 전달되는 disabled의 값에 따라 버튼 스타일이 변경되도록 수정해보자.
+- Button 컴포넌트를 구성하는 TouchableOpacity 컴포넌트에 disabled속성을 전달하면 값에 따라 클릭 등의 상호 작용이 동작하지 않기 때문에 disabled 값을 props로 전달하는 것으로 버튼 비활성화 기능을 추가했다.
+```js
+import React from 'react';
+import styled from 'styled-components/native';
+import PropTypes from 'prop-types';
+
+const TRANSPARENT = 'transparent';
+
+const Container = styled.TouchableOpacity`
+  ...
+
+  opacity: ${({disabled}) => (disabled ? 0.5 : 1)};
+`;
+
+
+const Button = ({ containerStyle, title, onPress, isFilled}) => {
+  return (
+    <Container
+      style={containerStyle}
+      onPress={onPress}
+      isFilled={isFilled}
+      disabled={disabled}
+    >
+      <Title isFilled={isFilled}>{title}</Title>
+    </Container>
+  );
+};
+
+Button.defaultProps = {
+  isFilled: true,
+};
+
+Button.propTypes = {
+  ...
+  disabled: PropTypes.bool,
+};
+
+export default Button;
+```
+
+### Login.js에 코드 추가하기
+- 로그인 화면에서 입력되는 값을 확인하고 버튼의 활성화 여부를 결정하도록 하자
+```js
+import React,{useRef, useState, useEffect} from 'react';
+import styled from 'styled-components';
+import { Text,Button } from 'react-native';
+import {Image,Input,Button} from '../components'
+import { images } from '../utils/images';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {validateEmail, removeWhitespace} from '../utils/commons'
+
+...
+
+const Login = ({ navigation }) => {
+
+    ...
+
+    //버튼의 활성화 상태를 관리하는 state
+    const [disabled, setDisabled] = useState(true);
+
+    //email, password, errorMessage의 state가 변할때마다 조건에 맞게 disabled의 state에 값을 세팅한다.
+    useEffect(() => {
+      //로그인 버튼은 이메일과 비밀번호가 입력되어 있어야 하고, 오류 메시지가 없어야 활성화된다.
+      setDisabled(!(email && password && !errorMessage));
+    }, [email, password, errorMessage])
+
+    return (
+      <KeyboardAwareScrollView
+        contentContainerStyle={{flex:1}}
+        extraScrollHeight={20}
+        >
+        <Container>
+          ...
+
+          <ErrorText>{errorMessage}</ErrorText>
+          // 버튼에 disabled를 전달해서 값에 따라 버튼의 활성화 여부가 결정되도록 하기
+          <Button 
+            title="Login" 
+            onPress={_handleLoginButtonPress} 
+            disabled={disabled}/>
+          <Button 
+            title="Sign up with email"
+            onPress={() => navigation.navigate('Signup')}
+            isFilled={false}
+          />
+        </Container>
+        </KeyboardAwareScrollView>
+    );
+};
+  
+export default Login;
 ```
 
 
