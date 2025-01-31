@@ -1276,14 +1276,321 @@ const Login = ({ navigation }) => {
 export default Login;
 ```
 
+## 헤더 수정하기
+- 현재 화면은 스택 내비게이션을 사용해서 로그인 화면과 회원가입 화면 모두에 헤더가 있다.
+- 애플리케이션의 첫 화면인 로그인 화면에는 헤더가 굳이 필요하지 않으므로 헤더를 없애자.
+
+### AuthStack.js 코드 수정하기
+```js
+...
+const AuthStack = () => {
+  const theme = useContext(ThemeContext);
+  return (
+    <Stack.Navigator
+      initialRouteName="Login"
+      screenOptions={{
+        headerTitleAlign: 'center',
+        cardStyle: { backgroundColor: theme.background },
+      }}
+    >
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Signup"
+        component={Signup}
+      />
+    </Stack.Navigator>
+  );
+};
+
+export default AuthStack;
+```
+
+![image](img/로그인화면5.png)
+
+- 회원가입 화면의 헤더에 나타나는 뒤로가기 버튼의 타이틀을 감추고, 버튼과 타이틀의 색이 일치되도록 수정하자.
+
+### theme.js 코드 추가하기
+```js
+...
+
+export const theme = {
+    ...
+
+    headerTintColor : colors.black,
+}
+```
+
+### AuthStack.js 수정하기
+```js
+...
+
+const AuthStack = () => {
+  const theme = useContext(ThemeContext);
+  return (
+    <Stack.Navigator
+      initialRouteName="Login"
+      screenOptions={{
+        headerTitleAlign: 'center',
+        cardStyle: { backgroundColor: theme.background },
+        headerTintColor: theme.headerTintColor,
+      }}
+    >
+      ...
+
+      <Stack.Screen
+        name="Signup"
+        component={Signup}
+        options={{
+          headerBackTitle:'',
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+export default AuthStack;
+```
+
+## 회원가입 화면
+- 회원가입 화면은 로그인 화면 제작 과정에서 만든 컴포넌트를 재사용하면 굉장히 쉽고 빠르게 만들 수 있다.
+
+### 사용자 사진 설정
+- 회원가입 화면에서 사용자의 사진을 원형으로 렌더링 하기 위해 Image 컴포넌트에서 props를 통해 전달되는 값에 따라 이미지가 원형으로 렌더링되도록 수정하자
+
+### Image.js
+```js
+...
+
+const StyledImage = styled.Image`
+  background-color: ${({ theme }) => theme.imageBackground};
+  width: 100px;
+  height: 100px;
+  border-radius: ${({rounded}) => (rounded ? 50 : 0)}px;
+`;
+
+const Image = ({ url, imageStyle, rounded}) => {
+    return (
+      <Container>
+        <StyledImage source={{uri:url }} style={imageStyle} rounded={rounded} />      
+      </Container>
+    );
+  };
+  
+  Image.propTypes = {
+    uri: PropTypes.string,
+    imageStyle: PropTypes.object,
+    rounded : PropTypes.bool,
+  };
+  
+  export default Image;
+```
+### Signup.js 코드 작성하기
+```js
+import React,{useEffect,useRef, useState} from 'react';
+import styled from 'styled-components';
+import { Image,Input, Button} from '../components'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { validateEmail, removeWhitespace } from '../utils/commons';
+
+const Container = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: ${({ theme }) => theme.background};
+  padding: 0 20px;
+`;
+const ErrorText = styled.Text`
+  align-items: flex-start;
+  width: 100%;
+  height: 20px;
+  margin-bottom: 10px;
+  line-height: 20px;
+  color: ${({theme}) => theme.errorText};
+`
 
 
+const Signup = () => {
+  //이름
+  const [name,setName] = useState('');
+  //이메일
+  const [email, setEmail] = useState('');
+  //비밀번호
+  const [password, setPassword] = useState('');
+  //비밀번호 확인
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  //에러 메시지
+  const [errorMessage, setErrorMessage] = useState('');
+  //버튼 활성/비활성화
+  const [disabled, setDisabled] = useState(true);
 
+  const emailRef = useRef();
+  const passwordRef = useRef();
+  const passwordConfirmRef = useRef();
 
+  //조건에 맞지 않을 때 에러문구 렌더링
+  useEffect(() => {
+    let _errorMessage = '';
+    if(!name) {
+      _errorMessage = 'Please enter your name.';
+    } else if(!validateEmail(email)){
+      _errorMessage = 'Please verify your email.';
+    } else if(password.length < 6) {
+      _errorMessage = 'The password must contain 6 characters at least.';
+    } else if(password !== passwordConfirm){
+      _errorMessage = 'Passwords need to match';
+    } else {
+      _errorMessage = '';
+    }
+    setErrorMessage(_errorMessage);
+  },[name,email,password,passwordConfirm])
 
+  //조건에 따라 버튼 활성화/비활성화하기
+  useEffect(() => {
+    setDisabled(
+      !(name && email && password && passwordConfirm && !errorMessage)
+    )
+  },[name,email,password,passwordConfirm, errorMessage]);
 
+  const _handleSignupButtonPress = () => {};
 
+  return (
+    <KeyboardAwareScrollView
+      contentContainerStyle={{flex:1}}
+      extraHeight={20}>
+      <Container>
+        {/* 프로필 사진 */}
+        <Image rounded />
 
+        {/* 이름 입력 */}
+        <Input
+          label="name"
+          value={name}
+          onChangeText={text => setName(text)}
+          onSubmitEditing = {() => {
+            setName(name.trim());
+            emailRef.current.focus();
+          }}
+          onBlur={() => setName(name.trim())}
+          placeholder="Name"
+          returnKeyType="next"
+       />
+
+       {/* 이메일(아이디)입력 */}
+       <Input
+        ref={emailRef}
+        label="Email"
+        value={email}
+        onChangeText={text => setEmail(removeWhitespace(text))}
+        onSubmitEditing={() => passwordRef.current.focus()}
+        placeholder="Email"
+        returnKeyType="next"
+      />
+
+      {/* 비밀번호 입력 */}
+      <Input
+          ref={passwordRef}
+          label="Password"
+          value={password}
+          onChangeText={text => setPassword(removeWhitespace(text))}
+          onSubmitEditing={() => passwordConfirm.current.focus()}
+          placeholder="Password"
+          returnKeyType="done"
+          isPassword
+      />
+      {/* 비밀번호일치 여부를 작성하는 Input */}
+      <Input
+          ref={passwordConfirmRef}
+          label="Password Confirm"
+          value={passwordConfirm}
+          onChangeText={text => setPasswordConfirm(removeWhitespace(text))}
+          onSubmitEditing={_handleSignupButtonPress}
+          placeholder="Password"
+          returnKeyType="done"
+          isPassword
+            />
+
+      {/* 에러메시지 출력 */}
+      <ErrorText>{errorMessage}</ErrorText>
+      <Button
+        title="Signup"
+        onPress={_handleSignupButtonPress}
+        disabled={disabled}
+      />
+      </Container>
+      </KeyboardAwareScrollView>
+  );
+};
+
+export default Signup;
+```
+- 회원가입 화면은 사용자에게 입력받아야 하는 내용이 많아진 것을 제외하면 로그인 화면과 거의 같은 모습이다.
+- 입력받아야 하는 값이 많은 만큼 유효성 검사와 오류 메시지의 종류가 많아지므로 useEffect를 이용해 관련된 값이 변할 때마다 적절한 오류 메시지가 렌더링되도록 만들었다.
+
+## 화면 스크롤
+- 현재 안드로이드에서는 기기의 크기에 따라 화면의 위아래가 잘려보이는 문제가 있다.
+- KeyboardAwareScrollView 컴포넌트에 contentContainerStyle을 이용하여 flex : 1을 스타일에 적용시키면서 발생한 문제다.
+- flex:1을 설정하면 컴포넌트가 차지하는 영역이 부모 컴포넌트 영역만큼 한정되므로, 컴포넌트의 크기에 따라 화면을 넘어가서 스크롤이 생성되도록 flex:1을 삭제한다.
+
+### Signup.js
+```js
+...
+const Container = styled.View`
+  ...
+  padding: 40px 20px;
+`;
+...
+const Signup = () => {
+  
+  ...
+
+  return (
+    <KeyboardAwareScrollView
+      extraHeight={20}>
+      <Container>
+        ...
+      </Container>
+      </KeyboardAwareScrollView>
+  );
+};
+```
+
+## 오류메시지
+- 회원가입 화면에서 입력되는 값에 따라 오류 메시지의 변화가 많아, useEffect를 이용해 오류 메시지를 한곳에서 관리하도록 작성했다.
+- 하지만 회원가입이 처음 렌더링 될  때도 오류 메시지가 나타난다는 문제가 있다.
+
+### Signup.js
+```js
+const Signup = () => {
+  ...
+
+const didMountRef = useRef();
+
+//조건에 맞지 않을 때 에러문구 렌더링
+  useEffect(() => {
+    if(didMountRef.current){
+        let _errorMessage = '';
+      if(!name) {
+        _errorMessage = 'Please enter your name.';
+      } else if(!validateEmail(email)){
+        _errorMessage = 'Please verify your email.';
+      } else if(password.length < 6) {
+        _errorMessage = 'The password must contain 6 characters at least.';
+      } else if(password !== passwordConfirm){
+        _errorMessage = 'Passwords need to match';
+      } else {
+        _errorMessage = '';
+      }
+      setErrorMessage(_errorMessage);
+    } else {
+      didMountRef.current = true;
+    }
+  },[name,email,password,passwordConfirm])
+
+```
 
 
 
