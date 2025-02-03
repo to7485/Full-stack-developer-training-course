@@ -1852,10 +1852,565 @@ return (
           url={photoUrl} 
           showButton 
           onChangeImage={url => setPhotoUrl(url)}/>
+
+          ...
+
       </Container>
     </KeyboardAwareScrollView>
 
 ```
 
+## 로그인
+- 아직 생성된 사용자가 없으므로 파이어베이스 콘솔에서 사용자를 추가하고 로그인 기능을 만들어보자.
+
+![image](img/사용자추가1.png)
+
+![image](img/사용자추가2.png)
+
+### firebase.js
+- 이메일과 비밀번호를 이용해서 인증받는 함수를 signInWithAndPassword이다.
+- 사용자 추가를 완료했다면 로그인기능을 가지는 함수를 만들어보자
+
+```js
+// firebase/app과 firebase/auth에서 필요한 함수만 임포트
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import config from '../../firebase.json';
+
+// Firebase 앱 초기화
+const app = initializeApp(config);
+
+// 인증 모듈 가져오기
+const auth = getAuth(app);
+
+// 이메일/비밀번호 로그인 함수
+export const login = async ({ email, password }) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return userCredential.user;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
+};
+
+```
+
+### Login.js
+```js
+...
+import { Alert } from 'react-native';
+import { login } from '../utils/firebase';
+
+...
+const Login = ({ navigation }) => {
+
+    ...
+
+    const _handleLoginButtonPress = async() => {
+      try {
+        const user = await login({email, password});
+        Alert.alert('Login Success', user.email);
+      } catch (error) {
+        Alert.alert('Login Error', error.message);
+      }
+    };
+```
+![image](img/로그인1.png)
+
+## 회원가입
+- 파이어베이스에서 제공하는 함수 중 이메일과 비밀번호를 이용해서 사용자를 생성하는 함수는 createUserWithEmailAndPassword이다.
+- 이 함수를 이용해 firebase.js에 회원가입 기능을 만들어보자.
+
+### firebase.js
+```js
+// firebase/app과 firebase/auth에서 필요한 함수만 임포트
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import config from '../../firebase.json';
+
+...
+
+export const signup = async ({email, password}) => {
+    const {user} = await createUserWithEmailAndPassword(auth, email,password);
+    return user;
+}
+```
+
+### Signup.js
+```js
+...
+import { Alert } from 'react-native';
+import { signup } from '../utils/firebase';
+
+...
+
+const Signup = () => {
+
+  ...
+
+  const _handleSignupButtonPress = async () => {
+    try {
+      const user = await signup({email, password});
+      console.log(user);
+      Alert.alert('Signup Success',user.email);
+    } catch (error) {
+      Alert.alert('Signup Error', error.message);
+    }
+  };
+
+  return (
+    ...
+  );
+};
+
+export default Signup;
+```
+- 사용자는 정상적으로 추가되지만, 우리는 사용자의 사진과 이름을 이용하지 않고 이메일과 비밀번호만으로 사용자를 생성했다.
+- 파이어베이스에서 제공하는 사용자 생성 함수는 이메일과 비밀번호만 파라미터로 받는데 어떻게 사용자의 사진과 이름을 지정할 수 있을까?
+- signup 함수에서 반환되는 user객체를 보면 우리가 입력한 이메일과 함께 다음과 같은 내용을 확인할 수 있다.
+
+```js
+{
+  "displayName":null,
+  "email":"one@korea.com",
+  "photoURL":null,
+  "uid":"...",
+}
+```
+- email은 우리가 입력한 사용자의 이메일 주소
+- uid는 사용자마다 갖고 있는 유일한 키 값으로 사용자를 식별하는 데 사용된다.
+- displayName에 사용자의 이름을 입력한다.
+- photoURL에 사용자 사진의 URL을 입력한다.
+- 사용자 이름은 문자열로 입력할 수 있지만, 사진을 선택해서 받은 경로는 'file://...'로 시작하는 값을 가지고 있어 바로 사용할 수 없다.
+- 사용자에 의해 선택한 사진을 firebase의 스토리지에 업로드하여 해결할 수 있다.
+
+### firebase.js
+```js
+import { getAuth, updateProfile, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
+...
+
+const storage = getStorage(app);
+
+const uploadImage = async uri => {
+// 주어진 URI에서 Blob(바이너리 큰 객체)을 얻기 위해 Promise를 생성하고, 비동기적으로 실행합니다.
+const blob = await new Promise((resolve, reject) => {
+    // 새로운 XMLHttpRequest 인스턴스 생성
+    const xhr = new XMLHttpRequest();
+
+    // 요청이 성공적으로 완료되었을 때 실행되는 콜백 함수
+    xhr.onload = () => {
+        // xhr.response는 xhr.responseType으로 설정한 'blob' 형태의 데이터를 반환합니다.
+        // 요청이 성공하면 Promise를 resolve하여 blob 데이터를 반환합니다.
+        resolve(xhr.response);
+    };
+
+    // 요청이 실패할 경우 실행되는 콜백 함수
+    xhr.onerror = () => {
+        // 네트워크 요청에 실패하면 Promise를 reject하여 에러를 발생시킵니다.
+        reject(new TypeError('Network request failed'));
+    };
+
+    // 응답 데이터를 Blob 형식으로 받도록 지정합니다.
+    xhr.responseType = 'blob';
+
+    // 비동기 GET 요청을 초기화합니다.
+    // uri: 요청을 보낼 URL, true: 비동기 방식으로 요청을 처리함
+    xhr.open('GET', uri, true);
+
+    // 요청을 전송합니다. GET 요청에서는 body 데이터가 필요 없으므로 null을 전달합니다.
+    xhr.send(null);
+});
+
+    // 현재 로그인한 사용자 확인
+    const user = auth.currentUser;
+
+    // Firebase Storage의 경로 참조 생성
+    const storageRef = ref(storage,`/profile/${user.uid}/photo.png`) ;
+
+    // Blob을 Firebase Storage에 업로드 (업로드 결과는 여기서는 사용하지 않으므로 변수에 할당하지 않습니다.)
+    await uploadBytes(storageRef, blob, { contentType: 'image/png' });
+
+    // Blob 객체 닫기 (메모리 해제)
+    blob.close();
+
+    // 업로드한 파일의 다운로드 URL을 반환
+    return await getDownloadURL(storageRef);
+}
+
+export const signup = async ({email, password, name, photoUrl}) => {
+    // 이메일/비밀번호로 회원가입 진행
+    const {user} = await createUserWithEmailAndPassword(auth, email,password);
+
+    // photoUrl이 이미 URL이라면 그대로 사용하고, 아니라면 업로드하여 URL을 획득
+    const storageUrl = photoUrl.startsWith('https')
+        ? photoUrl 
+        : await uploadImage(photoUrl);
+
+    // 모듈러 API 방식의 updateProfile 호출
+    await updateProfile(user,{
+        displayName: name,
+        photoURL: storageUrl,
+    })
+    return user;
+}
+```
+
+### Signup.js
+```js
+...
+
+const Signup = () => {
+  const _handleSignupButtonPress = async () => {
+    try {
+      const user = await signup({email, password,name, photoUrl});
+      console.log(user);
+      Alert.alert('Signup Success',user.email);
+    } catch (error) {
+      Alert.alert('Signup Error', error.message);
+    }
+  };
+
+...
+
+```
+- 회원가입 화면 수정이 완료되면 쓰기 권한은 본인만 가능하도록 하고 읽기 권한은 누구나 가능하도록 보안규칙을 수정하자.
+
+![image](img/회원가입.png)
+
+- 규칙 수정이 완료되면 회원가입 화면에서 선택한 사진과 입력된 이름이 생성되는 사용자의 정보에 추가된 것을 확인할 수 있습니다.
+
+![image](img/회원가입2.png)
+
+```
+{
+  "displayName": "hanbit", 
+  "email": "bbbb@korea.com",
+  "photoURL": "https://firebasestorage.googleapis.com/v0/b/..."
+  "uid": "..."
+  ...
+}
+```
+
+## Spinner 컴포넌트
+- 로그인 혹은 회원가입이 진행되는 동안 데이터를 수정하거나 버튼을 추가로 클릭하는 일이 발생하지 않도록 Spinner 컴포넌트를 만들어 사용자의 잘못된 입력이나 클릭을 방지하는 기능을 만들어보자.
+
+### theme.js
+- 먼저 Spinner 컴포넌트에서 사용할 색을 정의하자.
+```js
+export const theme = {
+    ...
+    spinnerBackground : colors.black,
+    spinnerIndicator : colors.white,
+}
+```
+
+### Spinner.js
+- components 폴더에 Spinner 컴포넌트를 만든다.
+- Spinner 컴포넌트는 리액트 네이티브에서 제공하는 ActivityIndicator 컴포넌트를 이용해서 쉽게 만들 수 있다.
+
+```js
+import React,{useContext} from 'react'
+import { ActivityIndicator } from 'react-native'
+import styled, {ThemeContext} from 'styled-components'
+
+const Container = styled.View`
+    position: absolute;
+    z-index : 2;
+    opacity : 0.3;
+    width: 100%;
+    height : 100%;
+    justify-content : center;
+    background-color : ${({theme}) => theme.spinnerBackground}
+`
+
+const Spinner = () => {
+    const theme = useContext(ThemeContext);
+    return(
+        <Container>
+            <ActivityIndicator size={'large'} color={theme.spinnerIndicator} />
+        </Container>
+    )
+}
+
+export default Spinner
+```
+- Spinner 컴포넌트는 화면 전체를 차지하면서 사용자가 다른 행동을 취할 수 없도록 다른 컴포넌트보다 위에 있게 작성했다.
+- Spinner 컴포넌트 작성이 완료되면 components 폴더의 index.js에 추가한다.
+
+### index.js
+
+```js
+...
+import Spinner from "./Spinner";
+
+export {Image, Input,Button, Spinner};
+```
+
+### navigations/index.js
+- Spinner 컴포넌트를 AuthStack 네비게이션의 하위 컴포넌트로 사용하면 내비게이션을 포함한 화면 전첼르 차지할 수 없다.
+- 내비게이션을 포함한 화면 전체를 감싸기 위해 navigations 폴더의 index.js에서 AuthStack 내비게이션과 같은 위치에 Spinner 컴포넌트를 사용하자.
+```js
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import AuthStack from "./AuthStack";
+import { Spinner } from "../components";
+
+const Navigation = () => {
+    return(
+        <NavigationContainer>
+            <AuthStack />
+            <Spinner />
+        </NavigationContainer>
+    )
+}
+
+export default Navigation;
+```
+- Spinner 컴포넌트가 화면 전체를 감싸서 어떤 행동도 할 수 없는 상태가 된 것을 볼 수 있다.
+- Spinner 컴포넌트는 로그인 버튼을 클릭했을 때나 회원가입 버튼을 클릭했을 때 처럼 여러 화면에서 발생하는 특정 상황에서만 렌더링되어야 한다.
+
+### context/Progress.js
+- Context API를 이용해 Spinner 컴포넌트의 상태를 전역적으로 관리하자
+- contexts폴더 안에 Progress.js파일을 생성하고 코드를 작성하자
+```js
+import React, { useState, createContext } from 'react';
+
+// ProgressContext를 생성합니다.
+// 기본값으로 inProgress는 false, spinner는 빈 함수(dummy function)를 제공합니다.
+const ProgressContext = createContext({
+    inProgress: false,
+    spinner: () => {},
+});
+
+// ProgressProvider 컴포넌트는 하위 컴포넌트에게 진행 상태와 spinner 제어 함수를 제공하는 역할을 합니다.
+const ProgressProvider = ({ children }) => {
+    // inProgress 상태 변수와 이를 업데이트할 setInProgress 함수를 선언합니다.
+    // 초기값은 false입니다.
+    const [inProgress, setInProgress] = useState(false);
+
+    // spinner 객체를 생성하여 start와 stop 메서드를 정의합니다.
+    // start: 호출 시 inProgress를 true로 변경하여 진행 중임을 나타냅니다.
+    // stop: 호출 시 inProgress를 false로 변경하여 진행 중이 아님을 나타냅니다.
+    const spinner = {
+        start: () => setInProgress(true),
+        stop: () => setInProgress(false),
+    };
+
+    // Context Provider로 전달할 값을 객체로 만듭니다.
+    // 여기에는 현재 진행 상태와 spinner 객체가 포함됩니다.
+    const value = { inProgress, spinner };
+
+    // ProgressContext.Provider로 children(하위 컴포넌트들)을 감싸서
+    // 하위 컴포넌트들이 value 객체를 구독할 수 있게 합니다.
+    return (
+        <ProgressContext.Provider value={value}>
+            {children}
+        </ProgressContext.Provider>
+    );
+};
+
+// 다른 파일에서 사용할 수 있도록 ProgressContext와 ProgressProvider를 export 합니다.
+export { ProgressContext, ProgressProvider };
+```
+
+### contexts/index.js
+```js
+import {ProgressContext, ProgressProvider} from './Progress'
+
+export {ProgressContext,ProgressProvider};
+```
+
+### src/App.js
+- App 컴포넌트에서 ProgressProvider컴포넌트를 이용해 애플리케이션 전체를 감싸도록 수정하자.
+```js
+...
+import { ProgressProvider } from './contexts';
+
+...
+
+const App = () => {
+   ...
+
+    return (
+        // 로딩 완료 시 앱의 실제 UI를 렌더링
+        <ThemeProvider theme={theme}>
+            <ProgressProvider>
+            <StatusBar barStyle="dark-content" /> 
+            <Navigation />
+            </ProgressProvider>
+        </ThemeProvider>
+    )
+};
+
+export default App;
+```
+
+### navigations/index.js
+- 이제 Spinner 컴포넌트가 ProgressContext의 inProgress 상태에 따라 렌더링되도록 navigations의 index.js를 수정하자.
+```js
+import React,{useContext} from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import AuthStack from "./AuthStack";
+import { Spinner } from "../components";
+import { ProgressContext } from "../contexts";
+
+const Navigation = () => {
+    const {inProgress} = useContext(ProgressContext);
+    return(
+        <NavigationContainer>
+            <AuthStack />
+            {inProgress && <Spinner />}
+        </NavigationContainer>
+    )
+}
+
+export default Navigation;
+```
+- inProgress의 초기값이 false이므로 Spinner 컴포넌트가 나타나지 않는다.
+
+### Login.js
+- 로그인 버튼을 눌렀을 때 inProgress 상태를 변경하여 Spinner 컴포넌트가 렌더링되도록 수정하자
+```js
+import React,{useRef, useState, useEffect, useContext} from 'react';
+import { ProgressContext } from '../contexts';
+...
 
 
+const Login = ({ navigation }) => {
+    const {spinner} = useContext(ProgressContext);
+    ...
+
+    const _handleLoginButtonPress = async() => {
+      try {
+        spinner.start();
+        const user = await login({email, password});
+        Alert.alert('Login Success', user.email);
+      } catch (error) {
+        Alert.alert('Login Error', error.message);
+      } finally{
+        spinner.stop();
+      }
+    };
+```
+
+### Signup.js
+- 회원가입 화면에서도 signup 함수를 호출하기 전에 Spinner컴포넌트가 렌더링되도록 수정하자
+```js
+import React,{useEffect,useRef, useState, useContext} from 'react';
+import { ProgressContext } from '../contexts';
+...
+
+const Signup = () => {
+
+  const {spinner} = useContext(ProgressContext);
+
+  ...
+
+  const _handleSignupButtonPress = async () => {
+    try {
+      spinner.start();
+      const user = await signup({email, password, name, photoUrl});
+      console.log(user);
+      Alert.alert('Signup Success',user.email);
+    } catch (error) {
+      Alert.alert('Signup Error', error.message);
+    } finally{
+      spinner.stop();
+    }
+  };
+```
+
+## 메인화면
+- 대부분의 애플리케이션에서 사용자의 데이터 혹은 서비스의 데이터를 이용하려면 데이터에 접근할 수 있는 유효한 사용자라는 것을 증명해야 하므로 어떤 방법으로든 인증해야 한다.
+- 인증 후에는 서비스를 이용할 수 있는 화면이 렌더링되고, 로그아웃 등으로 인증 상태를 해제하면 다시 인증을 위한 화면으로 이동한다.
+- 우리가 지금까지 만든 AuthStack 내비게이션에서 사용되는 화면들은 인증 이전에 사용되는, 인증을 위한 화면이었다.
+- 이제 인증 후 사용될 화면과 화면들을 관리하는 내비게이션을 만들어보자.
+
+### screens/ChannelCreation.js
+- 채널화면으로 이동할 수 있는 버튼을 가진 간단한 채널 생성 화면을 만들었다.
+```js
+import React from 'react'
+import styled from 'styled-components'
+import { Text, Button} from 'react-native'
+
+const Container = styled.View`
+    flex : 1;
+    background-color: ${({theme}) => theme.background}
+`;
+
+const ChannelCreation = ({navigation}) => {
+    return(
+        <Container>
+            <Text style={{ fontSize: 24}}>ChannelCreation</Text>
+            <Button title="Channel" onPress={() => navigation.navigate('Channel')} />
+        </Container>
+    )
+}
+
+export default ChannelCreation;
+```
+
+### screens/Channel.js
+```js
+import React from "react";
+import styled from "styled-components";
+import {Text} from 'react-native'
+
+const Container = styled.View`
+    flex: 1;
+    background-color: ${({theme})=> theme.background};
+`;
+
+const Channel = () => {
+    return(
+        <Container>
+            <Text style={{ fontSize: 24 }}>Channel</Text>
+        </Container>
+    )
+}
+
+export default Channel;
+```
+
+### screens/index.js
+```js
+import Login from "./Login";
+import Signup from "./Signup";
+import Channel from "./Channel";
+import ChannelCreation from "./ChannelCreation";
+
+export {Login,Signup,Channel,ChannelCreation}
+```
+
+### navigations/MainStack.js
+```js
+import React,{useContext} from 'react'
+import {Themecontext} from 'styled-components'
+import { createStackNavigator } from '@react-navigation/stack'
+import { Channel, ChannelCreation } from '../screens'
+
+const Stack = createStackNavigator();
+
+const MainStack = () => {
+    const theme = useContext(Themecontext);
+
+    return(
+        <Stack.Navigator
+            screenOptions={{
+                headerTitleAlign: 'center',
+                headerTintColor : theme.headerTintColor,
+                cardStyle : {backgroundColor: theme.backgroundColor},
+                headerBackTitleVisible: false,
+            }}
+        >
+            <Stack.Screen name="Channel Creation" component={ChannelCreation} />
+            <Stack.Screen name="Channel" component={Channel} />
+        </Stack.Navigator>
+    )
+}
+
+export default MainStack;
+```
