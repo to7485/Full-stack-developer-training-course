@@ -1589,13 +1589,273 @@ const didMountRef = useRef();
       didMountRef.current = true;
     }
   },[name,email,password,passwordConfirm])
+```
+- useRef에 어떤 값도 대입하지 않다가, 컴포넌트가 마운트 되었을 때 실행되는 useEffect함수에서 didMountRef에 값을 대입하는 방법으로 컴포넌트의 마운트 여부를 확인하도록 수정했다.
 
+## 사진 입력받기
+- 회원가입 화면에서 사용자에게 자신의 이미지를 입력받는 기능을 만들어보자.
+- 먼저 사진이 선택되지 않았을 때 보여줄 기본 이미지를 스토리지에 업로드하고 규칙을 수정해서 로그인 하지 않아도 접근이 가능하도록 하자.
+- 파일명을 photo.png로 업로드하고 규칙을 수정하자.
+![image](img/프로필1.png)
+
+```js
+rules_version = '2';
+
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /logo.png {
+      allow read; 
+    }
+    
+    match /photo.png {
+    	allow read;
+    }
+  }
+}
+```
+- 이미지 업로드와 규칙 수정이 완료되면 로고 이미지와 마찬가지로 utils 폴더에 있는 images.js파일에 기본 이미지의 url을 추가한다.
+
+![image](img/프로필3.png)
+
+### images.js
+- 로고 이미지와 마찬가지로 쿼리 스트링의 token부분을 제외하고 기본 이미지의 주소를 추가하자.
+```js
+const prefix = 'https://firebasestorage.googleapis.com/v0/b/react-native-simple-chat-13746.firebasestorage.app/o'
+
+export const images = {
+    logo : `${prefix}/logo.png?alt=media`,
+    photo : `${prefix}/photo.png?alt=media`
+}
 ```
 
+### Signup.js
+- 회원가입 화면에서 추가된 기본 이미지를 이용하도록 수정하자.
+- Image 컴포넌트를 이용해 렌더링할 주소를 관리하는 photoUrl을 useState로 생성하고, 앞에서 준비한 기본 이미지를 초깃값으로 설정했다.
+```jsx
+...
 
+import { images } from '../utils/images';
 
+const Signup = () => {
 
+ ...
 
+  //프로필사진 이미지 URL
+  const [photoUrl, setPhotoUrl] = useState(images.photo);
+
+...
+
+return (
+    <KeyboardAwareScrollView
+      extraHeight={20}>
+      <Container>
+        {/* 프로필 사진 */}
+        <Image rounded url={photoUrl} />
+
+...
+
+```
+- Image 컴포넌트에 버튼을 추가하여 기기의 사진을 이용하는 기능을 만들어보자.
+- 추가 버튼에 사용할 버튼 색을 theme.js파일에 정의하자.
+
+```js
+export const theme = {
+    background : colors.white,
+    text : colors.black,
+    imageBackground: colors.grey_0,
+    imageButtonBackground: colors.grey_1,
+    imageButtonIcon : colors.white,
+
+    ...
+
+}
+```
+### Image.js
+```js
+...
+import {MaterialIcons} from '@expo/vector-icons'
+
+...
+
+const ButtonContainer = styled.TouchableOpacity`
+  background-color : ${({theme}) => theme.imageButtonBackground};
+  position : absolute;
+  bottom : 0;
+  right: 0;
+  width : 30px;
+  border-radius : 15px;
+  justify-content : center;
+  align-items: center;
+`
+
+const ButtonIcon = styled(MaterialIcons).attrs({
+  name: 'photo-camera',
+  size: 22,
+})`
+  color: ${({theme})=> theme.imageButtonIcon}
+`;
+
+const PhotoButton = ({onPress}) => {
+  return(
+    <ButtonContainer onPress={onPress}>
+      <ButtonIcon />
+    </ButtonContainer>
+  )
+}
+
+const Image = ({ url, imageStyle, rounded, showButton}) => {
+    return (
+      <Container>
+        <StyledImage source={{uri:url }} style={imageStyle} rounded={rounded} />      
+        {showButton && <PhotoButton />}
+      </Container>
+    );
+  };
+
+  Image.defaultProps = {
+    rounded: false,
+    showButton: false,
+  }
+  
+  Image.propTypes = {
+    uri: PropTypes.string,
+    imageStyle: PropTypes.object,
+    rounded : PropTypes.bool,
+    showButton: PropTypes.bool,
+  };
+  
+  export default Image;
+```
+- Image컴포넌트에서 사진 변경하기 버튼으로 사용할 PhotoButton컴포넌트를 만들었다.
+- 추가된 버튼은 Image 컴포넌트의 props로 전달되는 showButton의 값에 따라 렌더링 여부를 결정했다.
+- 이제 버튼을 클릭하면 기기의 사진첩에 접근해서 사진의 정보를 가져오는 기능을 추가해보자.
+- 다음의 라이브러리를 설치하고 사진첩 접근 기능을 구현한다.
+```js
+expo install expo-image-picker
+```
+
+### Image.js
+```js
+import React,{useEffect} from 'react';
+...
+import { Platform,Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker'
+//Expo SDK 52에서는 권한 요청 기능 자체는 당연히 지원되지만, 더 이상 별도의 expo-permissions 모듈을 사용하지 않는다.
+//import * as Permissions from 'expo-permissions'
+
+...
+const Image = ({ url, imageStyle, rounded, showButton, onChangeImage }) => {
+  // 컴포넌트가 마운트될 때, 한 번만 실행되는 useEffect
+  // iOS 기기에서 미디어 라이브러리(사진첩) 접근 권한을 요청합니다.
+  useEffect(() => {
+    (async () => {
+      try {
+        // 플랫폼이 iOS일 때만 권한 요청 (Android는 별도의 권한 요청이 필요 없을 수 있음)
+        if (Platform.OS === 'ios') {
+          // 미디어 라이브러리 접근 권한을 비동기적으로 요청합니다.
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          // 권한이 부여되지 않았다면, 사용자에게 경고 메시지 출력
+          if (status !== 'granted') {
+            Alert.alert(
+              'Photo Permission', // 경고창 제목
+              'Please turn on the camera roll permissions' // 경고 메시지
+            );
+          }
+        }
+      } catch (e) {
+        // 권한 요청 중 에러 발생 시, 에러 메시지를 포함한 경고창 출력
+        Alert.alert('Photo Permission Error', e.message);
+      }
+    })();
+  }, []);
+
+  // 사용자가 "이미지 선택" 버튼을 눌렀을 때 호출되는 함수
+  const _handleEditButton = async () => {
+    try {
+      // 이미지 라이브러리(갤러리)에서 이미지를 선택할 수 있는 인터페이스를 띄웁니다.
+      const result = await ImagePicker.launchImageLibraryAsync({
+        // 이미지 타입만 선택할 수 있도록 설정 (비디오 등은 선택 불가)
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        // 선택 후 사용자가 이미지를 편집할 수 있도록 허용 (크롭 등)
+        allowsEditing: true,
+        // 편집 시 고정될 비율 (여기서는 정사각형: 1:1)
+        aspect: [1, 1],
+        // 이미지의 품질 설정 (1은 최고 품질)
+        quality: 1,
+      });
+
+      // 사용자가 이미지 선택을 취소하지 않았다면(result.canceled가 false라면)
+      if (!result.canceled) {
+        // 선택된 이미지 정보가 담긴 배열의 첫 번째 항목에서 URI를 추출합니다.
+        const imageUri = result.assets[0].uri;
+        // 추출한 이미지 URI를 부모 컴포넌트에 전달하여 이미지 변경을 알립니다.
+        onChangeImage(imageUri);
+      }
+    } catch (e) {
+      // 이미지 선택 또는 처리 중 에러 발생 시, 에러 메시지를 포함한 경고창 출력
+      Alert.alert('Photo Error', e.message);
+    }
+  };
+  return (
+    <Container>
+      <StyledImage source={{uri:url }} style={imageStyle} rounded={rounded} />      
+      {showButton && <PhotoButton onPress={_handleEditButton}/>}
+    </Container>
+  );
+};
+
+  Image.defaultProps = {
+    ...
+    onChangeImage: () => {},
+  }
+  
+  Image.propTypes = {
+   ...
+    onChangeImage: PropTypes.func,
+  };
+```
+
+- iOS에서는 사진첩에 접근하기 위해 사용자에게 권한을 요청하는 과정이 필요하므로 권한을 요청하는 부분을 추가했다.
+- 안드로이드는 특별한 설정 없이 사진에 접근할 수 있기 때문에 iOS에서만 동작하도록 작성했다.
+
+#### 함수의 실행 결과
+- 기기의 사진에 접근하는 함수는 결과를 반환하는데, 반환된 결과의 canceled값을 통해 선택 여부를 확인할 수 있다.
+```js
+{
+  canceled: boolean,  // 사용자가 선택을 취소했는지 여부를 나타내는 불리언 값
+  assets: [           // 사용자가 선택한 이미지(들)에 대한 정보를 담은 배열
+    {
+      uri: string,    // 선택한 이미지의 위치(파일 경로 또는 URL)
+      width: number,  // 이미지의 가로 길이 (픽셀 단위)
+      height: number, // 이미지의 세로 길이 (픽셀 단위)
+      type?: string,  // (선택적) 이미지의 MIME 타입 등 추가 정보
+      // 그 외 추가적인 메타데이터가 포함될 수 있음
+    }
+    // 만약 여러 장의 이미지를 선택할 수 있는 옵션을 활성화했다면, assets 배열에는 여러 객체가 들어갈 수 있습니다.
+  ]
+}
+```
+
+### Signup.js
+- 이제 회원가입 화면을 수정해서 선택된 사진이 Image 컴포넌트에 렌더링되도록 수정하자
+```js
+return (
+    <KeyboardAwareScrollView
+      extraHeight={20}>
+      <Container>
+        {/* 프로필 사진 */}
+        <Image 
+          rounded 
+          url={photoUrl} 
+          showButton 
+          onChangeImage={url => setPhotoUrl(url)}/>
+      </Container>
+    </KeyboardAwareScrollView>
+
+```
 
 
 
