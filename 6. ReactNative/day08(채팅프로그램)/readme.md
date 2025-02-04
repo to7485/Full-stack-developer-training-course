@@ -2388,7 +2388,7 @@ export {Login,Signup,Channel,ChannelCreation}
 ### navigations/MainStack.js
 ```js
 import React,{useContext} from 'react'
-import {Themecontext} from 'styled-components'
+import {ThemeContext} from 'styled-components'
 import { createStackNavigator } from '@react-navigation/stack'
 import { Channel, ChannelCreation } from '../screens'
 
@@ -2413,4 +2413,638 @@ const MainStack = () => {
 }
 
 export default MainStack;
+```
+
+### navigations/index.js
+- index.js파일을 수정해서 MainStack 내비게이션이 잘 작동하는지 확인하자.
+```js
+import React,{useContext} from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import AuthStack from "./AuthStack";
+import { Spinner } from "../components";
+import { ProgressContext } from "../contexts";
+import MainStack from "./MainStack";
+
+const Navigation = () => {
+    const {inProgress} = useContext(ProgressContext);
+    return(
+        <NavigationContainer>
+            <MainStack />
+            {inProgress && <Spinner />}
+        </NavigationContainer>
+    )
+}
+
+export default Navigation;
+```
+
+## MainTab 내비게이션
+- 일반적으로 Screen 컴포넌트에는 화면으로 사용될 컴포넌트를 지정하지만, 내비게이션도 결국 컴포넌트이기 때문에 화면으로 사용할 수 있다.
+- 이번에는 MainStack 내비게이션에서 화면으로 사용되는 MainTab 내비게이션을 만들어보자.
+- 먼저 MainTab 내비게이션을 구성하는 채널 목록 화면과 프로필 화면을 작성하자
+
+### screens/ChannelList.js
+```js
+import React from "react";
+import styled from "styled-components";
+import {Text, Button} from 'react-native'
+
+const Container = styled.View`
+    flex : 1;
+    background-color : ${({ theme}) => theme.background};
+`
+
+const ChannelList = ({navigation}) => {
+    return(
+        <Container>
+            <Text style={{ fontSize: 24}}>ChannelList</Text>
+            <Button
+                title="Channel Creation"
+                onPress={()=> navigation.navigate('Channel Creation')}
+            />
+        </Container>
+    )
+}
+
+export default ChannelList;
+```
+
+### screens/Profile.js
+- 채널 목록 화면과 함께 MainTab 내비게이션의 화면으로 사용될 프로필 화면
+```js
+import React from "react";
+import styled from "styled-components";
+import { Text } from "react-native";
+
+const Container = styled.View`
+    flex : 1;
+    background-color : ${({ theme}) => theme.background};
+`
+
+const Profile = () => {
+    return(
+            <Container>
+                <Text style={{ fontSize: 24}}>Profile</Text>
+            </Container>
+        )
+}
+
+export default Profile;
+```
+
+### screens/index.js
+```js
+...
+import ChannelList from "./ChannelList";
+import Profile from "./Profile";
+
+export {Login,Signup,Channel,ChannelCreation, ChannelList,Profile}
+```
+
+### navigations/MainTab.js
+- navigations폴더에 MainTab.js파일을 생성하고 앞에서 작성한 두 화면을 사용하자
+```js
+import React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Profile, ChannelList } from "../screens";
+
+const Tab = createBottomTabNavigator();
+
+const MainTab = () => {
+    return(
+        <Tab.Navigator
+            screenOptions={{
+                headerShown: false, // 모든 탭 화면에서 헤더를 숨깁니다.
+            }}>
+            <Tab.Screen name="Channel List" component={ChannelList} />
+            <Tab.Screen name="Profile" component={Profile}/>
+        </Tab.Navigator>
+    )
+}
+
+export default MainTab;
+```
+
+### navigations/MainStack.js
+- MainTab 내비게이션을 MainStack 내비게이션에서 사용할 수 있도록 만들자
+```js
+import React,{useContext} from 'react'
+import {ThemeContext} from 'styled-components'
+import { createStackNavigator } from '@react-navigation/stack'
+import { Channel, ChannelCreation } from '../screens'
+import MainTab from './MainTab'
+
+const Stack = createStackNavigator();
+
+const MainStack = () => {
+    const theme = useContext(ThemeContext);
+
+    return(
+        <Stack.Navigator
+            initialRouteName="Main"
+            screenOptions={{
+                headerTitleAlign: 'center',
+                headerTintColor : theme.headerTintColor,
+                cardStyle : {backgroundColor: theme.backgroundColor},
+                headerBackTitleVisible: false,
+            }}
+        >
+            <Stack.Screen name="Main" component={MainTab} />
+            <Stack.Screen name="Channel Creation" component={ChannelCreation} />
+            <Stack.Screen name="Channel" component={Channel} />
+        </Stack.Navigator>
+    )
+}
+
+export default MainStack;
+```
+
+![image](img/중첩내비게이션.png)
+
+- 화면 이동이 잘 되는지 테스트 해보자.
+
+## 인증과 화면 전환
+- 인증상태에 따라 MainStack 내비게이션과 AuthStack 내비게이션을 렌더링을 해보자.
+- 애플리케이션이 시작되면 AuthStack 내비게이션이 렌더링되어야 한다.
+- 로그인 혹은 회원가입을 통해 인증에 성공하면 MainStack 내비게이션이 렌더링되어야 한다.
+- 인증 후 로그아웃을 통해 인증 상태가 사라지면 다시 AuthStack내비게이션이 렌더링되어야 한다.
+
+### 인증상태의 관리
+- 여러 곳에서 상태를 변경해야 하는 경우 Spinner 컴포넌트 처럼 Context API를 이용하면 수월하게 전역적으로 관리할 수 있다.
+- UserContext를 만들고 인증 상태에 따라 적절한 내비게이션이 렌더링되도록 하자.
+
+### context/User.js
+
+```js
+import React,{useState, createContext} from "react";
+
+const UserContext = createContext({
+    user: { email:null, uid:null},
+    dispatch: () => {},
+});
+
+const UserProvider = ({ children}) => {
+    const [user, setUser] = useState({});
+    const dispatch = ({email, uid}) => {
+        setUser({email,uid})
+    };
+    const value={ user, dispatch};
+    return <UserContext.Provider value={value}>
+        {children}
+    </UserContext.Provider>
+}
+
+export {UserContext, UserProvider}
+```
+
+### contexts/index.js
+```js
+import {ProgressContext, ProgressProvider} from './Progress'
+import { UserContext, UserProvider } from './User';
+
+export {ProgressContext,ProgressProvider, UserContext, UserProvider};
+```
+
+### src/App.js
+```js
+...
+import { ProgressProvider, UserProvider } from './contexts';
+
+...
+
+const App = () => {
+...
+
+    return (
+        // 로딩 완료 시 앱의 실제 UI를 렌더링
+        <ThemeProvider theme={theme}>
+            <UserProvider>
+                <ProgressProvider>
+                    <StatusBar barStyle="dark-content" /> 
+                    <Navigation />
+                </ProgressProvider>
+            </UserProvider>
+        </ThemeProvider>
+    )
+};
+
+export default App;
+```
+
+### navigations/index.js
+```js
+...
+import { ProgressContext, UserContext } from "../contexts";
+import MainStack from "./MainStack";
+
+const Navigation = () => {
+    const {inProgress} = useContext(ProgressContext);
+    const {user} = useContext(UserContext);
+
+    return(
+        <NavigationContainer>
+            {user?.uid && user?.email ? <MainStack /> : <AuthStack />}
+            {inProgress && <Spinner />}
+        </NavigationContainer>
+    )
+}
+
+export default Navigation;
+```
+- user의 uid와 email값이 존재하면 인증된 것으로 판단하고 MainStack 내비게이션을 렌더링하도록 작성했다.
+
+### screens/Login.js
+```js
+import React,{useRef, useState, useEffect, useContext} from 'react';
+import { ProgressContext,UserContext } from '../contexts';
+...
+
+const Login = ({ navigation }) => {
+    const {spinner} = useContext(ProgressContext);
+    const {dispatch} = useContext(UserContext);
+
+    ...
+
+    const _handleLoginButtonPress = async() => {
+      try {
+        spinner.start();
+        const user = await login({email, password});
+        //UserContext의 dispatch함수를 통해 user의 상태가 인증된 사용자 정보로 변경된다.
+        dispatch(user);
+        Alert.alert('Login Success', user.email);
+      } catch (error) {
+        Alert.alert('Login Error', error.message);
+      } finally{
+        spinner.stop();
+      }
+    };
+
+    ...
+```
+
+### screens/Signup.js
+- 회원가입 화면에서도 회원가입 성공 시 UserContext의 user 상태가 변경되도록 수정하자
+```js
+import React,{useEffect,useRef, useState, useContext} from 'react';
+import { ProgressContext,UserContext } from '../contexts';
+...
+
+const Signup = () => {
+
+  const {spinner} = useContext(ProgressContext);
+
+  const {dispatch} = useContext(UserContext);
+
+  ...
+
+  const _handleSignupButtonPress = async () => {
+    try {
+      spinner.start();
+      const user = await signup({email, password, name, photoUrl});
+      dispatch(user);
+      console.log(user);
+      Alert.alert('Signup Success',user.email);
+    } catch (error) {
+      Alert.alert('Signup Error', error.message);
+    } finally{
+      spinner.stop();
+    }
+  };
+
+  return (...);
+};
+
+export default Signup;
+```
+
+## 로그아웃
+- 로그아웃을 통해 인증 상태를 해제하고 다시 AuthStack 내비게이션이 렌더링되도록 만들어보자.
+
+### firebase.js
+```js
+...
+
+export const logout = async () => {
+  return await auth.signOut();
+}
+```
+
+### screens/Profile.js
+```js
+import React,{useContext} from "react";
+import styled from "styled-components";
+import { Button } from "../components";
+import { logout } from "../utils/firebase";
+import { UserContext } from "../contexts";
+
+const Container = styled.View`
+    flex : 1;
+    background-color : ${({ theme}) => theme.background};
+`
+
+const Profile = () => {
+    const {dispatch} = useContext(UserContext);
+
+    const _handleLogoutButtonPress = async () => {
+        try {
+            await logout();
+        } catch (e) {
+            console.log('[Profile] logout: ',e.message);
+        } finally{
+            dispatch({});
+        }
+    }
+    return(
+            <Container>
+                <Button title="logout" onPress={_handleLogoutButtonPress} />
+            </Container>
+        )
+}
+
+export default Profile;
+```
+- 프로필 화면에 로그아웃 버튼을 추가하고 firebase.js에 있는 logout함수가 호출되도록 작성했다.
+- logout함수가 완료되면 UserContext의 dispatch함수를 이용해 user의 상태를 변경하고 AuthStack 내비게이션이 렌도링되도록 만들었다.
+
+## 프로필 화면
+- 탭버튼에 아이콘을 추가하고 프로필 화면에서는 사용자의 사진을 변경할 수 있는 기능을 추가해보자.
+
+### theme.js
+```js
+export const theme = {
+    ...
+    headerTintColor : colors.black,
+    tabActiveColor: colors.blue,
+    tabInactiveColor : colors.grey_1,
+    ...
+}
+```
+
+### MainTab.js
+- 탭 버튼에 아이콘을 추가하고 활성화 상태에서 사용하는 색을 변경하자
+```js
+import React,{useContext} from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Profile, ChannelList } from "../screens";
+import {MaterialIcons} from '@expo/vector-icons'
+import { ThemeContext } from "styled-components";
+
+const Tab = createBottomTabNavigator();
+
+const TabBarIcon = ({ focused, name}) => {
+    const theme = useContext(ThemeContext);
+    return(
+        <MaterialIcons
+            name={name}
+            size={26}
+            color={focused ? theme.tabActiveColor : theme.tabInactiveColor}
+        />
+    )
+}
+
+const MainTab = () => {
+    const theme = useContext(ThemeContext);
+    return(
+        <Tab.Navigator
+            screenOptions={{
+                headerShown: false,
+                tabBarActiveTintColor: theme.tabActiveColor,
+                tabInactiveColor: theme.tabInactiveColor,
+            }}>
+            <Tab.Screen 
+                name="Channel List" 
+                component={ChannelList} 
+                options={{
+                    tabBarIcon: ({focused}) =>
+                        TabBarIcon({
+                            focused,
+                            name: focused ? 'chat-bubble' : 'chat-bubble-outline',
+                        }),
+                }}
+            />
+            <Tab.Screen 
+                name="Profile" 
+                component={Profile}
+                options={{
+                    tabBarIcon: ({focused}) =>
+                        TabBarIcon({
+                            focused,
+                            name: focused ? 'person' : 'person-outline',
+                        }),
+                }}
+            />
+        </Tab.Navigator>
+    )
+}
+
+export default MainTab;
+```
+
+## 프로필화면
+- 사용자의 정보를 확인할 수 있고, 사진을 변경할 수 있는 기능과 로그아웃 기능을 구현할 것이다.
+
+### theme.js
+- 로그아웃 버튼의 배경색으로 사용할 값을 지정한다.
+```js
+export const theme = {
+    ...
+    buttonBackground : colors.blue,
+    buttonTitle : colors.white,
+    buttonUnfilledTitle : colors.blue,
+    buttonLogout: colors.red,
+    ...
+}
+```
+
+### firebase.js
+- 현재 접속한 사용자의 정보를 반환하는 함수와 사용자의 사진을 수정하는 함수를 작성한다.
+```js
+...
+
+export const getCurrentUser = () => {
+  const {uid, displayName, email, photoURL} = auth.currentUser;
+  return {uid, name:displayName, email, photoUrl: photoURL};
+};
+
+export const updateUserPhoto = async photoUrl => {
+  const user = auth.currentUser;
+  const storageUrl = photoUrl.startsWith('https')
+    ? photoUrl
+    : await uploadImage(photoUrl);
+  await updateProfile(user, {photoURL : storageUrl});
+  return {name: user.displayName, email: user.email, photoUrl:user.photoURL};
+}
+```
+
+### Profile.js
+- 위에서 작성한 함수를 이용해 프로필 화면을 구현해보자
+```js
+import React,{useContext,useState} from "react";
+import styled,{ThemeContext} from "styled-components";
+import { Button,Image,Input } from "../components";
+import { logout, getCurrentUser, updateUserPhoto } from "../utils/firebase";
+import { UserContext, ProgressContext } from "../contexts";
+import { Alert } from "react-native";
+
+const Container = styled.View`
+    flex : 1;
+    background-color : ${({ theme}) => theme.background};
+    justify-content : center;
+    align-items : center;
+    padding : 0 20px;
+`
+
+const Profile = () => {
+    const {dispatch} = useContext(UserContext);
+    const {spinner} = useContext(ProgressContext);
+    const theme = useContext(ThemeContext);
+
+    const user = getCurrentUser();
+    const [photoUrl, setPhotoUrl] = useState(user.photoUrl);
+
+    const _handleLogoutButtonPress = async () => {
+        try {
+            spinner.start();
+            await logout();
+        } catch (e) {
+            console.log('[Profile] logout: ',e.message);
+        } finally{
+            dispatch({});
+            spinner.stop();
+        }
+    }
+
+    const _handlePhotoChange = async url=> {
+        try {
+            spinner.start();
+            const updateUser = await updateUserPhoto(url);
+            setPhotoUrl(updateUser.photoUrl);
+        } catch (e) {
+            Alert.alert('Photo Error', e.message);
+        } finally{
+            spinner.stop();
+        }
+    }
+
+
+    return(
+            <Container>
+                <Image
+                    url={photoUrl}
+                    onChangeImage={_handlePhotoChange}
+                    showButton
+                    rounded
+                />
+                <Input label="Name" value={user.name} />
+                <Input label="Email" value={user.email} />
+                <Button
+                    title="logout"
+                    onPress={_handleLogoutButtonPress}
+                    containerStyle={{ marginTop:30, backgroundColor: theme.buttonLogout}}
+                />
+            </Container>
+        )
+}
+
+export default Profile;
+```
+- 프로필 화면에서는 사용자의 이름이나 이메일을 수정하는 기능을 제공하지 않으므로 Input 컴포넌트에서 입력이 불가능하게 해야한다.
+
+### theme.js
+```js
+export const theme = {
+    ...
+    inputPlaceholder : colors.grey_1,
+    inputBorder : colors.grey_1,
+    inputDisabledBackground: colors.grey_0,
+    ... 
+}
+```
+
+### components/Input.js
+```js
+...
+
+const StyledTextInput = styled.TextInput.attrs(({ theme }) => ({
+  placeholderTextColor: theme.inputPlaceholder,
+}))`
+  background-color: ${({theme, editable }) =>
+    editable? theme.background : theme.inputDisabledBackground};
+  color: ${({ theme }) => theme.text};
+  padding: 20px 10px;
+  font-size: 16px;
+  border: 1px solid
+    ${({ theme, isFocused }) => (isFocused ? theme.text : theme.inputBorder)};
+  border-radius: 4px;
+`;
+
+const Input = forwardRef(
+    (
+      {
+       ...
+       disabled
+      },
+      ref
+    ) => {
+        const [isFocused, setIsFocused] = useState(false);
+        return (
+          <Container>
+            <Label isFocused={isFocused}>{label}</Label>
+            <StyledTextInput
+              ...
+
+              editable={!disabled}
+            />
+          </Container>
+        );
+    }
+);
+
+Input.defaultProps = {
+  onBlur: () => {},
+  onChangeText: () => {},
+  onSubmitEditing: () => {},
+};
+
+Input.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChangeText: PropTypes.func,
+  onSubmitEditing: PropTypes.func,
+  ...
+  disabled: PropTypes.bool,
+};
+
+export default Input;
+```
+
+### Profile.js
+```js
+const Profile = () => {
+    
+    ...
+
+    return(
+            <Container>
+                ...
+
+                <Input label="Name" value={user.name} disabled />
+                <Input label="Email" value={user.email} disabled/>
+                
+                ...
+
+            </Container>
+        )
+}
+
+export default Profile;
+```
+
+## 헤더 변경
+- MainStack 내비게이션에서 MainTab 내비게이션이 화면으로 사용되는 Screen 컴포넌트의 name은 "Main"으로 설정되어 있다.
+- 헤더의 타이틀과 관려해 특별히 설정하지 않으면 Screen 컴포넌트의 name에 설정된 값이 헤더의 타이틀로 되기 때문에, 프로필 화면과 채널 목록 화면 모두 "Main"으로 타이틀이 나타나는것을 볼 수 있다.
+
+### navigations/MainTab.js
+```js
+
 ```
