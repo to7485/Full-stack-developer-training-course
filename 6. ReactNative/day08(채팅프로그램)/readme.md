@@ -2512,10 +2512,7 @@ const Tab = createBottomTabNavigator();
 
 const MainTab = () => {
     return(
-        <Tab.Navigator
-            screenOptions={{
-                headerShown: false, // 모든 탭 화면에서 헤더를 숨깁니다.
-            }}>
+        <Tab.Navigator>
             <Tab.Screen name="Channel List" component={ChannelList} />
             <Tab.Screen name="Profile" component={Profile}/>
         </Tab.Navigator>
@@ -2549,7 +2546,12 @@ const MainStack = () => {
                 headerBackTitleVisible: false,
             }}
         >
-            <Stack.Screen name="Main" component={MainTab} />
+            <Stack.Screen 
+                name="Main" 
+                component={MainTab}
+                options={{
+                    headerShown: false, //헤더를 숨긴다.
+                }}/>
             <Stack.Screen name="Channel Creation" component={ChannelCreation} />
             <Stack.Screen name="Channel" component={Channel} />
         </Stack.Navigator>
@@ -3046,5 +3048,163 @@ export default Profile;
 
 ### navigations/MainTab.js
 ```js
+import React,{useContext, useEffect} from 'react'
 
+...
+
+//route
+//state
+//{"index":0, "routeName":["Channel List","Profile",],"type":"tab"...}
+
+const MainTab = ({navigation,route}) => {
+    const theme = useContext(ThemeContext);
+
+    useEffect(() => {
+        const titles = route.state?.routeNames || ['Channels'];
+        const index = route.state?.index || 0;
+        navigation.setOptions({
+            headerTitle:titles[index],
+        });
+    },[route])
+    return(
+        <Tab.Navigator
+            screenOptions={{
+                tabBarActiveTintColor : theme.tabActiveColor,
+                tabBarInactiveTintColor : theme.tabInactiveColor,
+                headerTitleAlign: 'center',
+            }}
+        >
+            <Tab.Screen 
+                name="Channels"
+                ...
+            />
+            <Tab.Screen 
+                name="Profile" 
+                component={Profile}
+                options={{
+                    tabBarIcon:({focused}) => TabBarIcon({focused, name:focused ? 'person' : 'person-outline'})
+                }}
+            />
+        </Tab.Navigator>
+    )
+}
+
+export default MainTab;
 ```
+
+## 채널 생성 화면
+- 채널 생성 화면을 만들고 생성된 채널을 파이어베이스로 관리해보자
+
+## 데이터베이스
+- 현재 서버를 구축하지 않았기 때문에 채널 데이터를 관리하기 위해 파이어베이스의 데이터베이스를 활용할 것이다.
+- 파이어베이스에서 제공하는 파이어스토어는 NoSQL 문서 중심의 데이터베이스로 SQL 데이터베이스와 달리 테이블이나 행이 없고 컬렉션, 문서, 필드로 구성되어 있다.
+
+### NoSQL
+#### 1. 개념
+- 다양하고 유연한 데이터 모델을 활용하는 데이터베이스 기술들을 총칭하는 용어입니다. 
+- "Not Only SQL"이라는 의미를 가진다.
+- 관계형 DB의 단점을 보완하거나 특정 요구 사항을 효율적으로 처리하기 위해 탄생했습니다.
+
+#### 2. 탄생배경
+1. **빅데이터 및 대규모 트래픽 처리 요구**
+  - 인터넷 서비스가 폭발적으로 성장하면서, 데이터 양과 트랜잭션이 방대해짐.
+  - 전통적 RDBMS를 대규모로 확장하려면 비용이 많이 들고, 스키마(테이블 구조) 변경도 까다로움.
+
+2. **유연한 스키마의 필요성**
+  - 웹/모바일 애플리케이션에서 데이터 형태가 자주 변하거나, 구조가 불규칙적인 경우가 늘어남.
+  - RDBMS는 스키마 변경 시 마이그레이션이 필수이나, 개발 속도가 중요한 스타트업 환경 등에서는 비효율적.
+
+3. **분산 시스템 설계**
+  - 규모가 커질수록 수평 확장(Scale-out) 방식이 유리한데, RDBMS는 공유 저장소나 쿼리 복잡성 때문에 분산에 한계가 있음.
+  - NoSQL은 애초에 분산 환경을 염두에 두어 설계된 경우가 많음.
+
+#### 3. 주요특성
+1. **수평 확장성(Scalability)**
+  - 여러 노드(서버)로 데이터를 샤딩(Sharding)해 저장하고 트래픽을 분산 처리함.
+  - 대규모 시스템에서 확장 비용이 낮아지고, 성능이 향상될 수 있음.
+
+2. **유연한 스키마(Flexible Schema)**
+  - RDB의 테이블-행-열 구조와 달리, 컬렉션-문서 구조나 키-값 구조 등 다양한 형태를 지원.
+  - 구조를 사전에 엄격히 정의하지 않아도 되므로 애플리케이션 요구사항 변동에 빠르게 대응 가능.
+
+3. **고성능 처리(High Performance)**
+  - 단순 키-값 접근, 인덱스 최적화, 메모리 기반 저장 등 다양한 기법으로 빠른 읽기/쓰기를 제공.
+  - 일부 NoSQL DB는 ACID 트랜잭션을 부분적으로만 지원하거나 eventually consistent(최종적 일관성) 모델을 사용해 성능을 극대화하기도 함.
+
+3. **CAP 이론과 Trade-off**
+  - CAP 이론(Consistency, Availability, Partition tolerance)에서, NoSQL DB는 일반적으로 AP 또는 CP를 지향하는 경우가 많음.
+  - 분산 환경에서 완벽한 일관성과 높은 가용성을 동시에 만족하기는 어려워, 시스템 요구사항에 따라 우선순위를 정함.
+
+#### 3. NoSQL의 유형
+- NoSQL 데이터베이스는 크게 4가지 유형으로 분류할 수 있습니다.
+
+1. **Key-Value 스토어**
+  - 단순한 (키, 값) 쌍으로 데이터를 저장.
+  - 예) Redis, Riak, Amazon DynamoDB
+  - 특징: 빠른 읽기/쓰기 속도, 단순한 쿼리 모델, 대규모 캐싱이나 세션 저장 등에 활용.
+
+2. **문서(Document) 기반**
+  - JSON, BSON 등 문서 형태로 데이터를 저장 (필드, 중첩 객체, 배열 등을 자유롭게 포함).
+  - 예) MongoDB, CouchDB, Firestore, Cosmos DB
+  - 특징: 동적 스키마, 개발 언어와 자연스러운 매핑(특히 JS 환경), 쿼리 기능 다양.
+
+3. **컬럼(Column) 기반** (Wide-Column Store)
+  - 테이블처럼 보이지만, 각 행(row)이 매우 많은 컬럼들을 동적으로 갖거나, 특정 컬럼 패밀리(Column Family)로 묶어 관리.
+  - 예) Apache Cassandra, HBase, ScyllaDB
+  - 특징: 수평 확장성 뛰어남, 대규모 쓰기/조회에 강함, 통신/로그/IoT 데이터 같은 시계열 처리에 많이 사용.
+
+4. **그래프(Graph) 기반**
+  - 노드(Node)와 엣지(Edge) 구조로, 관계를 1차적인 데이터 모델로 삼음.
+  - 예) Neo4j, JanusGraph, ArangoDB(멀티 모델)
+  - 특징: 그래프 탐색, 추천 알고리즘, 소셜 네트워크 분석, 경로 찾기 등에 최적화.
+
+#### 4. 장단점
+**장점**
+- 높은 확장성: 여러 노드에 데이터를 분산하여 대규모 데이터와 트래픽을 처리 가능.
+- 유연한 스키마: 개발 초기 구조가 확정되지 않아도 빠르게 시작해, 변경 시에도 부담이 적음.
+- 높은 성능: 키-값 접근, 단순 쿼리 구조 등으로 읽기/쓰기 성능이 뛰어남.
+
+**단점**
+- 관계 연산의 어려움: RDB의 JOIN 같은 복잡한 관계 쿼리에 불리할 수 있음(별도 설계 필요).
+- 일관성 문제: 분산 시스템에서 완벽한 ACID 트랜잭션 보장이 어려운 경우가 있음(점차 개선 추세).
+- 표준화 부족: SQL처럼 표준화된 쿼리 언어가 없어, DB 제품별로 API/쿼리 문법이 상이함.
+
+### 문서기반 NoSQL
+- 각 데이터를 독립적인 ‘문서’(Document) 형태로 저장하는 비관계형 데이터베이스 유형 중 하나다.
+- 문서(Document) 기반 NoSQL 데이터베이스에서는 컬렉션(Collection), 문서(Document), 필드(Field)라는 개념이 핵심을 이룬다.
+- 관계형 데이터베이스(RDBMS)의 테이블, 행(Row), 열(Column) 개념과 비슷하게 대응될 수 있지만, 훨씬 유연하고 동적인 구조를 지닌다.
+
+### 1. 컬렉션
+#### 1. 정의
+- 컬렉션은 여러 문서를 담는 논리적 그룹이다.
+- 관계형 DB의 ‘테이블’(Table)과 유사한 개념으로, 특정 주제나 목적에 따라 문서들을 묶어서 보관하는 역할을 한다.
+- 예를 들어 사용자 관련 정보를 저장하는 users 컬렉션, 제품 정보를 저장하는 products 컬렉션과 같이 구분할 수 있다.
+
+#### 2. 특징
+- 컬렉션에는 일정한 스키마(컬럼 구조)가 강제되지 않습니다.
+- 예: users 컬렉션 안에 있는 각각의 문서가 서로 다른 필드를 가질 수 있음.
+- 일반적으로 컬렉션 이름만 지정하면 별도의 스키마 정의 없이도 문서를 생성/저장할 수 있습니다.
+- 각 컬렉션별로 인덱스를 설정할 수 있으며, 효율적인 쿼리(검색)를 위해 필드에 인덱스를 걸 수 있습니다.
+
+### 2. 문서(Document)
+#### 1. 정의
+- 문서는 컬렉션 내에 저장되는 데이터의 실제 단위로, 각 문서는 독립적인 객체(오브젝트) 형태입니다.
+- JSON 형식(또는 그 변형인 BSON 등)을 사용하여 데이터를 구조화합니다.
+- 관계형 DB에서 행(Row)에 대응되지만, 훨씬 유연한 구조(배열, 중첩 객체 등)를 담을 수 있습니다.
+#### 2. 문서의 구조
+- 문서는 일반적으로 필드(Field)와 값(Value) 쌍을 여러 개 포함하는 JSON 형태입니다.
+- 값에는 문자열, 숫자, 불리언, 배열, 객체(중첩 문서) 등 다양한 형태가 올 수 있습니다.
+
+### 3. 필드(Field)
+#### 1. 정의
+- 필드는 문서 안에 있는 **데이터 속성(키-값 쌍의 키)**을 의미합니다.
+- 예: 이름, 이메일, 나이, 주소 등 문서가 담고 있는 각각의 속성이 필드입니다.
+#### 2. 자료형(타입)
+- 문서 기반 DB는 다양한 자료형을 지원합니다.
+- 기본 타입: 문자열(String), 숫자(Number), 불리언(Boolean), 날짜(Date), Null 등
+- 복합 타입: 배열(Array), 중첩 객체(Object), 이진 데이터(Binary) 등
+특정 필드는 한 문서에서는 문자열, 다른 문서에서는 숫자로 쓰이는 식으로도 가능하나(권장되진 않음), DB 레벨에서 제약을 두지 않는 경우가 많습니다.
+#### 3. 인덱스(Index)
+- 자주 검색되는(또는 정렬, 범위 조회가 필요한) 필드에 인덱스를 설정할 수 있습니다.
+- 인덱스를 제대로 구성하면 대량의 문서 중에서도 빠른 조회가 가능하지만, 쓰기 성능이 약간 떨어질 수 있다는 점을 고려해야 합니다.
+
