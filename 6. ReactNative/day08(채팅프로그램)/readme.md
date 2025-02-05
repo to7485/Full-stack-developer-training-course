@@ -293,7 +293,7 @@ npm install firebase --legacy-peer-deps
 ```
 - 라이브러리 설치가 완료되면 utils폴더 아래에 firebase.js파일을 생성하고 다음과 같이 작성한다.
 ```js
-import * as firebase from 'firebase'
+import { initializeApp } from 'firebase/app';
 import config from '../../firebase.json'
 
 const app = firebase.initializeApp(config);
@@ -1878,21 +1878,25 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import config from '../../firebase.json';
 
 // Firebase 앱 초기화
-const app = initializeApp(config);
+export const app = initializeApp(config);
 
 // 인증 모듈 가져오기
 const auth = getAuth(app);
 
-// 이메일/비밀번호 로그인 함수
+// (1) 이메일/비밀번호 로그인
 export const login = async ({ email, password }) => {
   try {
+    // Firebase Auth 함수 signInWithEmailAndPassword로 로그인
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // userCredential 객체 안에는 로그인된 사용자 정보가 들어 있음
     return userCredential.user;
   } catch (error) {
     console.error('Login error:', error);
+    // 에러 발생 시 상위(호출부)로 에러를 던짐
     throw error;
   }
 };
+
 
 ```
 
@@ -1926,12 +1930,18 @@ const Login = ({ navigation }) => {
 ```js
 // firebase/app과 firebase/auth에서 필요한 함수만 임포트
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword 
+} from 'firebase/auth';
 import config from '../../firebase.json';
 
 ...
 
+// (5) 회원가입 함수
 export const signup = async ({email, password}) => {
+    // 이메일/비밀번호 기반으로 Firebase Auth에 사용자 등록
     const {user} = await createUserWithEmailAndPassword(auth, email,password);
     return user;
 }
@@ -1987,8 +1997,18 @@ export default Signup;
 
 ### firebase.js
 ```js
-import { getAuth, updateProfile, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { 
+  getAuth, 
+  updateProfile, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword 
+} from 'firebase/auth';
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from 'firebase/storage';
 
 ...
 
@@ -2041,19 +2061,22 @@ const blob = await new Promise((resolve, reject) => {
 }
 
 export const signup = async ({email, password, name, photoUrl}) => {
-    // 이메일/비밀번호로 회원가입 진행
+    // 이메일/비밀번호 기반으로 Firebase Auth에 사용자 등록
     const {user} = await createUserWithEmailAndPassword(auth, email,password);
 
-    // photoUrl이 이미 URL이라면 그대로 사용하고, 아니라면 업로드하여 URL을 획득
+    // 프로필 사진 URL 처리
+    // 이미 https로 시작하면 그대로 사용, 아니면 Storage에 업로드 후 URL 획득
     const storageUrl = photoUrl.startsWith('https')
         ? photoUrl 
         : await uploadImage(photoUrl);
 
-    // 모듈러 API 방식의 updateProfile 호출
+    // 생성된 사용자 객체(user)에 프로필 업데이트(이름, 사진)
     await updateProfile(user,{
         displayName: name,
         photoURL: storageUrl,
     })
+
+    // 가입한 사용자 정보 반환
     return user;
 }
 ```
@@ -2726,9 +2749,11 @@ export default Signup;
 ```js
 ...
 
+// (2) 로그아웃
 export const logout = async () => {
+  // 현재 로그인된 사용자 세션을 종료 (Promise 반환)
   return await auth.signOut();
-}
+};
 ```
 
 ### screens/Profile.js
@@ -2863,19 +2888,40 @@ export const theme = {
 ```js
 ...
 
+// (3) 현재 로그인한 사용자 정보 가져오기
 export const getCurrentUser = () => {
-  const {uid, displayName, email, photoURL} = auth.currentUser;
-  return {uid, name:displayName, email, photoUrl: photoURL};
+  // auth.currentUser가 로그인된 사용자 객체를 반환
+  const { uid, displayName, email, photoURL } = auth.currentUser;
+  console.log(`displayName: ${displayName}`);
+  // 우리가 원하는 형태로 가공해서 반환
+  return {
+    uid,
+    name: displayName,
+    email,
+    photoUrl: photoURL,
+  };
 };
 
+// (4) 사용자 프로필 사진 업데이트
 export const updateUserPhoto = async photoUrl => {
+  // 현재 로그인한 사용자 객체
   const user = auth.currentUser;
+  // 만약 photoUrl이 HTTPS로 시작하면 이미 URL이므로 그대로 사용
+  // 그렇지 않으면 업로드 과정을 거친 뒤 Firebase Storage URL 획득
   const storageUrl = photoUrl.startsWith('https')
     ? photoUrl
     : await uploadImage(photoUrl);
-  await updateProfile(user, {photoURL : storageUrl});
-  return {name: user.displayName, email: user.email, photoUrl:user.photoURL};
-}
+
+  // Firebase Auth의 updateProfile로 프로필 사진 주소 수정
+  await updateProfile(user, { photoURL: storageUrl });
+
+  // 업데이트된 사용자 정보 반환
+  return {
+    name: user.displayName,
+    email: user.email,
+    photoUrl: user.photoURL,
+  };
+};
 ```
 
 ### Profile.js
@@ -3181,30 +3227,898 @@ export default MainTab;
 - 예를 들어 사용자 관련 정보를 저장하는 users 컬렉션, 제품 정보를 저장하는 products 컬렉션과 같이 구분할 수 있다.
 
 #### 2. 특징
-- 컬렉션에는 일정한 스키마(컬럼 구조)가 강제되지 않습니다.
+- 컬렉션에는 일정한 스키마(컬럼 구조)가 강제되지 않는다.
 - 예: users 컬렉션 안에 있는 각각의 문서가 서로 다른 필드를 가질 수 있음.
-- 일반적으로 컬렉션 이름만 지정하면 별도의 스키마 정의 없이도 문서를 생성/저장할 수 있습니다.
-- 각 컬렉션별로 인덱스를 설정할 수 있으며, 효율적인 쿼리(검색)를 위해 필드에 인덱스를 걸 수 있습니다.
+- 일반적으로 컬렉션 이름만 지정하면 별도의 스키마 정의 없이도 문서를 생성/저장할 수 있다.
+- 각 컬렉션별로 인덱스를 설정할 수 있으며, 효율적인 쿼리(검색)를 위해 필드에 인덱스를 걸 수 있다.
 
 ### 2. 문서(Document)
 #### 1. 정의
-- 문서는 컬렉션 내에 저장되는 데이터의 실제 단위로, 각 문서는 독립적인 객체(오브젝트) 형태입니다.
-- JSON 형식(또는 그 변형인 BSON 등)을 사용하여 데이터를 구조화합니다.
-- 관계형 DB에서 행(Row)에 대응되지만, 훨씬 유연한 구조(배열, 중첩 객체 등)를 담을 수 있습니다.
+- 문서는 컬렉션 내에 저장되는 데이터의 실제 단위로, 각 문서는 독립적인 객체(오브젝트) 형태다.
+- JSON 형식(또는 그 변형인 BSON 등)을 사용하여 데이터를 구조화한다.
+- 관계형 DB에서 행(Row)에 대응되지만, 훨씬 유연한 구조(배열, 중첩 객체 등)를 담을 수 있다.
 #### 2. 문서의 구조
-- 문서는 일반적으로 필드(Field)와 값(Value) 쌍을 여러 개 포함하는 JSON 형태입니다.
-- 값에는 문자열, 숫자, 불리언, 배열, 객체(중첩 문서) 등 다양한 형태가 올 수 있습니다.
+- 문서는 일반적으로 필드(Field)와 값(Value) 쌍을 여러 개 포함하는 JSON 형태다.
+- 값에는 문자열, 숫자, 불리언, 배열, 객체(중첩 문서) 등 다양한 형태가 올 수 있다.
 
 ### 3. 필드(Field)
 #### 1. 정의
-- 필드는 문서 안에 있는 **데이터 속성(키-값 쌍의 키)**을 의미합니다.
-- 예: 이름, 이메일, 나이, 주소 등 문서가 담고 있는 각각의 속성이 필드입니다.
+- 필드는 문서 안에 있는 데이터 속성(키-값 쌍의 키)을 의미한다.
+- 예: 이름, 이메일, 나이, 주소 등 문서가 담고 있는 각각의 속성이 필드다.
 #### 2. 자료형(타입)
-- 문서 기반 DB는 다양한 자료형을 지원합니다.
+- 문서 기반 DB는 다양한 자료형을 지원한다.
 - 기본 타입: 문자열(String), 숫자(Number), 불리언(Boolean), 날짜(Date), Null 등
 - 복합 타입: 배열(Array), 중첩 객체(Object), 이진 데이터(Binary) 등
-특정 필드는 한 문서에서는 문자열, 다른 문서에서는 숫자로 쓰이는 식으로도 가능하나(권장되진 않음), DB 레벨에서 제약을 두지 않는 경우가 많습니다.
+특정 필드는 한 문서에서는 문자열, 다른 문서에서는 숫자로 쓰이는 식으로도 가능하나(권장되진 않음), DB 레벨에서 제약을 두지 않는 경우가 많다.
 #### 3. 인덱스(Index)
-- 자주 검색되는(또는 정렬, 범위 조회가 필요한) 필드에 인덱스를 설정할 수 있습니다.
-- 인덱스를 제대로 구성하면 대량의 문서 중에서도 빠른 조회가 가능하지만, 쓰기 성능이 약간 떨어질 수 있다는 점을 고려해야 합니다.
+- 자주 검색되는(또는 정렬, 범위 조회가 필요한) 필드에 인덱스를 설정할 수 있다.
+- 인덱스를 제대로 구성하면 대량의 문서 중에서도 빠른 조회가 가능하지만, 쓰기 성능이 약간 떨어질 수 있다는 점을 고려해야 한다.
 
+![image](img/데이터베이스.jpg)
+
+- 파이어스토어는 일반적인 데이터베이스와 달리 데이터베이스의 내용이 수정되면 실시간으로 변경된 내용을 알 수 있다는 특징을 갖고 있다.
+- 컬렉션과 문서는 항상 유일한 ID를 갖고 있어야 한다는 규칙이 있다.
+- 여기서는 channels라는 ID를 가진 하나의 컬렉션을 만들고 생성되는 채널들을 channels 컬렉션에 문서로 저장할 것이다.
+- 파이어스토어는 채널 생성 시 ID를 지정하지 않으면 자동으로 중복되지 않는 ID를 생성해서 문서의 ID로 이용한다.
+- 따라서 자동으로 생성되는 문서의 ID를 이용해 채널의 문서 ID가 중복되지 않도록 관리 할 것이다.
+- 마지막으로 인증에 성공한 사용자만 데이터베이스를 읽거나 쓸 수 있도록 데이터베이스의 보안 규칙을 수정하자
+```
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /channels/{channel} {
+      allow read, write: if request.auth.uid != null;
+    }
+  }
+}
+```
+
+## 채널 생성 버튼
+- 채널 목록 화면의 헤더에 채널 생성 화면으로 이동할 수 있는 버튼을 만들자
+
+### MainTab.js
+```js
+...
+
+const MainTab = ({navigation, route}) => {
+    ...
+
+    return(
+        <Tab.Navigator
+            screenOptions={{
+                tabBarActiveTintColor: theme.tabActiveColor,
+                tabInactiveColor: theme.tabInactiveColor,
+                headerTitleAlign: 'center',
+            }}>
+            <Tab.Screen 
+                ...
+                headerRight: () =>
+                    (
+                        <MaterialIcons
+                            name="add"
+                            size={26}
+                            style={{margin:10}}
+                            onPress={() => navigation.navigate('Channel Creation')}
+                        />
+                    )
+                }}
+            />
+          ...
+        </Tab.Navigator>
+    )
+}
+
+export default MainTab;
+```
+
+## 채널 생성
+- 채널 생성 화면을 수정하고 데이터베이스에 채널 문서를 생성하는 기능을 만들어보자.
+- 채널 생성 화면의 구성은 앞서 만든 컴포넌트를 활용하자
+
+### screens/ChannelCreation.js
+```js
+import React, { useState, useRef, useEffect } from 'react';
+// 필요 없는 import는 정리할 수 있습니다. (예: useContext가 사용되지 않음)
+import styled from 'styled-components';
+import { Input, Button } from '../components';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
+// 화면 전체를 감싸는 컨테이너
+const Container = styled.View`
+  flex: 1;
+  background-color: ${({ theme }) => theme.background};
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;
+`;
+
+// 에러 메시지를 표시할 텍스트
+const ErrorText = styled.Text`
+  align-items: flex-start;
+  width: 100%;
+  height: 20px;
+  margin-bottom: 10px;
+  line-height: 20px;
+  color: ${({ theme }) => theme.errorText};
+`;
+
+const ChannelCreation = ({ navigation }) => {
+  // 타이틀과 설명을 관리하는 상태 변수
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  // 입력창 중에서 'description' 인풋에 포커스를 주기 위해 useRef 활용
+  const descriptionRef = useRef();
+
+  // 타이틀이 비었을 때 표시할 에러 메시지 상태
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // “Create” 버튼 활성/비활성 관리를 위한 상태
+  const [disabled, setDisabled] = useState(true);
+
+  // title, description, errorMessage 상태가 바뀔 때마다 disabled 여부를 갱신
+  // 현재 로직상 'title'이 없거나 에러가 있으면 버튼이 disabled 상태가 됨
+  useEffect(() => {
+    setDisabled(!(title && !errorMessage));
+  }, [title, description, errorMessage]);
+
+  // 타이틀이 변경될 때 호출되는 함수
+  // 공백만 입력되었는지 체크 후 에러 메시지를 업데이트
+  const _handleTitleChange = (title) => {
+    setTitle(title);
+    setErrorMessage(title.trim() ? '' : 'Please enter the title.');
+  };
+
+  // “Create” 버튼을 눌렀을 때 동작할 함수
+  // 실제 채널 생성 로직(예: 서버 API 호출 등)을 작성할 수 있음
+  const _handleCreateButtonPress = () => {
+    // 예: API를 호출하거나, Redux action dispatch 등
+    console.log('Channel created with:', { title, description });
+  };
+
+  return (
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ flex: 1 }}
+      extraScrollHeight={20}
+    >
+      <Container>
+        {/* 타이틀 입력 */}
+        <Input
+          label="Title"
+          value={title}
+          onChangeText={_handleTitleChange}
+          onSubmitEditing={() => {
+            // 타이틀 양끝 공백 제거 후 description 입력창으로 이동
+            setTitle(title.trim());
+            descriptionRef.current.focus();
+          }}
+          onBlur={() => setTitle(title.trim())}
+          placeholder="Title"
+          returnKeyType="next"
+          maxLength={20}
+        />
+        {/* 설명 입력 */}
+        <Input
+          ref={descriptionRef}
+          label="Description"
+          value={description}
+          onChangeText={(text) => setDescription(text)}
+          onSubmitEditing={() => {
+            setDescription(description.trim());
+            _handleCreateButtonPress();
+          }}
+          onBlur={() => setDescription(description.trim())}
+          placeholder="Description"
+          returnKeyType="done"
+          maxLength={40}
+        />
+        {/* 에러 메시지 표시 영역 */}
+        <ErrorText>{errorMessage}</ErrorText>
+        {/* 채널 생성 버튼 (비활성화 여부는 disabled 상태로 제어) */}
+        <Button
+          title="Create"
+          onPress={_handleCreateButtonPress}
+          disabled={disabled}
+        />
+      </Container>
+    </KeyboardAwareScrollView>
+  );
+};
+
+export default ChannelCreation;
+```
+
+### firebase.js
+- 데이터베이스에 채널을 생성하는 함수를 만들자.
+```js
+// 필요한 Firebase 함수만 선택적으로 임포트
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth,
+  updateProfile,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from 'firebase/auth';
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from 'firebase/storage';
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+} from 'firebase/firestore';
+// Firebase 설정 정보 가져오기 (firebase.json을 통해 설정)
+import config from '../../firebase.json';
+
+// ------------------
+// 1) Firebase 초기화
+// ------------------
+
+// Firebase 앱 초기화 (firebase.json 파일에 담긴 config 사용)
+export const app = initializeApp(config);
+
+// 인증 모듈 가져오기
+const auth = getAuth(app);
+
+// 스토리지 모듈 가져오기
+const storage = getStorage(app);
+
+// 파이어스토어 DB 모듈 가져오기
+export const db = getFirestore(app);
+
+...
+
+// 문서(채널) 생성하기
+export const createChannel = async ({ title, description }) => {
+  // 1) 'channels' 컬렉션 참조 가져오기
+  const channelCollection = collection(db, 'channels');
+
+  // 2) 새 문서에 대한 참조 생성 (자동으로 ID가 부여됨)
+  const newChannelRef = doc(channelCollection);
+
+  // 3) 채널에 할당될 고유 ID
+  const id = newChannelRef.id;
+
+  // 4) 새 채널에 들어갈 필드값 구성
+  const newChannel = {
+    id,
+    title,
+    description,
+    createdAt: Date.now(), // 타임스탬프 (epoch) 사용
+  };
+
+  // 5) setDoc으로 해당 문서 경로에 데이터 쓰기
+  //    doc() 참조에서 setDoc()을 호출
+  await setDoc(newChannelRef, newChannel);
+
+  // 6) 생성된 문서 ID 반환
+  return id;
+};
+```
+
+### ChannelCreation.js
+```js
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { Alert } from 'react-native';
+// 로딩 스피너 컨텍스트 (프로젝트 전역에서 스피너 상태를 관리할 수 있는 Context)
+import { ProgressContext } from '../contexts';
+// Firebase Firestore에서 채널을 생성하는 유틸 함수
+import { createChannel } from '../utils/firebase';
+
+...
+
+// 실제 화면 컴포넌트
+const ChannelCreation = ({ navigation }) => {
+  // ProgressContext에서 스피너 객체 가져오기
+  const { spinner } = useContext(ProgressContext);
+
+  ...
+  // 채널 생성 버튼을 눌렀을 때 실행되는 함수 (비동기)
+  const _handleCreateButtonPress = async () => {
+    try {
+      // 스피너 표시 시작
+      spinner.start();
+      // Firebase에 채널 생성 후, 생성된 문서의 id 반환
+      const id = await createChannel({ title, description });
+      // 생성된 채널 화면으로 이동하며, id와 title 정보를 함께 전달
+      // replace를 사용해 현재 스택을 교체(뒤로 가기 시 이전 화면이 아닌 다른 화면으로 돌아갈 때 사용)
+      navigation.replace('Channel', { id, title });
+    } catch (e) {
+      // 만약 에러가 발생하면 Alert로 사용자에게 표시
+      Alert.alert('Creation Error', e.message);
+    } finally {
+      // 에러 발생 여부와 무관하게 스피너 중단
+      spinner.stop();
+    }
+  };
+
+  return (...);
+};
+
+export default ChannelCreation;
+```
+- 채널 생성이 완료되면 채널 생성 화면을 남겨놓은 상태에서 생성된 채널로 이동하는 것이 아니라, 채널 생성 화면을 제거하고 새로 생성된 채널로 이동하는것이 일반적이다.
+- 채널 생성 화면에서도 동일하게 동작하도록 navigation의 replace함수를 사용했다.
+- replace함수는 navigate 함수처럼 화면을 이동하지만, 현재 화면을 스택에 유지하지 않고 새로운 화면과 교체하면서 화면을 이동한다는 특징이 있다.
+
+### Channels.js
+- 채널 생성이 완료되고 채널 화면으로 이동하면서 현재 입장하는 채널의 ID와 제목을 params로 전달해 화면에 출력해보자.
+```js
+import React from "react";
+import styled from "styled-components";
+import {Text} from 'react-native'
+
+const Container = styled.View`
+    flex: 1;
+    background-color: ${({theme})=> theme.background};
+`;
+
+const Channel = ({route}) => {
+    return(
+        <Container>
+            <Text style={{fontSize : 24}}>{route.params?.id}</Text>
+            <Text style={{fontSize : 24}}>{route.params?.title}</Text>
+        </Container>
+    )
+}
+
+export default Channel;
+```
+
+![image](img/채널%20생성%20화면.png)
+
+- 채널을 생성하면 생성된 채널의 정보와 함께 채널 화면으로 이동하고, 뒤로 가기 버튼을 클릭하면 채널 생성 화면이 아니라 채널 목록 화면으로 이동하는 것을 확인할 수 있다.
+- 파이어베이스 콘솔에서도 생성된 채널 문서와 내용을 확인할 수 있다.
+
+## 채널 목록 화면
+- 생성된 채널을 보여주는 채널 목록 화면을 만들어보자
+- 많은 양의 채널을 목록으로 사용자에게 보여줄 수 있으며, 채널이 새로 생성되면 자동으로 채널 목록에 추가되도록 화면을 만들어보자
+
+### theme.js
+- 채널 목록 화면에서 FlatList 컴포넌트를 이용해 생성된 채널들을 렌더링하도록 만들어보자.
+- 채널 목록 화면에서 사용할 색을 theme.js파일에 정의한다.
+```js
+export const theme = {
+   ...
+    listTime: colors.grey_1,
+    listDescription: colors.grey_1,
+    listIcon: colors.black,
+}
+```
+
+### FlatList 컴포넌트
+- 화면에 적절한 양의 데이터만 렌더링하고 스크롤의 이동에 맞춰 필요한 부분을 추가적으로 렌더링하는 특징이 있다.
+- 덕분에 데이터의 길이가 가변적이고 양을 예측할 수 없는 상황에서 사용하기 좋다.
+
+### ChannelList.js
+```js
+import React,{useContext} from "react";
+import styled,{ThemeContext} from "styled-components";
+import {FlatList} from 'react-native'
+import {MaterialIcons} from '@expo/vector-icons'
+
+
+const Container = styled.View`
+    flex : 1;
+    background-color : ${({ theme}) => theme.background};
+`
+
+const ItemContainer = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  border-bottom-width: 1px;
+  border-color: ${({ theme }) => theme.listBorder};
+  padding: 15px 20px;
+`;
+const ItemTextContainer = styled.View`
+  flex: 1;
+  flex-direction: column;
+`;
+const ItemTitle = styled.Text`
+  font-size: 20px;
+  font-weight: 600;
+`;
+const ItemDescription = styled.Text`
+  font-size: 16px;
+  margin-top: 5px;
+  color: ${({ theme }) => theme.listDescription};
+`;
+const ItemTime = styled.Text`
+  font-size: 12px;
+  color: ${({ theme }) => theme.listTime};
+`;
+
+const channels = [];
+for(let idx = 0; idx<100; idx++){
+    channels.push({
+        id:idx,
+        title: `title ${idx}`,
+        description: `description ${idx}`,
+        createAt: idx,
+    })
+}
+
+const Item = ({ item: { id, title, description, createdAt }, onPress }) => {
+      const theme = useContext(ThemeContext);
+      console.log(`Item: ${id}`);
+      
+      return (
+        <ItemContainer onPress={() => onPress({ id, title })}>
+          <ItemTextContainer>
+            <ItemTitle>{title}</ItemTitle>
+            <ItemDescription>{description}</ItemDescription>
+          </ItemTextContainer>
+          <ItemTime>{createdAt}</ItemTime>
+          <MaterialIcons
+            name="keyboard-arrow-right"
+            size={24}
+            color={theme.listIcon}
+          />
+        </ItemContainer>
+      );
+    }
+
+const ChannelList = ({navigation}) => {
+    const _handleItemPress = params => {
+        navigation.navigate('Channel',params);
+    }
+    return(
+        <Container>
+           <FlatList
+                keyExtractor={item => item['id']}
+                data={channels}
+                renderItem={({ item }) => (
+                <Item item={item} onPress={_handleItemPress} />
+                )}
+            />
+        </Container>
+    )
+}
+
+export default ChannelList;
+```
+- 생성한 임의의 데이터를 FlatList 컴포넌트에 항목으로 사용할 데이터로 설정했다.
+- renderItem에 작성되는 함수는 파라미터로 항목의 데이터를 가진 item이 포함된 객체가 전달된다.
+
+### windowSize
+- FlatList 컴포넌트에서 렌더링되는 데이터의 수는 windowSize 속성에 의해 결정된다.
+  windowSize의 기본값은 21이고, 이 값은 현재 화면(1)과 현재 화면보다 앞쪽에 있는 데이터(10), 그리고 현재 화면보다 뒤쪽에 있는 데이터(10)을 의미한다.
+- 예를 들어 한 화면에 7개가 렌더링되고 windowSize가 3이라면 이전화면(7) + 현재화면(7) + 다음화면(7) 해서 최대 21개가 렌더링 된다.
+- widnowSize의 값을 작은 값으로 변경하면 렌더링 되는 데이터가 줄어들어 메모리의 소비를 줄이고 성능을 향상시킬 수 있지만, 빠르게 스크롤 하는 상황에서 미리 렌더링되지 않은 부분은 순간적으로 빈 내용이 나타날 수 있는 단점이 있다.
+
+### ChannelList.js
+```js
+<Container>
+    <FlatList
+        keyExtractor={item => item['id']}
+        data={channels}
+        renderItem={({ item }) => (
+        <Item item={item} onPress={_handleItemPress} />
+        )}
+        windowSize={3}
+    />
+</Container>
+```
+
+## React.memo
+- windowSize를 수정해서 렌더링되는 양을 줄였지만 스크롤을 이동해보면 비효율적인 부분이 보인다.
+- 스크롤이 이동하면 windowSize 값에 맞춰 현재 화면과 이전 및 이후 데이터를 렌더링하는 것이 맞지만, 이미 렌더링 된 항목도 다시 렌더링되는것을 확인할 수 있다.
+- React.memo는 불필요한 함수의 재연산을 방지하는 useMemo와는 달리 컴포넌트의 리렌더링을 방지하는 차이가 있다.
+
+### ChannelList.js
+```js
+const Item = React.memo(({ item: { id, title, description, createdAt }, onPress }) => {
+      const theme = useContext(ThemeContext);
+      console.log(`Item: ${id}`);
+
+      return (
+        <ItemContainer onPress={() => onPress({ id, title })}>
+          <ItemTextContainer>
+            <ItemTitle>{title}</ItemTitle>
+            <ItemDescription>{description}</ItemDescription>
+          </ItemTextContainer>
+          <ItemTime>{createdAt}</ItemTime>
+          <MaterialIcons
+            name="keyboard-arrow-right"
+            size={24}
+            color={theme.listIcon}
+          />
+        </ItemContainer>
+      );
+    }
+)
+```
+
+## 채널 데이터 수신
+- 파이어베이스의 데이터베이스로부터 데이터를 받아 채널 목록을 렌더링해보자
+
+### ChannelList.js
+```js
+import React,{useContext,useState,useEffect} from "react";
+...
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from "../utils/firebase";
+
+...
+
+const ChannelList = ({navigation}) => {
+
+    const [channels, setChannels] = useState([]);
+
+    useEffect(() => {
+        // 1) Firestore 'channels' 컬렉션에 대한 쿼리 생성
+        //    orderBy('createdAt', 'desc') -> createdAt 필드를 기준으로 내림차순 정렬
+        const collectionQuery = query(
+          collection(db, 'channels'),
+          orderBy('createdAt', 'desc')
+        );
+      
+        // 2) onSnapshot: 실시간 리스너(구독) 등록
+        // onSnapshot함수는 수신 대기 상태로 있다가 데이터베이스에 문서가 추가되거나 수정될 때마다 지정된 함수가 호출된다.
+        // - collectionQuery 결과가 변경될 때마다 snapshot 콜백이 실행
+        const unsubscribe = onSnapshot(collectionQuery, snapshot => {
+          const list = [];
+      
+          // 3) snapshot.forEach: 쿼리 결과로 돌아온 모든 문서를 순회
+          snapshot.forEach(doc => {
+            // doc.data()를 통해 문서의 실제 데이터(객체)를 추출
+            list.push(doc.data());
+          });
+      
+          // 4) setChannels를 통해 state에 업데이트
+          //    -> 화면이 해당 channels 배열로 다시 렌더링됨
+          setChannels(list);
+        });
+      
+        // 5) useEffect의 Cleanup 함수
+        //    컴포넌트가 언마운트되거나, 리렌더링으로 이 이펙트가 재실행될 때
+        //    기존의 구독을 해제(unsubscribe)한다.
+        //수신 대기 상태를 해제하지 않으면 다시 채널 목록 화면이 마운트 될 때 수신 대기 이벤트가 추가되면서 데이터를 중복으로 받는 문제가 발생하기 때문이다.
+        return () => unsubscribe();
+      
+        // 6) 의존성 배열이 비어 있으므로 ([]),
+        //    이 이펙트는 컴포넌트 마운트 시 한 번만 실행된다.
+      }, []);
+      
+
+    const _handleItemPress = params => {
+        navigation.navigate('Channel',params);
+    }
+    return(
+        <Container>
+           <FlatList
+                keyExtractor={item => item['id']}
+                ...
+            />
+        </Container>
+    )
+}
+
+export default ChannelList;
+```
+![image](img/채널목록.png)
+
+## moment 라이브러리
+- 렌더링이 된 채널 목록을 보면 생성된 시간이 타임스탬프로 나타나 정확한 시간을 알아볼 수 없다.
+- 자바스크립트에 내장된 함수를 이용하면 타임스탬프를 우리에게 익숙한 시간이나 날자 형태로 변경할 수 있다.
+- 하지만 자바스크립트에서 제공하는 기능만으로 기능을 구현하다 보면 조건에 따라 굉장히 복잡해지고 생각하지 못한 버그들도 많이 생긴다.
+- moment라이브러리를 사용하면 시간 및 날짜와 관련된 함수를 쉽게 작성할 수 있다.
+
+```
+npm install moment
+```
+### ChannelList.js
+- moment라이브러리를 이용해 createdAt필드에 저장된 타임스탬프를 보기좋은 형식으로 변경한다.
+```js
+...
+import moment from "moment";
+...
+
+const getDateOrTime = ts => {
+    const now = moment().startOf('day');
+    const target = moment(ts).startOf('day');
+    return moment(ts).format(now.diff(target, 'days') > 0 ? 'MM/DD' : 'HH:mm');
+}
+...
+return (
+    <ItemContainer onPress={() => onPress({ id, title })}>
+      <ItemTextContainer>
+        <ItemTitle>{title}</ItemTitle>
+        <ItemDescription>{description}</ItemDescription>
+      </ItemTextContainer>
+      <ItemTime>{getDateOrTime(createdAt)}</ItemTime>
+```
+
+## 채널 화면
+- 사용자가 메시지를 주고받을 수 있는 채널 화면을 만들어보자
+- channels 컬렉션 아래에서 채널들을 문서로 관리하고 있다.
+- 문서 아래에 messages컬렉션을 만들어 메시지 데이터를 관리해보자.
+- 이렇게 채널별로 발생한 메시지를 모아서 관리하면 채널에서 주고 받는 메시지를 편하게 저장하고 불러올 수 있다.
+
+### 보안 규칙 수정하기
+```
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /channels/{channel} {
+      allow read, write: if request.auth.uid != null;
+      match /messages/{message} {
+      	allow read, write: if request.auth.uid != null;
+      }
+    }
+  }
+}
+```
+
+## 메시지 데이터
+- 채널 화면도 채널 목록 화면처럼 메시지 데이터의 변화를 실시간으로 전달받기 위해 onSnapshot 함수를 이용하여 수신 대기 상태가 되도록 수정하자.
+- 그리고 채널 화면으로 이동할 때 route의 params를 통해 전달된 채널의 문서 ID를 이용하여 채널 문서에 있는 messages 컬렉션의 문서 변화에 대해 수신 대기 상태가 되도록 작성하자
+
+### Channels.js
+```js
+import React,{useState,useEffect,useLayoutEffect} from "react";
+import { db } from "../utils/firebase";
+import styled from "styled-components";
+import {Text, FlatList} from 'react-native'
+import {
+    collection,
+    onSnapshot,
+    query,
+    doc,
+    orderBy,
+  } from 'firebase/firestore';
+
+const Container = styled.View`
+    flex: 1;
+    background-color: ${({theme})=> theme.background};
+`;
+
+const Channel = ({navigation, route}) => {
+    console.log(route);
+    const {params} = route;
+    const [messages, setMessages] = useState([]);
+
+    useEffect(() => {
+        const docRef = doc(db, 'channels', params.id);
+        const collectionQuery = query(
+          collection(db, `${docRef.path}/messages`),
+          orderBy('createdAt', 'desc')
+        );
+        const unsubscribe = onSnapshot(collectionQuery, snapshot => {
+          const list = [];
+          snapshot.forEach(doc => {
+            list.push(doc.data());
+          });
+          setMessages(list);
+        });
+        return () => unsubscribe();
+      }, []);
+
+      useLayoutEffect(() => {
+        navigation.setOptions({headerTitle: params.title || 'Channel'})
+      },[])
+    return(
+        <Container>
+           <FlatList
+                keyExtractor={item=>item['id']}
+                data={messages}
+                renderItem={({item}) => (
+                    <Text style={{ fontSize: 24}}>{item.text}</Text>
+                )}
+            />
+        </Container>
+    )
+}
+
+export default Channel;
+
+```
+
+## 메시지 전송
+
+### firebase.js
+```js
+...
+
+export const createMessage = async ({ channelId, text }) => {
+  console.log("Sending message to channel:", channelId, text);
+
+  try {
+    const collectionRef = collection(db, `channels/${channelId}/messages`);
+    await addDoc(collectionRef, { 
+      text,
+      createdAt: serverTimestamp() // Firestore 서버 시간 사용
+    });
+    console.log("Message added successfully!");
+  } catch (error) {
+    console.error("Error adding message: ", error);
+  }
+};
+
+```
+
+### Channel.js
+```js
+// 필요한 React 훅과 컴포넌트들을 임포트
+import React, { useState, useEffect, useLayoutEffect } from "react";
+// Firebase 관련 유틸리티와 함수들을 임포트
+import { db, createMessage } from "../utils/firebase";
+// 커스텀 Input 컴포넌트 임포트
+import { Input } from "../components";
+// 스타일링을 위한 styled-components 임포트
+import styled from "styled-components";
+// React Native 기본 컴포넌트 임포트
+import { Text, FlatList } from 'react-native'
+// Firestore 관련 함수들 임포트
+import {
+    collection,
+    onSnapshot,
+    query,
+    doc,
+    orderBy,
+} from 'firebase/firestore';
+
+// styled-components를 사용하여 컨테이너 스타일링
+// theme에서 background 색상을 가져와 적용
+const Container = styled.View`
+    flex: 1;
+    background-color: ${({theme})=> theme.background};
+`;
+
+// Channel 컴포넌트 정의
+// navigation과 route는 React Navigation에서 제공하는 props
+const Channel = ({navigation, route}) => {
+    // route.params에서 채널 정보 추출
+    const {params} = route;
+    
+    // 메시지 목록과 입력 텍스트를 위한 상태 관리
+    const [messages, setMessages] = useState([]);
+    const [text, setText] = useState("");
+    
+    // 메시지 실시간 동기화를 위한 useEffect
+    useEffect(() => {
+        // 채널 ID가 없으면 실행하지 않음
+        if (!params.id) return;
+        
+        // Firestore에서 해당 채널의 메시지 컬렉션 참조 생성
+        const messagesRef = collection(db, "channels", params.id, "messages");
+        // 생성 시간 기준 내림차순으로 정렬하는 쿼리 생성
+        const collectionQuery = query(messagesRef, orderBy("createdAt", "desc"));
+        
+        // 실시간 업데이트를 위한 리스너 설정
+        const unsubscribe = onSnapshot(collectionQuery, (snapshot) => {
+            // 문서들을 배열로 변환하여 상태 업데이트
+            const list = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setMessages(list);
+        });
+        
+        // 컴포넌트 언마운트 시 리스너 제거
+        return () => unsubscribe();
+    }, [params.id]); // params.id가 변경될 때마다 실행
+
+    // 네비게이션 헤더 제목 설정을 위한 useLayoutEffect
+    useLayoutEffect(() => {
+        navigation.setOptions({headerTitle: params.title || 'Channel'})
+    },[params.title])
+
+    return(
+        <Container>
+            {/* 메시지 목록을 표시하는 FlatList */}
+            <FlatList
+                keyExtractor={item=>item['id']}
+                data={messages}
+                renderItem={({item}) => (
+                    <Text style={{ fontSize: 24}}>{item.text}</Text>
+                )}
+            />
+            {/* 메시지 입력을 위한 Input 컴포넌트 */}
+            <Input
+                value={text}
+                onChangeText={text => setText(text)}
+                onSubmitEditing={() => createMessage({ 
+                    channelId: params.id,
+                    text
+                })}
+            />
+        </Container>
+    )
+}
+
+export default Channel;
+```
+![image](img/메시지출력.png)
+
+## GiftedChat 컴포넌트
+- 메시지를 주고받는 화면은 일반적인 모바일 화면과 스크롤 방향이 반대입니다.
+- 페이스북,인스타그램 등 스크롤 기능이 있는 대부분의 애플리케이션은 최신 데이터가 가장 위에 나오고 스크롤은 아래로 내려가도록 구성되어 있다.
+- 하지만 채팅 어플리케이션에서 메시지를 주고받는 화면은 최신 데이터가 가장 아래에 나타나고 스크롤의 방향은 위로 올라가도록 구성이 되어있다.
+- FlatList 컴포넌트에는 inverted 속성이 있는데, 이 값에 따라 FlatList 컴포넌트를 뒤집은 것처럼 스크롤 방향이 변경된다.
+
+### Channel.js
+```js
+<FlatList
+    keyExtractor={item=>item['id']}
+    data={messages}
+    renderItem={({item}) => (
+        <Text style={{ fontSize: 24}}>{item.text}</Text>
+    )}
+    inverted={true}
+/>
+```
+![image](img/inverted.png)
+
+- 기획이나 디자인에 따라 메시지를 주고받는 화면에는 스크롤 방향 외에도 많은 것들이 필요하다.
+- 예를 들어 본인이 보낸 메시지는 오른쪽에 이미지 없이 나타나고, 다른 사람이 보낸 메시지는 이미지 및 사용자 이름과 함께 왼쪽에 나타나는 것이 우리가 흔히 사용하는 채팅 애플리케이션의 모습이다.
+- 우리가 직접 다양한 컴포넌트를 생성해서 언급된 화면의 모습을 만들 수도 있지만 많은 시간과 노력이 필요하다.
+- 그래서 채팅 화면에서 사용할 수 있는 기능을 다양하게 제공하는 react-native-gifted-chat라이브러리를 사용해서 화면을 구성해보자
+```
+npm install react-native-gifted-chat
+```
+
+
+### theme.js
+```js
+export const theme = {
+    ...
+    sendButtonActivate: colors.blue,
+    sendButtonInactivate: colors.grey_1
+}
+```
+
+### Channel.js
+```js
+import React,{useState,useEffect,useLayoutEffect} from "react";
+import { db, createMessage } from "../utils/firebase";
+import { Input } from "../components";
+import styled,{ThemeContext} from "styled-components";
+import { Alert } from "react-native";
+import { GiftedChat, Send } from "react-native-gifted-chat";
+import { MaterialIcons} from '@expo/vector-icons'
+import {
+    collection,
+    onSnapshot,
+    query,
+    orderBy,
+  } from 'firebase/firestore';
+import { getCurrentUser } from "../utils/firebase";
+
+const Container = styled.View`
+    flex: 1;
+    background-color: ${({theme})=> theme.background};
+`;
+
+const sendButton = props => {
+    const theme = useContext(ThemeContext);
+
+    return(
+        <Send
+            {...props}
+            disabled={!props.text}
+            containerStyle={{
+                width:44,
+                height:44,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginHorizontal: 4,
+            }}
+        >
+            <MaterialIcons
+                name="send"
+                size={24}
+                color={
+                    props.text ? theme.sendButtonActivate : theme.sendButtonInactivate
+                }
+            />
+        </Send>
+    )
+}
+```
