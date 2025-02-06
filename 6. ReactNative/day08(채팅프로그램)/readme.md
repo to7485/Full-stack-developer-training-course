@@ -2378,15 +2378,19 @@ export default ChannelCreation;
 
 ### screens/Channel.js
 ```js
+// React와 필요한 훅들을 가져옵니다.
 import React from "react";
+// styled-components를 가져온다
 import styled from "styled-components";
 import {Text} from 'react-native'
 
+// Container 컴포넌트: 채팅 화면 전체를 감싸는 View로, 테마의 background 색상을 적용합니다.
 const Container = styled.View`
     flex: 1;
     background-color: ${({theme})=> theme.background};
 `;
 
+// Channel 컴포넌트: 채팅 채널 화면을 렌더링합니다.
 const Channel = () => {
     return(
         <Container>
@@ -3254,9 +3258,10 @@ export default MainTab;
 - 자주 검색되는(또는 정렬, 범위 조회가 필요한) 필드에 인덱스를 설정할 수 있다.
 - 인덱스를 제대로 구성하면 대량의 문서 중에서도 빠른 조회가 가능하지만, 쓰기 성능이 약간 떨어질 수 있다는 점을 고려해야 한다.
 
-![image](img/데이터베이스.jpg)
 
-- 파이어스토어는 일반적인 데이터베이스와 달리 데이터베이스의 내용이 수정되면 실시간으로 변경된 내용을 알 수 있다는 특징을 갖고 있다.
+### Firestore
+![image](img/데이터베이스.jpg)
+- Firebase의 NoSQL 클라우드 데이터베이스로,  일반적인 데이터베이스와 달리 데이터베이스의 내용이 수정되면 실시간으로 변경된 내용을 알 수 있다는 특징을 갖고 있다.
 - 컬렉션과 문서는 항상 유일한 ID를 갖고 있어야 한다는 규칙이 있다.
 - 여기서는 channels라는 ID를 가진 하나의 컬렉션을 만들고 생성되는 채널들을 channels 컬렉션에 문서로 저장할 것이다.
 - 파이어스토어는 채널 생성 시 ID를 지정하지 않으면 자동으로 중복되지 않는 ID를 생성해서 문서의 ID로 이용한다.
@@ -3273,6 +3278,173 @@ service cloud.firestore {
   }
 }
 ```
+### Firestore의 주요 함수 정리
+**1. 컬렉션 문서 참조**
+- Firestore에서 데이터를 다루려면 collection()과 doc()를 사용해 컬렉션 또는 문서를 참조해야 한다.
+#### collection(db,path)
+- 특정 컬렉션을 참조하는 객체를 반환
+```js
+import { collection } from "firebase/firestore";
+const usersRef = collection(db, "users");
+```
+
+#### doc(db,path,documentId)
+- 특정 문서를 참조하는 객체를 반환함
+```js
+import { doc } from "firebase/firestore";
+const userRef = doc(db, "users", "user123"); // "users" 컬렉션의 "user123" 문서
+```
+
+**2. 데이터 추가 및 수정**
+- Firestore에 데이터를 추가하거나 수정할 때 사용되는 함수
+#### setDoc(docRef,data,options?)
+- 문서가 없으면 새로운 문서를 추가한다.
+- 문서가 존재하면 덮어쓰기(기본값)
+- ```merge:true``` 옵션을 주면 기존 데이터를 유지하면서 일부 필드만 업데이트가 가능하다
+```js
+import { setDoc, doc } from "firebase/firestore";
+
+//1. 문서를 참조해온다.
+const userRef = doc(db, "users", "user123");
+
+//2. 참조한 문서에 
+await setDoc(userRef, {
+  name: "Alice",
+  age: 25
+});
+```
+
+#### addDoc(collectionRef, data)
+- 문서를 추가하고 자동으로 ID를 생성한다
+```js
+import { addDoc, collection } from "firebase/firestore";
+
+const usersRef = collection(db, "users");
+
+const docRef = await addDoc(usersRef, {
+  name: "Bob",
+  age: 30
+});
+
+console.log("Document added with ID:", docRef.id);
+```
+
+#### updateDoc(docRef, data)
+- 기존 문서의 일부 필드만 업데이트한다.
+- 문서가 없으면 에러 발생
+```js
+import { updateDoc, doc } from "firebase/firestore";
+
+const userRef = doc(db, "users", "user123");
+
+await updateDoc(userRef, {
+  age: 27
+});
+```
+
+#### deleteField()
+- 문서의 특정 필드를 삭제한다
+```js
+import { updateDoc, doc, deleteField } from "firebase/firestore";
+
+await updateDoc(userRef, {
+  age: deleteField()
+});
+```
+
+**3. 데이터 읽기**
+- FireStore에서 데이터를 가져올 때 사용하는 함수들이다
+
+#### getDoc(docRef)
+- 특정 문서를 한번 가져온다.
+```js
+import { getDoc, doc } from "firebase/firestore";
+
+const userRef = doc(db, "users", "user123");
+const docSnap = await getDoc(userRef);
+
+if (docSnap.exists()) {
+  console.log("User Data:", docSnap.data());
+} else {
+  console.log("No such document!");
+}
+```
+
+#### getDocs(collectionRef)
+- 특정 컬렉션의 모든 문서를 가져온다
+- 해당 컬렉션의 직속 문서들만 가져오고 하위 컬렉션은 포함되지 않는다.
+```
+users (컬렉션)
+ ├── user1 (문서)
+ │    ├── posts (컬렉션) ❌ getDocs()에서 가져오지 않음
+ │    ├── messages (컬렉션) ❌ getDocs()에서 가져오지 않음
+ ├── user2 (문서)
+ │    ├── posts (컬렉션) ❌ getDocs()에서 가져오지 않음
+```
+```js
+import { getDocs, collection } from "firebase/firestore";
+
+const usersRef = collection(db, "users");
+const querySnapshot = await getDocs(usersRef);
+
+querySnapshot.forEach(doc => {
+  console.log(doc.id, "=>", doc.data());
+});
+```
+
+**4. 실시간 데이터 구독**
+- Firestore는 실시간 데이터를 구독할 수 있도록 제공한다.
+
+#### onSnapshot(docRef, callback)
+- 문서가 변경될 때마다 자동으로 호출되는 실시간 리스너
+```js
+import { doc, onSnapshot } from "firebase/firestore";
+
+const userRef = doc(db, "users", "user123");
+
+onSnapshot(userRef, (docSnap) => {
+  if (docSnap.exists()) {
+    console.log("Real-time data:", docSnap.data());
+  } else {
+    console.log("Document does not exist");
+  }
+});
+```
+
+#### onSnapshot(query, callback)
+- 특정 조건을 만족하는 문서들의 변화를 실시간으로 감지
+```js
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+
+const usersRef = collection(db, "users");
+const q = query(usersRef, orderBy("age"));
+
+onSnapshot(q, (querySnapshot) => {
+  querySnapshot.forEach(doc => {
+    console.log("Real-time collection update:", doc.data());
+  });
+});
+```
+
+**5. 쿼리(Query)**
+- Firestore에서 데이터를 특정 조건으로 필터링할 때 사용한다.
+
+#### query(collectionRef, where(...))
+- 특정 조건을 만족하는 문서를 가져올 때 사용
+```js
+import { collection, query, where, getDocs } from "firebase/firestore";
+
+const usersRef = collection(db, "users");
+const q = query(usersRef, where("age", ">", 20));
+
+const querySnapshot = await getDocs(q);
+querySnapshot.forEach(doc => {
+  console.log("Filtered data:", doc.data());
+});
+```
+
+
+
 
 ## 채널 생성 버튼
 - 채널 목록 화면의 헤더에 채널 생성 화면으로 이동할 수 있는 버튼을 만들자
@@ -3919,6 +4091,14 @@ const Channel = ({navigation, route}) => {
 export default Channel;
 
 ```
+### useLayoutEffect
+- **개념** : React에서 제공하는 훅(Hook)중 하나로, 컴포넌트가 렌더링 된 후 DOM 업데이트가 완료된 직후(브라우저가 화면에 그리기 전에) 동기적으로 실행된다는 점이 useEffect와 다른점이다.
+- **주요특징**
+  1. 동기적 실행
+      - useLayoutEffect는 렌더링 결과가 실제 화면에 나타나기 전에 동기적으로 실행된다.
+      - 때문에 이 훅 내에서 DOM 조작이나 레이아웃 관련작업을 할 때 유용하다.
+  2. 화면 깜빡임 방지
+      - 렌더링 후 바로 DOM 변경이 반영되기 때문에, 화면이 업데이트된 후에 발생할 수 있는 깜빡임을 예방할 수 있다.
 
 ## 메시지 전송
 
@@ -3947,15 +4127,15 @@ export const createMessage = async ({ channelId, text }) => {
 ```js
 // 필요한 React 훅과 컴포넌트들을 임포트
 import React, { useState, useEffect, useLayoutEffect } from "react";
-// Firebase 관련 유틸리티와 함수들을 임포트
+// Firestore 데이터베이스와 메시지 생성 함수를 가져옵니다.
 import { db, createMessage } from "../utils/firebase";
 // 커스텀 Input 컴포넌트 임포트
 import { Input } from "../components";
-// 스타일링을 위한 styled-components 임포트
+// styled-components와 ThemeContext를 가져옵니다.
 import styled from "styled-components";
 // React Native 기본 컴포넌트 임포트
 import { Text, FlatList } from 'react-native'
-// Firestore 관련 함수들 임포트
+// Firestore에서 사용할 collection, onSnapshot, query, orderBy 함수를 가져옵니다.
 import {
     collection,
     onSnapshot,
@@ -4064,7 +4244,6 @@ export default Channel;
 npm install react-native-gifted-chat
 ```
 
-
 ### theme.js
 ```js
 export const theme = {
@@ -4076,30 +4255,44 @@ export const theme = {
 
 ### Channel.js
 ```js
+// React와 필요한 훅들을 가져옵니다.
 import React,{useState,useEffect,useLayoutEffect} from "react";
+// Firestore 데이터베이스와 메시지 생성 함수를 가져옵니다.
 import { db, createMessage } from "../utils/firebase";
+// Input 컴포넌트를 가져옵니다.
 import { Input } from "../components";
+// styled-components와 ThemeContext를 가져옵니다.
 import styled,{ThemeContext} from "styled-components";
+// Alert 컴포넌트를 react-native에서 가져옵니다.
 import { Alert } from "react-native";
+// GiftedChat 및 Send 컴포넌트를 react-native-gifted-chat에서 가져옵니다.
 import { GiftedChat, Send } from "react-native-gifted-chat";
+// Expo에서 MaterialIcons 아이콘을 가져옵니다.
 import { MaterialIcons} from '@expo/vector-icons'
+// Firestore에서 사용할 collection, onSnapshot, query, orderBy 함수를 가져옵니다.
 import {
     collection,
     onSnapshot,
     query,
     orderBy,
   } from 'firebase/firestore';
+// 현재 사용자 정보를 가져오는 유틸 함수를 가져옵니다.
 import { getCurrentUser } from "../utils/firebase";
 
+// Container 컴포넌트: 채팅 화면 전체를 감싸는 View로, 테마의 background 색상을 적용합니다.
 const Container = styled.View`
     flex: 1;
     background-color: ${({theme})=> theme.background};
 `;
 
+// SendButton 컴포넌트: 메시지 전송 버튼 커스텀 컴포넌트
 const sendButton = props => {
+
+    // ThemeContext를 사용하여 현재 테마 정보를 가져옵니다.
     const theme = useContext(ThemeContext);
 
     return(
+        // GiftedChat의 Send 컴포넌트를 사용하여 전송 버튼 렌더링
         <Send
             {...props}
             disabled={!props.text}
@@ -4111,14 +4304,107 @@ const sendButton = props => {
                 marginHorizontal: 4,
             }}
         >
+             {/* MaterialIcons를 사용하여 'send' 아이콘 표시 */}
             <MaterialIcons
                 name="send"
                 size={24}
                 color={
+                    // 텍스트가 있을 경우 활성화 색상, 없으면 비활성화 색상 적용
                     props.text ? theme.sendButtonActivate : theme.sendButtonInactivate
                 }
             />
         </Send>
     )
 }
+
+// Channel 컴포넌트: 채팅 채널 화면을 렌더링합니다.
+const Channel = ({navigation, route}) => {
+
+    // route 객체에서 params를 추출합니다.
+    const {params} = route;
+    // ThemeContext를 사용하여 현재 테마 정보를 가져옵니다.
+    const theme = useContext(ThemeContext);
+   // 현재 사용자의 uid, 이름, 프로필 사진 URL을 가져옵니다.
+    const { uid, name, photoUrl } = getCurrentUser();
+    // 메시지 배열 상태를 선언합니다.
+    const [messages, setMessages] = useState([]);
+
+    // Firestore에서 메시지 데이터를 실시간 구독하여 가져옵니다.
+    useEffect(() => {
+        // params.id가 없으면 아래 코드 실행 방지
+        if (!params.id) return;
+
+        // "channels" 컬렉션 아래에 있는 특정 채널의 "messages" 서브컬렉션 참조 생성
+        const messagesRef = collection(db, "channels", params.id, "messages");
+
+        // createdAt 필드를 기준으로 내림차순 정렬한 쿼리 생성
+        const collectionQuery = query(messagesRef, orderBy("createdAt", "desc"));
+
+        // onSnapshot을 사용해 실시간 데이터 구독 및 업데이트
+        const unsubscribe = onSnapshot(collectionQuery, (snapshot) => {
+          // 각 문서 데이터를 배열로 변환, 문서 id를 포함시킴
+          const list = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          // 상태 업데이트
+          setMessages(list);
+        });
+        // 컴포넌트 언마운트 시 구독 해제
+        return () => unsubscribe();
+      }, []);// 의존성 배열이 비어 있으므로 처음 렌더링 시 한 번 실행
+
+      // useLayoutEffect를 사용해 네비게이션 옵션(헤더 제목)을 설정합니다.
+      useLayoutEffect(() => {
+        navigation.setOptions({headerTitle: params.title || 'Channel'})
+      },[])
+
+      // 메시지 전송 시 호출되는 함수
+    const _handleMessageSend = async messageList => { 
+        // GiftedChat에서 전달받은 메시지 배열의 첫 번째 메시지를 추출
+        const newMessage = messageList[0];
+        console.log(newMessage);
+        try {
+            // createMessage 함수를 통해 새로운 메시지를 Firestore에 저장
+            await createMessage({ channelId: params.id, message: newMessage });
+        } catch (e) {
+            // 오류 발생 시 Alert를 통해 에러 메시지 표시
+            Alert.alert('Send Message Error', e.message);
+        }
+    };
+
+    // 채팅 화면 렌더링
+    return (
+        <Container>
+            <GiftedChat
+                // 리스트 뷰의 스타일을 테마의 background 색상으로 지정
+                listViewProps={{
+                    style: { backgroundColor: theme.background },
+                }}
+                placeholder="Enter a message..."  // 입력창에 표시할 플레이스홀더
+                messages={messages}  // 채팅 메시지 배열 전달
+                user={{ _id: uid, name, avatar: photoUrl }}  // 현재 사용자 정보 전달
+                onSend={_handleMessageSend}  // 메시지 전송 시 호출되는 함수 지정
+                alwaysShowSend={true}  // 항상 전송 버튼 표시
+                textInputProps={{
+                    autoCapitalize: 'none', // 자동 대문자 변환 해제
+                    autoCorrect: false,     // 자동 수정 기능 해제
+                    textContentType: 'none', // iOS에서 텍스트 컨텐츠 타입 지정 안함
+                    underlineColorAndroid: 'transparent', // Android에서 밑줄 제거
+                }}
+                multiline={false}  // 입력창에서 다중 행 입력 허용 여부(false로 단일 행 입력)
+                renderUsernameOnMessage={true}  // 메시지에 사용자 이름 표시
+                scrollToBottom={true}  // 새 메시지 추가 시 스크롤 아래로 이동
+                renderSend={props => <SendButton {...props} />}  // 커스텀 전송 버튼 렌더링
+            />
+        </Container>
+    );
+};
+
+// Channel 컴포넌트를 기본 내보내기 합니다.
+export default Channel;
 ```
+- **주요포인트**
+  - 실시간 데이터 구독: onSnapshot을 사용해 FireStore에서 채팅 메시지를 실시간으로 받아와 상태를 업데이트합니다.
+  - 메시지 전송: 메시지를 전송할 때 createMessage함수를 호출하여 Firestore에 저장하고, 전송 실패시 Alert로 에러 메시지를 보여준다.
+  - UI 구성: GiftedChat컴포넌트를 사용해 채팅 UI를 구성하며, 테마에 따라 스타일을 적용하고, 사용자 정보 및 커스텀 전송버튼을 설정한다.
