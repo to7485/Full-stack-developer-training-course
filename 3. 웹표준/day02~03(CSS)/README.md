@@ -3,6 +3,118 @@
 - 즉 CSS는 HTML의 각 요소(element)의 style(design, layout etc)을 정의 하여 화면(Screen) 등에 어떻게 렌더링하면 되는지 브라우저에게 설명하기 위한 언어이다.
 - CSS(Cascading Style Sheet)는 HTML과 같은 마크업 언어로 작성된 문서에 색상, 폰트, 각 요소의 위치 변경, 백그라운드 및 간단한 애니메이션(transition) 등의 효과를 주어 보다 보기 좋게 꾸며 주는 역할을 합니다.
 
+## HTML과 CSS
+- HTML과 CSS는 각자의 문법을 갖는 별개의 언어이며 HTML은 CSS를 포함할 수 있다.
+- 그러나 HTML없이 단독으로 존재하는 CSS는 의미가 없다.
+
+## CSS 기본 문법
+![image](img/css_grammer.png)
+
+### 1. 선택자(Selector)
+- CSS를 적용하고자 하는 HTML 요소(element)
+
+### 2. 선언부
+- 하나 이상의 선언들을 세미콜론(;)으로 구분하여 포함할 수 있으며, 중괄호({})를 사용하여 전체를 둘러 싼다.
+- 각 선언은 CSS 속성명(property)과 속성값(value)을 가지며, 그 둘은 콜론(:)으로 연결된다.
+- 이러한 CSS 선언은 언제나 마지막에 세미콜론으로 끝마친다.
+
+## CSS 선언 방식
+
+### 인라인(in-line)방식
+- HTML의 각 태그에서 style 속성에 직접 작성하는 방식
+```html
+<p style="color: red">빨간색</p>
+```
+
+
+### 내장(embaedded)방식
+- 같은 HTML 문서에 \<style\> \</style\> 태그 안에 스타일을 적용하는 방식 입니다. 
+
+### embedded.html
+```html
+<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>css(스타일시트)</title>
+			
+			<!-- css를 적용하기 위한 태그 -->
+			<style type="text/css">
+				/* body안에 존재하는 각각의 태그에게 스타일을 적용 */
+            /*태그이름{속성 : 속성값;}*/
+            
+            /*body에 있는 h1 태그는 모두 색이 바뀌게 된다.*/
+				h1{color:red;} 
+				h2{color:yellow;}
+				h3{color:buttonhighlight;}
+            
+            /*네이버에 생상표 검색 스크롤 내리면 RGB 코드값이 나온다.
+            색깔을 16진수로 표현한것. 빨강 초록 파랑 순서.
+            16진수는 0~9 A~F까지로 이루어져있다.*/
+				p{color:#ffaaff;} /* #faf;  */ 
+			</style>
+		</head>
+		
+		<body>
+			<h1 >스타일 연습중1-1</h1>
+			<h1>스타일 연습중1-2</h1>
+			<h2>스타일 연습중2</h2>
+			<h3>스타일 연습중3</h3>
+			<p>스타일 연습중4</p>
+		</body>
+	</html>
+```
+
+### 링크(link)방식
+- HMTL <link>를 이용하여 외부 문서로 CSS를 불러와 적용하는 방식
+```html
+<link rel=”stylesheet” type=”text/css” href='css 외부 파일 경로'>
+```
+### css 폴더 만들고 style.css 파일 만들기
+```css
+p{color : red;}
+```
+
+### link.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <title>Document</title>
+</head>
+<body>
+    <p>외부 스타일시트 적용</p>
+</body>
+</html>
+```
+
+### @import 방식
+- @import를 이용하여 외부 문서로 CSS를 불러와 적용하는 방식
+
+### import.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url(css/style.css);
+    </style>
+    <title>Document</title>
+</head>
+<body>
+    <p>외부 스타일시트 적용</p>
+</body>
+</html>
+```
+
+## CSS파일을 분리하는 이유
+- HTML코드 내부에서 디자인과 관련된 정보를 제거할 수 있다는 점이다.
+- HTML코드가 정보의 전달과 웹 페이지의 구조 설계라는 본연의 기능에 집중할 수 있게 되었으므로, 훨씬 읽기 편안한 코드를 작성할 수 있게 되었다.
 
 ## CSS 선택자
 
@@ -19,7 +131,7 @@ h2 { color: teal; text-decoration: underline; }
 - 특정 집단의 여러 요소를 한 번에 선택할 때 사용한다.
 - 이런 특정 집단을 묶을 수 있는걸 클래스(class)라고 하며, 같은 클래스 이름을 가진 요소들을 모두 선택해준다.
 
-### ex04_class.html
+### class.html
 ```html
 <!DOCTYPE html>
 	<html>
@@ -151,21 +263,6 @@ h2 { color: teal; text-decoration: underline; }
 		</body>
 	</html>      
 ```
-### index.html의 프로필 영역에 id값주기
-```html
-<div id="profile">
-	<img src="image/profile.jpg" width="50px">
-	<!-- <br>태그는 줄바꿈 기능이 있다.-->
-	<!-- <p>태그는 문단을 나누는 태그 paragraph의 약자이다.
-		p태그는 줄바꿈을 표현하는 block이라는 속성이 있기 때문에
-		옆에 글이 올 수 없다.-->
-	<div>
-		<h2>half_bottle</h2>
-		<button>프로필 편집</button>
-	</div>
-</div>
-```
-
 ### 클래스와 아이디를 구분하는 이유
 - HTML의 정보 전달력 향상에 있다.
 - 클래스로 정의된 정보는 디자인은 같지만 내용물은 다른 형태로 화면에 여러번 등장할 수 있다.
@@ -177,7 +274,7 @@ h2 { color: teal; text-decoration: underline; }
 - 여러 선택자를 쉼표(,)로 구분하여 연결한다.
 - 그룹 선택자는 코드를 중복해서 작성하지 않도록 하여 코드를 간결하게 만들어준다.
 
-### ex06_group.html
+### group.html
 ```html
 <!DOCTYPE html>
 	<html>
@@ -241,171 +338,6 @@ h2 { color: teal; text-decoration: underline; }
 - 클래스 선택자
 - 태그 선택자
 - 전체 선택자
-
-## HTML에서 CSS를 적용하는 방법
-- HTML과 CSS는 각자의 문법을 갖는 별개의 언어이며 HTML은 CSS를 포함할 수 있다.
-- 그러나 HTML없이 단독으로 존재하는 CSS는 의미가 없다.
-
-## CSS 기본 문법
-![image](img/css_grammer.png)
-
-### 1. 선택자(Selector)
-- CSS를 적용하고자 하는 HTML 요소(element)
-
-### 2. 선언부
-- 하나 이상의 선언들을 세미콜론(;)으로 구분하여 포함할 수 있으며, 중괄호({})를 사용하여 전체를 둘러 싼다.
-- 각 선언은 CSS 속성명(property)과 속성값(value)을 가지며, 그 둘은 콜론(:)으로 연결된다.
-- 이러한 CSS 선언은 언제나 마지막에 세미콜론으로 끝마친다.
-
-## CSS 선언 방식
-
-### 인라인(in-line)방식
-- HTML의 각 태그에서 style 속성에 직접 작성하는 방식
-```html
-<p style="color: red">빨간색</p>
-```
-
-
-### 내장(embaedded)방식
-- 같은 HTML 문서에 \<style\> \</style\> 태그 안에 스타일을 적용하는 방식 입니다. 
-
-### ex01_embedded.html
-```html
-<!DOCTYPE html>
-	<html>
-		<head>
-			<meta charset="UTF-8">
-			<title>css(스타일시트)</title>
-			
-			<!-- css를 적용하기 위한 태그 -->
-			<style type="text/css">
-				/* body안에 존재하는 각각의 태그에게 스타일을 적용 */
-            /*태그이름{속성 : 속성값;}*/
-            
-            /*body에 있는 h1 태그는 모두 색이 바뀌게 된다.*/
-				h1{color:red;} 
-				h2{color:yellow;}
-				h3{color:buttonhighlight;}
-            
-            /*네이버에 생상표 검색 스크롤 내리면 RGB 코드값이 나온다.
-            색깔을 16진수로 표현한것. 빨강 초록 파랑 순서.
-            16진수는 0~9 A~F까지로 이루어져있다.*/
-				p{color:#ffaaff;} /* #faf;  */ 
-			</style>
-		</head>
-		
-		<body>
-			<h1 >스타일 연습중1-1</h1>
-			<h1>스타일 연습중1-2</h1>
-			<h2>스타일 연습중2</h2>
-			<h3>스타일 연습중3</h3>
-			<p>스타일 연습중4</p>
-		</body>
-	</html>
-```
-
-
-### index.html에 제목 색깔 바꾸기
-- 제목을 빨간색으로 바꿔보자
-```html
-<body>
-	<style>
-		h2{
-			color : red;
-		}
-	</style>
-...
-```
-
-### index.htm에 클래스 선택자 사용해보기
-- highlight라는 클래스에 테두리 적용시키기
-```html
-<body>
-	<style>
-		h2{
-			color : red;
-		}
-		/*클래스 선택자를 쓸 때는 .클래스값으로 써야한다.*/
-		.highlight{
-			border : solid;
-		}
-	</style>
-...
-```
-
-### index.html에 아이디 선택자 사용하기
-- profile라는 id값을 가진 태그에 테두리주기
-```html
-<body>
-	<style>
-		h2{
-			color : red;
-		}
-		/*클래스 선택자를 쓸 때는 .클래스값으로 써야한다.*/
-		.highlight{
-			border : solid;
-		}
-		/*아이디 선택자를 쓸 때는 #아이디값으로 써야한다.*/
-		#profile{
-			border : solid;
-			border-color : blue;
-		}
-	</style>
-...
-```
-
-
-### 링크(link)방식
-- HMTL <link>를 이용하여 외부 문서로 CSS를 불러와 적용하는 방식
-```html
-<link rel=”stylesheet” type=”text/css” href='css 외부 파일 경로'>
-```
-### css 폴더 만들고 style.css 파일 만들기
-```css
-p{color : red;}
-```
-
-### ex02_link.html
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="css/style.css" rel="stylesheet" type="text/css">
-    <title>Document</title>
-</head>
-<body>
-    <p>외부 스타일시트 적용</p>
-</body>
-</html>
-```
-
-### @import 방식
-- @import를 이용하여 외부 문서로 CSS를 불러와 적용하는 방식
-
-### ex03_import.html
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        @import url(css/style.css);
-    </style>
-    <title>Document</title>
-</head>
-<body>
-    <p>외부 스타일시트 적용</p>
-</body>
-</html>
-```
-
-## CSS파일을 분리하는 이유
-- HTML코드 내부에서 디자인과 관련된 정보를 제거할 수 있다는 점이다.
-- HTML코드가 정보의 전달과 웹 페이지의 구조 설계라는 본연의 기능에 집중할 수 있게 되었으므로, 훨씬 읽기 편안한 코드를 작성할 수 있게 되었다.
-
 
 ## 테두리(border)
 ```html
@@ -1127,14 +1059,84 @@ p{border : 1px solid black;
 ![image](https://user-images.githubusercontent.com/54658614/227849252-ea370975-0670-4850-9b64-11ec34e0e1b5.png)
 
 
-## 속성 선택자
-- 태그 내에 특정 속성(attribute)의 값을 가지고 있는 HTML요소를 선택한다.
-```CSS
-속성 attr을 포함한 요소 선택
-E[attr]
+## 속성선택자
+- HTML 요소의 속성(attribute) 값에 따라 특정 요소를 선택할 수 있도록 해주는 선택자이다.
+- 이 선택자를 사용하면 클래스나 아이디 외에도 요소에 부여된 다양한 속성 값을 기반으로 스타일을 적용할 수 있다.
 
-속성 attr을 포함하여 속성 값이 value인 요소 선택
-E[attr=value]
+### 주요 속성 선택자 종류
+- [attr] : 해당 속성이 존재하는 모든 요소를 선택합니다.
+  - 예: [disabled]는 disabled 속성이 있는 모든 요소를 선택합니다.
+- [attr="value"]: 속성 값이 정확하게 "value"와 일치하는 요소를 선택합니다.
+  - 예: [type="text"]는 type 속성이 "text"인 요소를 선택합니다.
+- [attr~="value"]: 속성 값이 공백으로 구분된 목록 안에 "value"가 포함되어 있는 요소를 선택합니다.
+  - 예: [class~="highlight"]는 클래스 목록 중에 "highlight"가 포함된 요소를 선택합니다.
+- [attr|="value"]: 속성 값이 "value"로 시작하며, 바로 뒤에 하이픈(-)이 있거나 정확하게 "value"와 일치하는 경우 선택합니다. 주로 언어 코드에 많이 사용됩니다.
+  - 예: [lang|="en"]는 "en" 또는 "en-US", "en-GB" 등을 선택합니다.
+- [attr^="value"]: 속성 값이 "value"로 시작하는 요소를 선택합니다.
+  - 예: [href^="https"]는 href 속성이 "https"로 시작하는 모든 링크를 선택합니다.
+- [attr$="value"]: 속성 값이 "value"로 끝나는 요소를 선택합니다.
+  - 예: [src$=".png"]는 src 속성이 ".png"로 끝나는 모든 이미지를 선택합니다.
+- [attr*="value"]:속성 값 안에 "value"가 포함된 요소를 선택합니다.
+  - 예: [title*="sample"]는 title 속성에 "sample"이라는 문자열이 포함된 요소를 선택합니다.
+
+### attribute.html
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>속성 선택자 예제</title>
+  <style>
+    /* disabled 속성이 있는 모든 요소 선택 */
+    [disabled] {
+      opacity: 0.5;
+    }
+
+    /* type 속성이 "text"인 input 요소 선택 */
+    input[type="text"] {
+      border: 1px solid #333;
+      padding: 5px;
+    }
+
+    /* class 속성에 "highlight"가 포함된 요소 선택 */
+    .box[class~="highlight"] {
+      background-color: yellow;
+    }
+
+    /* href 속성이 "https"로 시작하는 링크 선택 */
+    a[href^="https"] {
+      color: green;
+    }
+
+    /* src 속성이 ".jpg"로 끝나는 이미지 선택 */
+    img[src$=".jpg"] {
+      border: 2px solid blue;
+    }
+
+    /* title 속성 안에 "example"이 포함된 요소 선택 */
+    [title*="example"] {
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>속성 선택자 예제</h1>
+
+  <input type="text" placeholder="텍스트 입력">
+  <input type="text" placeholder="다른 텍스트 입력" disabled>
+  
+  <div class="box highlight" title="example box">박스 1</div>
+  <div class="box" title="another box">박스 2</div>
+  
+  <p>
+    <a href="https://www.example.com">안전한 링크</a>와
+    <a href="http://www.example.com">일반 링크</a>
+  </p>
+  
+  <img src="image1.jpg" alt="예제 이미지">
+  <img src="image2.png" alt="또 다른 이미지">
+</body>
+</html>
 ```
 
 ## z-index
@@ -2344,63 +2346,229 @@ flex-flow : row-reverse wrap;
 ## CSS응용 드롭다운 메뉴 만들어보기
 ```html
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<title>Insert title here</title>
-		<link rel="stylesheet" href="css/reset.css">
-		<style>
-			#a1{margin-left:10px;
-				margin-top:10px;}
-			
-			ul{ overflow : hidden;}
-			li{ float : left}
-			
-			li{ border-right : 1px solid gray;
-			    border-top : 1px solid gray;
-			    border-bottom: 1px solid gray;}
-			    
-			li:nth-child(1){border-left:1px solid gray;}
-			    
-			a{display : block; padding : 2px 10px;}
-			  
-			a:hover{background:#999;
-			        color:#fff;}
-			        
-			.depth_1{margin-left:10px;}
-			        
-			#menu > li:hover .depth_1 { display : block;}
-			          
-			#menu .depth_1{display:none;
-			             position:absolute;
-			             left:0;
-			             right:0;
-			             text-align:center;}
-			 #menu .depth_1 a{display:block; padding:5px;}
-			          
-			 
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Flex Menu Example</title>
+  <style>
+    /* 전체 메뉴를 감싸는 컨테이너 */
+    #a1 {
+      margin: 10px;
+    }
 
-		</style>
-	</head>
-	<body>
-			<div id="a1">
-				<ul id="menu">
-					<li><a href="#">HTML</a>
-						<ul class="depth_1">
-							<li><a href="#">메뉴1</a></li>
-							<li><a href="#">메뉴2</a></li>
-							<li><a href="#">메뉴3</a></li>
-						</ul>
-					</li>
-					<li><a href="#">CSS</a></li>
-					<li><a href="#">JavaScript</a></li>
-					<li><a href="#">JQuery</a></li>
-					<li><a href="#">Jsp</a></li>
-				</ul>
-			</div>
+    /* 메인 메뉴(상위 ul)를 Flex 컨테이너로 설정 */
+    #menu {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
 
-	</body>
+    /* 상위 메뉴 항목(li) 스타일 */
+    #menu > li {
+      position: relative; /* 서브 메뉴(.depth_1)의 절대 위치 기준 */
+      border-top: 1px solid gray;
+      border-bottom: 1px solid gray;
+      border-right: 1px solid gray;
+    }
+    /* 첫 번째 항목에만 왼쪽 테두리 추가 */
+    #menu > li:first-child {
+      border-left: 1px solid gray;
+    }
+
+    /* 상위 메뉴 링크 스타일 */
+    #menu > li > a {
+      display: block;
+      padding: 2px 10px;
+      color: blue;
+      text-decoration: none;
+    }
+    /* 상위 메뉴 호버 시 배경/글자색 변경 */
+    #menu > li > a:hover {
+      background: #999;
+      color: #fff;
+    }
+
+    /* 서브 메뉴 초기 상태: 숨김 */
+    .depth_1 {
+      display: none;           /* 처음에는 보이지 않도록 */
+      position: absolute;
+      top: 100%;               /* 부모 li 바로 아래에 표시 */
+      left: 0;                 
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      background: #fff;
+      flex-direction: row;     /* 가로 나열을 위한 방향 설정 */
+      white-space: nowrap;     /* 줄바꿈 없이 한 줄로 표시 */
+      /* 
+        주의: 여기서 display: flex;를 쓰면 처음부터 보이므로 
+        기본값은 none;으로 두고, hover 시점에만 flex로 변경
+      */
+    }
+
+    /* 상위 메뉴에 마우스를 올리면 서브 메뉴 표시 (가로 배치) */
+    #menu > li:hover .depth_1 {
+      display: flex;          /* hover 시점에만 flex로 변경 */
+    }
+
+    /* 서브 메뉴 li 스타일 */
+    .depth_1 li {
+      border-top: 1px solid gray;
+      border-bottom: 1px solid gray;
+      border-right: 1px solid gray;
+    }
+    /* 서브 메뉴 첫 번째 항목에 왼쪽 테두리 추가 */
+    .depth_1 li:first-child {
+      border-left: 1px solid gray;
+    }
+
+    /* 서브 메뉴 링크 스타일 */
+    .depth_1 a {
+      display: block;
+      padding: 2px 10px;
+      color: blue;
+      text-decoration: none;
+    }
+    /* 서브 메뉴 호버 시 배경/글자색 변경 */
+    .depth_1 a:hover {
+      background: #999;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div id="a1">
+    <ul id="menu">
+      <li>
+        <a href="#">HTML</a>
+        <!-- 서브 메뉴 (기본적으로 숨김) -->
+        <ul class="depth_1">
+          <li><a href="#">메뉴1</a></li>
+          <li><a href="#">메뉴2</a></li>
+          <li><a href="#">메뉴3</a></li>
+        </ul>
+      </li>
+      <li><a href="#">CSS</a></li>
+      <li><a href="#">JavaScript</a></li>
+      <li><a href="#">JQuery</a></li>
+      <li><a href="#">Jsp</a></li>
+    </ul>
+  </div>
+</body>
 </html>
+
 ```
 ![image](https://user-images.githubusercontent.com/54658614/228431464-4da6d184-8e6b-4caf-ba37-7438759c237f.png)
 
+## 실습
+### 1. 로그인 화면 만들어보기
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 화면</title>
+  <style>
+    /* 전체 페이지 설정: 중앙 정렬 및 배경색 */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    
+    /* 로그인 컨테이너 설정 */
+    .login-container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 8px;
+      /* 그림자 제거: box-shadow 속성 삭제 */
+      width: 300px;
+    }
+    
+    /* 타이틀 스타일 */
+    .login-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    /* 폼 내부 요소를 세로로 나열 */
+    .login-container form {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* 레이블 스타일 */
+    .login-container label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    /* 입력 필드 스타일 */
+    .login-container input {
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .login-container input:focus {
+      outline: none;
+      border-color: #3f29ef;
+    }
+    
+    /* 로그인 버튼 스타일 */
+    .login-container button {
+      padding: 10px;
+      background: #3f29ef;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      /* 트랜지션 제거: transition 속성 삭제 */
+    }
+    
+    .login-container button:hover {
+      background: #2e1cb3;
+    }
+    
+    /* 회원가입 링크 스타일 */
+    .login-container .signup-link {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    .login-container .signup-link a {
+      color: #3f29ef;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>로그인</h2>
+    <form action="#" method="POST">
+      <label for="username">아이디</label>
+      <input type="text" id="username" name="username" placeholder="아이디 입력" required>
+      
+      <label for="password">비밀번호</label>
+      <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
+      
+      <button type="submit">로그인</button>
+    </form>
+    <div class="signup-link">
+      아직 회원이 아니신가요? <a href="#">회원가입</a>
+    </div>
+  </div>
+</body>
+</html>
+```
