@@ -2276,69 +2276,74 @@ flex-flow : row-reverse wrap;
 - fixed : fixed 포지션은 화면의 스크롤이나 움직임에 관계 없이 화면의 특정 부분에 고정되는 포지션이다.
 ```html
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<title>absolute를 통한 스타일시트 적용</title>
-		<link rel="stylesheet" href="css/reset.css">
-		<style>
-			#header{ width:1000px; height:80px; 
-					 margin:10px auto;
-					 border:1px solid blue;
-					 position:relative;}
-					 
-			/* 자식이 position 속성을 absolute으로 가지고 있으면
-			부모가 position 속성을 relative로 가지고 있어야 한다. */
-	 
-			.aa{position:absolute; /* float처럼 요소가 공중에 붕 뜬다. 내 부모가 body라고 생각을 해버리게 된다. */
-			    left: 0; top: 7px;}
-			
-			ul{overflow:hidden;}
-			li{ float:left; }
-			
-			p:last-child{ position:absolute;
-						  right:10px; top:5px;}
-						  
-			.a1{position:absolute;
-				left:350px; top:10px;}
-			.a2{position: absolute;
-				left:225px; top:40px;}
-		</style>
-	</head>
-	
-	<body>
-		<div id="header">
-			<p class="aa">
-				<img alt="이미지" src="image/acid2Test.jpg"
-					width="70"; height="60";>
-			</p>
-			
-			<ul class="a1">
-				<li><img src="image/menu_13.jpg"/></li>
-				<li><img src="image/menu_14.jpg"/></li>
-				<li><img src="image/menu_15.jpg"/></li>
-				<li><img src="image/menu_16.jpg"/></li>
-				<li><img src="image/menu_17.jpg"/></li>
-				<li><img src="image/menu_18.jpg"/></li>
-				<li><img src="image/menu_19.jpg"/></li>
-				<li><img src="image/menu_20.jpg"/></li>
-				<li><img src="image/menu_21.jpg"/></li>
-				
-				</ul>
-				
-				<ul class="a2">
-					<li><img src="image/menu01_12.jpg"/></li>
-					<li><img src="image/menu01_13.jpg"/></li>
-					<li><img src="image/menu01_14.jpg"/></li>
-					<li><img src="image/menu01_15.jpg"/></li>
-					<li><img src="image/menu01_16.jpg"/></li>
-					<li><img src="image/menu01_17.jpg"/></li>
-					<li><img src="image/menu01_18.jpg"/></li>
-					<li><img src="image/menu01_19.jpg"/></li>
-				</ul>
-			<p><img src="image/img_standards.gif"/></p>
-		</div>
-	</body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #header{
+            display:flex;
+            justify-content: center;
+            border: 2px solid black;
+            width: 1000px;
+            margin: 10px auto;
+        }
+
+        .menu1{
+            display:flex;
+            justify-content: flex-end;
+        }
+
+        li{
+            list-style: none;
+          
+        }
+
+        .menu2{
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        p{
+            margin-left: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="header">
+        <p class="logo">
+            <img alt="이미지" src="image/acid2Test.jpg" width="70" height="70">
+        </p>
+
+        <div class="menu_container">
+            <ul class = "menu1">
+                <li><img src="image/menu_13.jpg"></li>
+                <li><img src="image/menu_14.jpg"></li>
+                <li><img src="image/menu_15.jpg"></li>
+                <li><img src="image/menu_16.jpg"></li>
+                <li><img src="image/menu_17.jpg"></li>
+                <li><img src="image/menu_18.jpg"></li>
+                <li><img src="image/menu_19.jpg"></li>
+                <li><img src="image/menu_20.jpg"></li>
+                <li><img src="image/menu_21.jpg"></li>
+            </ul>
+
+            <ul class="menu2">
+                <li><img src="image/menu01_13.jpg"></li>
+                <li><img src="image/menu01_14.jpg"></li>
+                <li><img src="image/menu01_15.jpg"></li>
+                <li><img src="image/menu01_16.jpg"></li>
+                <li><img src="image/menu01_17.jpg"></li>
+                <li><img src="image/menu01_18.jpg"></li>
+                <li><img src="image/menu01_19.jpg"></li>
+            </ul>
+        </div>
+
+        <p><img src="image/img_standards.gif"></p>
+    </div>
+</body>
 </html>
 ```
 ![image](https://user-images.githubusercontent.com/54658614/228131928-b87cbc3f-4962-4a1b-8e6b-57f18f4fd342.png)
