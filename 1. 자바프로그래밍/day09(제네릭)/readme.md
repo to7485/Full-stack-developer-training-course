@@ -1,4 +1,176 @@
+# 제네릭
+- JDK 1.5 이전에는 여러 타입을 사용하는 대부분의 클래스나 메서드에서 반환값으로 Object타입을 사용했다.
+- 이러한 경우 잘못된 캐스팅으로 인해 런타임 오류가 발생할 가능성이 있다.
+- JDK 1.5부터 도입된 제네릭을 사용하면 컴파일할 때 타입이 미리 정해지므로 타입 검사나 변환과 같은 번거로운 작업을 생략할 수 있다.
+- 클래스나 메서드 내부에 사용될 데이터 타입의 안정성을 높일 수 있다.
+- 자바에서 제네릭(Generics)은 클래스 내부에서 사용할 데이터 타입을 외부에서 지정하는 기법이다.
+- 객체별로 다른 타입의 자료가 저장될 수 있도록 한다.
 
+## ex01_generic 패키지 만들기
+### DataList 클래스 생성하기
+```java
+package ex01_generic;
+
+public class DataList {
+	private Object[] data;
+	private int size;
+	private int defaultSize = 10;
+	
+	public DataList() {
+		data = new Object[defaultSize];
+	}
+	
+	public DataList(int size) {
+		data = new Object[size];
+	}
+	
+	public void add(Object value) {
+		data[size++] = value;
+	}
+	
+	public Object get(int index) {
+		return data[index];
+	}
+	
+	public int size() {
+		return size;
+	}
+}
+```
+- 위 클래스는 데이터를 저장할 수 있는 자료구조이다.
+- 이 클래스 내부의 배열 타입은 Object이다.
+- Object는 모든 클래스의 최상위 클래스이므로 어떠한 데이터 형태라도 저장이 가능하다.
+- 하지만 데이터를 저장한 후 실제 꺼내어 사용하려면 어떤 데이터 타입을 지녔는지 일일히 확인해야 하고, 약속한 데이터가 입력되지 않아 에러가 발생할 수도 있다.
+
+## DataListExample클래스 생성하기
+```java
+package ex01_generic;
+
+public class DataListExample {
+	public static void main(String[] args) {
+		DataList list = new DataList();
+		
+		//정수입력
+		list.add(10);
+		
+		//문자열저장
+		list.add("문자열");
+		
+		//실수저장
+		list.add(10.33);
+		
+		//데이터 출력
+		for(int i = 0; i < list.size(); i++) {
+			//데이터 가져오기
+			Object data = list.get(i);
+			
+			//저장된 데이터 타입이 어떤타입인지 검사
+			if(data instanceof Integer) {
+				System.out.println("정수 : " + (int)data);
+			} else if(data instanceof Double) {
+				System.out.println("실수 : " + (double)data);
+			} else if(data instanceof String) {
+				System.out.println("문자열 : " + (String)data);
+			}
+		}
+	}
+}
+```
+- DataList를 이용해 데이터를 저장하고 출력을 해봤다.
+- 저장 데이터 타입이 Object이므로 어떤 타입의 데이터라도 저장할 수 있지만 데이터를 사용할 때는 타입 변환을 위한 검사를 해야 하는 번거로움이 있다.
+- 이때, 제네릭을 사용하면 원하는 데이터 타입을 자유롭게 저장할 수 있다.
+
+## Generic 선언 및 생성
+- 제네릭 타입은 타입을 파라미터로 가지는 클래스와 인터페이스를 말한다.
+- 클래스 또는 인터페이스 이름 뒤에 <>(다이아몬드 연산자) 기호를 추가하고 안에 식별자 기호를 지정하여 파라미터화 할 수 있다.
+- 이것을 마치 메서드가 매개변수를 받아 사용하는 것과 비슷하게 제네릭의 **타입 매개변수(parameter)/타입 변수**라고 부른다.
+```java
+public class 클래스명<T>{...}
+public interface 인터페이스명<T>{...}
+```
+
+### 타입 파라미터 기호 네이밍
+- 제네릭 기호를 <T>와 같이 써서 표현했지만 사실 식별자 기호는 문법적으로 정해진것은 없다.
+- 다만 우리가 for문을 이용할 때 루프 변수를 i로 지정해서 사용하듯이, 제네릭의 표현변수를 T로 표현한다고 보면 된다. 만일 두번째, 세번째 제네릭이 필요하다고 하면 S,U로 이어나간다.
+- 명명하고 싶은대로 아무 단어나 넣어도 문제는 없지만, 대중적으로 통하는 통상적인 네이밍이 있으면 개발이 용이해지기 때문에 암묵적인 규칙(convention)이 존재한다.
+
+|타입|설명|
+|----|----|
+|\<T>|타입(Type)|
+|\<E>|요소(Element)|
+|\<K>|키(Key)|
+|\<V>|값(Value)|
+|\<N>|숫자(Number)|
+
+### DataList 코드 수정하기
+```java
+package ex01_generic;
+
+public class DataList<T> {
+	private Object[] data;
+	private int size;
+	private int defaultSize = 10;
+	
+	public DataList() {
+		data = new Object[defaultSize];
+	}
+	
+	public DataList(int size) {
+		data = new Object[size];
+	}
+	
+	public void add(T value) {
+		data[size++] = value;
+	}
+	
+	public T get(int index) {
+		return (T)data[index];
+	}
+	
+	public int size() {
+		return size;
+	}
+}
+
+```
+- 클래스에 제네릭을 부여하게 되면 해당 클래스를 선언할 때 데이터 타입을 부여하게 된다.
+- 그러면 객체를 생성할 때 타입이 지정된 부분이 대체되어 해당 클래스는 지정된 객체만을 저장할 수 있게 되고, 따로 타입을 변환할 필요 없이 데이터를 출력할 수 있다.
+- 또한, 다른타입의 데이터를 저장하고 싶다면 DataList의 객체를 하나 더 만들고 원하는 타입을 부여한 후 사용하면 된다.
+
+### DataListExample 코드 수정하기
+```java
+package ex01_generic;
+
+public class DataListExample {
+	public static void main(String[] args) {
+		// 제네릭 타입은 기본자료형을 인식하지 않음
+		// 따라서 int, double등의 기본자료형을 제네릭타입으로 이용하고자 할 때는
+		// Integer, Double등의 클래스를 이용해야 한다. 
+		DataList<Integer> list = new DataList();
+		
+		//정수입력
+		list.add(10);
+		list.add(20);
+		list.add(30);
+		list.add(40);
+		list.add(50);
+		
+		//문자열저장
+		//list.add("문자열");
+		
+		//실수저장
+		//list.add(10.33);
+		
+		//데이터 출력
+		int sum = 0;
+		for(int i = 0; i < list.size(); i++) {
+			sum += list.get(i);
+		}
+		System.out.println(sum);
+	}
+}
+
+```
 ## ex02_generic패키지 만들기
 ### GenEx 클래스 정의
 ```java
