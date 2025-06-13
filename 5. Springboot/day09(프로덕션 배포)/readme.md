@@ -340,7 +340,7 @@ HTTP(HyperText Transfer Protocol)의 기본 포트다.
 
 |이름|값|
 |----|----|
-|SPRING_DATASOURCE_URL|jdbc:mysql://엔드포인트입력/todo|
+|SPRING_DATASOURCE_URL|jdbc:mysql://엔드포인트입력/ebdb|
 |SPRING_DATASOURCE_USERNAME|RDS생성할 때 썼던 아이디|
 |SPRING_DATASOURCE_PASSWORD|RDS생성할 때 썼던 비밀번호|
 
