@@ -760,10 +760,7 @@ ssh-keygen -t rsa -C "github메일주소"
 ![img](img/ssh.png)
 
 
-## github action
-- github에서 제공하는 서비스이다.
-- repository에 특정 이벤트가 발생하면 특정 작업을 하거나, 주기적으로 특정 작업을 반복할 수 있게 한다.
-- 누군가 코드를 작성해 github에 업데이트 하면 해당 코드에 문제가 없는지 자동으로 코드를 빌드, 테스트 한 이후 배포까지 할 수 있다.
+
 
 ### github 레포지토리 만들고 코드 푸시하기
 - github action을 사용하려면 repository에 지금까지 작업한 코드를 업로드 해야한다.
@@ -801,6 +798,147 @@ $ git push origin main
 ```
 - github에 접속해서 리포지토리를 확인하면 커밋할 때 적었던 메시지와 함게 코드들이 업로드된 것을 확인할 수 있다.
 
+## Github Action
+
+### 1. GithubAction의 개념
+- github에서 제공하는 서비스이다.
+- **CI/CD(지속적 통합/지속적 배포)**를 자동화하는 도구로, GitHub 저장소 내에서 직접 실행되는 워크플로우 자동화 기능이다.
+- repository에 특정 이벤트가 발생하면 특정 작업을 하거나, 주기적으로 특정 작업을 반복할 수 있게 한다.
+- 누군가 코드를 작성해 github에 업데이트 하면 해당 코드에 문제가 없는지 자동으로 코드를 빌드, 테스트 한 이후 배포까지 할 수 있다.
+
+### 2. 주요기능
+1. 코드를 푸시하면 자동으로 빌드 / 테스트 / 배포
+2. GitHub 저장소와 통합돼 손쉽게 자동화
+3. 리눅스, macOS, Windows 환경에서 실행 가능
+4. 오픈소스 액션들을 공유하는 Marketplace 존재
+
+### 3. 워크플로우(Workflow)
+- Github 저장소 안에서 자동으로 실행되는 CI/CD 자동화 절차 전체를 정의한 YML 파일이다.
+- .github/workflows/ 폴더에 위치한다.
+
+```yaml
+.your-project/
+└── .github/
+    └── workflows/
+        └── ci.yml ← 이 파일이 워크플로우
+```
+
+#### 기본구조
+```yaml
+name: CI   # 워크플로우 이름
+
+on:        # 언제 실행할지 (트리거)
+  push:
+    branches: [ main ]
+
+jobs:      # 실제 실행할 작업 목록
+  ...
+
+```
+
+#### 주요 구성 요소
+| 항목     | 설명                                           |
+| ------ | -------------------------------------------- |
+| `name` | 워크플로우 이름 (선택 사항)                             |
+| `on`   | 트리거 이벤트 설정 (push, pull\_request, schedule 등) |
+| `jobs` | 실행할 Job들을 정의하는 영역                            |
+
+### 4. Event
+- Workflow를 Trigger(실행)하는 특정 활동이나 규칙
+
+| 예시                   | 설명                 |
+| -------------------- | ------------------ |
+| `push:`              | 특정 브랜치에 push될 때 실행 |
+| `pull_request:`      | PR 생성/수정 시 실행      |
+| `schedule:`          | 일정 시간마다 실행 (cron)  |
+| `workflow_dispatch:` | 수동 실행 버튼 활성화       |
+
+#### 예시
+```yaml
+on:
+  push:
+    branches: [ main, develop ]
+
+# 또는
+on:
+  workflow_dispatch:  # 수동 실행
+```
+
+### 4. jobs
+- 하나 이상의 step으로 구성된 실행단위이다.
+- 가상 환경의 인스턴스에서 실행된다.
+
+#### 구조예시
+```yaml
+jobs:
+  build:                # Job 이름(임의로지음)
+    runs-on: ubuntu-latest   # 실행 환경
+    steps:
+      - run: echo "Hello"
+```
+
+#### 주요 구성요소
+| 항목        | 설명                           |
+| --------- | ---------------------------- |
+| `runs-on` | 이 Job을 어떤 운영체제 환경에서 실행할지 지정  |
+| `steps`   | Job 내에서 실행할 작업 단계 목록         |
+| `needs`   | 다른 Job이 끝난 뒤 실행되도록 의존성 설정 가능 |
+
+#### 지원하는 운영체제 목록
+| 값                                  | 설명                    |
+| ---------------------------------- | --------------------- |
+| `ubuntu-latest`                    | 최신 우분투 리눅스 (가장 많이 사용) |
+| `ubuntu-22.04`, `ubuntu-20.04`     | 특정 우분투 버전             |
+| `windows-latest`                   | 최신 윈도우 환경             |
+| `windows-2022`, `windows-2019`     | 특정 윈도우 버전             |
+| `macos-latest`                     | 최신 macOS 환경           |
+| `macos-14`, `macos-13`, `macos-12` | 특정 macOS 버전           |
+
+
+### 5. steps
+- job 안에서 실행되는 구체적인 단일 작업이다.
+- 셀 명령어를 실행하거나, 외부 액션을 사용할 수 있다.
+
+#### 구조예시
+```yaml
+steps:
+  - uses: actions/checkout@v3  # 외부 액션 사용
+  - run: echo "Hello"          # 셸 명령 실행
+```
+
+#### 주요 키워드
+| 키워드    | 설명                                        |
+| ------ | ----------------------------------------- |
+| `name` | 해당 step의 이름 (로그에 표시됨)                     |
+| `uses` | 공개된 GitHub 액션을 사용 (예: `actions/checkout`) |
+| `run`  | 직접 셸 명령어 실행 (예: `npm install`)            |
+| `with` | `uses` 사용 시 옵션 파라미터 전달                    |
+| `env`  | 환경변수 설정                                   |
+
+#### uses
+- GithubActions Marketplace에 등록된 재사용가능한 액션을 사용하는 방법이다.
+```yaml
+uses: <OWNER>/<REPO>@<VERSION>
+
+예시 : uses: actions/checkout@v3
+
+```
+
+#### 자주 사용하는 액션 목록
+| 액션                                          | 설명                         |
+| ------------------------------------------- | -------------------------- |
+| `actions/checkout@v3`                       | 현재 GitHub 리포지토리의 코드를 클론    |
+| `actions/setup-java@v3`                     | Java 환경 구성                 |
+| `actions/setup-node@v4`                     | Node.js 환경 구성              |
+| `actions/cache@v3`                          | 디스크 캐싱                     |
+| `actions/upload-artifact@v4`                | 빌드 결과 업로드                  |
+| `actions/download-artifact@v4`              | 업로드한 아티팩트 다운로드             |
+| `docker/build-push-action@v5`               | Docker 이미지 빌드 및 푸시         |
+| `JamesIves/github-pages-deploy-action@v4`   | GitHub Pages에 정적 사이트 배포    |
+| `google-github-actions/deploy-appengine@v1` | GCP App Engine 배포          |
+| `peaceiris/actions-gh-pages@v3`             | GitHub Pages 배포용 (React 등) |
+
+
 ## github action 스크립트 작성하기, CI
 - github action 스크립트를 작성해 CI를 구현해보자.
 
@@ -827,11 +965,11 @@ jobs:  # 워크플로우에서 수행할 작업(Job) 목록의 시작
         with:
           distribution: 'corretto' # 사용할 JDK 배포판으로 Amazon Corretto 선택
           java-version: '17' # 사용할 자바 버전은 17
-          
+
       - name: Grant execute permission for gradlew  # 세 번째 단계: gradlew 파일에 실행 권한 부여 # 리눅스/유닉스 계열 시스템에서는 실행 파일도 실행 권한이 있어야 실행 가능함 # chmod +x gradlew 명령어는 gradlew 스크립트에 실행 권한을 부여함
         run: chmod +x gradlew # gradlew 파일을 실행 가능한 상태로 변경
 
-      - name: Build with Gradle
+      - name: Build with Gradle # Gradle을 사용해 프로젝트를 클린 후 빌드
         run: ./gradlew clean build
 ```
 ### name
