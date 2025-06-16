@@ -949,74 +949,34 @@ uses: <OWNER>/<REPO>@<VERSION>
 name: CI
 
 #2. 워크플로가 시작될 조건 지정
-# # main 브랜치에 push 될 때 워크플로우가 실행됨
+# main 브랜치에 push 될 때 워크플로우가 실행됨
 on:
   push:
     branches: [ main ]
 
-jobs:  # 워크플로우에서 수행할 작업(Job) 목록의 시작
-  build:  # 작업(Job)의 이름. 여기서는 'build'라는 이름의 작업을 정의함
-    runs-on: ubuntu-latest # 이 작업을 실행할 OS 환경. GitHub에서 제공하는 최신 Ubuntu 가상 머신 사용
+jobs: 
+  build:  
+    runs-on: ubuntu-latest 
 
-    # 4. 실행 스템 지정
-    steps: # 작업 안에서 실제로 실행할 명령어(단계)들의 목록
-      - uses: actions/checkout@v3 # 첫 번째 단계: 코드를 GitHub 리포지토리에서 가상 환경으로 가져옴
-      - uses: actions/setup-java@v3 # 두 번째 단계: Java 개발 환경 설정
+    
+    steps: 
+      - uses: actions/checkout@v3 
+      - uses: actions/setup-java@v3 
         with:
-          distribution: 'corretto' # 사용할 JDK 배포판으로 Amazon Corretto 선택
-          java-version: '17' # 사용할 자바 버전은 17
+          distribution: 'corretto' 
+          java-version: '17'
 
-      - name: Grant execute permission for gradlew  # 세 번째 단계: gradlew 파일에 실행 권한 부여 # 리눅스/유닉스 계열 시스템에서는 실행 파일도 실행 권한이 있어야 실행 가능함 # chmod +x gradlew 명령어는 gradlew 스크립트에 실행 권한을 부여함
-        run: chmod +x gradlew # gradlew 파일을 실행 가능한 상태로 변경
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-      - name: Build with Gradle # Gradle을 사용해 프로젝트를 클린 후 빌드
+      - name: Build with Gradle
         run: ./gradlew clean build
 ```
-### name
-- 워크플로우의 이름을 정의하는 키워드이다.
-- 이 워크플로우는 코드가 푸시되었을 때 CI 파이프라인을 실행하는 것을 의미한다.
-
-### on
-- 워크플로우가 실행되는 조건을 정의한다.
-- 여기서는 특정 이벤트가 발생했을 때 워크플로우가 실행되도록 설정한다.
-- 이 예시에서는 push 이벤트가 main 브랜치에 발생할 때 워크플로우가 실행된다.
-- push: 코드가 리포지토리에 푸시될 때 트리거된다.
-- branches: [ main ]: main 브랜치에 코드가 푸시될 때만 실행된다.
-
-### jobs
-- 워크플로우 내에서 수행할 작업을 정의하는 부분이다.
-- 여러 개의 작업을 설정할 수 있으며, 작업은 병렬 또는 순차적으로 실행할 수 있다.
-- 여기에 정의된 작업들은 GitHub Actions에서 실행되며, jobs 안에 여러 작업을 포함할 수 있다.
-
-### build
-- 워크플로우에서 하나의 작업(job)을 정의한다.
-- 여기서는 build라는 이름의 작업이 있다.
-- 이 작업은 Java 프로젝트를 빌드하는 과정이다.
-
-### runs-on
-- 작업이 실행되는 환경을 정의하는 키워드이다.
-- 이 워크플로우는 최신 버전의 Ubuntu 리눅스 환경에서 실행된다.
-- GitHub Actions는 다양한 실행 환경을 제공하며, ubuntu-latest는 최신 버전의 Ubuntu가 사용된다.
-
-### steps
-- 각 작업 내에서 실행되는 단계를 정의하는 섹션이다.
-- 여기서 정의된 순서대로 단계를 실행한다. 각 단계는 실행할 명령이나 액션을 정의할 수 있다.
-
-### uses: actions/checkout@v3
-- 이 단계에서는 actions/checkout이라는 GitHub Action을 사용하여 리포지토리 코드를 체크아웃한다.
-- 현재 리포지토리의 코드를 가져와서 작업 환경에 다운로드한다.
-- 이는 다른 작업에서 해당 코드를 사용하기 위한 준비 과정이다.
-- **@v3**는 이 액션의 버전 3을 사용한다는 의미다.
-
-### uses: actions/setup-java@v3
-- Java 환경을 설정하는 GitHub Action이다.
-- 이 액션은 Java 개발 환경을 설정하며, 여기서는 AWS에서 제공하는 자바 배포판인 corretto를 설치하고, 자바 17 버전을 사용하도록 설정한다.
-- distribution: 'corretto': AWS에서 제공하는 Java 배포판을 사용.
-- java-version: '17': 자바 17 버전을 설치하여 해당 작업에서 사용한다.
 
 ### name: Grant execute permission for gradlew
 - gradlew 파일에 실행 권한을 부여하는 단계이다.
-- Linux 환경에서는 실행 파일에 실행 권한을 부여해야만 해당 파일을 실행할 수 있다. 이 단계는 chmod +x 명령어를 통해 gradlew 파일에 실행 권한을 부여한다.
+- Linux 환경에서는 실행 파일에 실행 권한을 부여해야만 해당 파일을 실행할 수 있다. 
+- 이 단계는 chmod +x 명령어를 통해 gradlew 파일에 실행 권한을 부여한다.
 
 ### name: Build with Gradle
 - Gradle을 사용해 빌드를 실행하는 단계이다.
@@ -1116,24 +1076,36 @@ jobs:
 ### name: Beanstalk Deploy
 - AWS Elastic Beanstalk에 애플리케이션을 배포하는 단계이다.
 - einaregilsson/beanstalk-deploy@v20 액션을 사용해 AWS Elastic Beanstalk에 배포한다.
-- aws_access_key / aws_secret_key: AWS 액세스 키와 시크릿 키를 GitHub Secrets에서 가져온다. 
+- **aws_access_key / aws_secret_key**: AWS 액세스 키와 시크릿 키를 GitHub Secrets에서 가져온다. 
   - AWS 리소스에 접근하기 위한 인증 정보이다.
-- application_name: spring-boot-developer2: 배포할 Elastic Beanstalk 애플리케이션의 이름이다.
-- environment_name: Springboot-developer2-env: 배포할 Elastic Beanstalk 환경의 이름이다.
-- version_label: github-action-${{steps.current-time.outputs.formattedTime}}: 배포 버전 라벨을 현재 시간을 포함한 형식으로 설정한다.
+- **application_name: spring-boot-developer2**: 배포할 Elastic Beanstalk 애플리케이션의 이름이다.
+- **environment_name: Springboot-developer2-env**: 배포할 Elastic Beanstalk 환경의 이름이다.
+- **version_label: github-action-${{steps.current-time.outputs.formattedTime}}**: 배포 버전 라벨을 현재 시간을 포함한 형식으로 설정한다.
 - github-action-YYYY-MM-DDTHH-mm-ss 형식의 버전 라벨을 생성한다.
-- region: ap-northeast-2: 배포할 AWS 리전으로 ap-northeast-2(서울 리전)을 사용한다.
-- deployment_package: ./build/libs/${{env.artifact}}: 빌드된 아티팩트 파일을 Elastic Beanstalk에 배포한다. 
+- **region**: ap-northeast-2: 배포할 AWS 리전으로 ap-northeast-2(서울 리전)을 사용한다.
+- **deployment_package: ./build/libs/${{env.artifact}}**: 빌드된 아티팩트 파일을 Elastic Beanstalk에 배포한다. 
   - 위에서 설정한 환경 변수 artifact를 사용해 아티팩트 파일 경로를 지정한다.
 
 ### 권한 부여하기
 - AWS에 접속한 뒤 IAM을 검색해 사용자를 추가한다.
+
+![img](img/사용자생성2.png)
+
 - 사용자 이름은 github-action으로 지정한다.
+
+![img](img/권한부여하기1.png)
+
 - [직접 정책 연결]을 선책한 뒤 AdministratorAccess-AWSElasticBeanstalk를 검색해 선택한다.
+
+![img](img/권한부여하기2.png)
+
 - 이 권한은 빈스토크를 사용하기 위해 필요한 모든 관리 권한을 사용자에게 제공하는 권한이다.
 
 ### 액세스키 생성하기
 - 사용자 생성을 마치고 github-action 사용자를 눌러 액세스 키를 만든다.
+
+![img](img/액세스키3.png)
+
 - [액세스 키 만들기] 버튼을 누르고 [서드 파티 서비스]를 선택하고 [다음]을 누르고 '설명 태그 값'을 github-action으로 액세스 키를 만들자.
 
 ![img](img/서드파티.png)
