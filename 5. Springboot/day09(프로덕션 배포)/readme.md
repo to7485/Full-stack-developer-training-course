@@ -273,6 +273,13 @@ HTTP(HyperText Transfer Protocol)의 기본 포트다.
 
 - 다음을 누르고 넘어가서 서비스 액세스 구성은 아래와 같이 선택한다.
 
+![img](img/service_role1.png)
+![img](img/service_role2.png)
+![img](img/service_role3.png)
+![img](img/service_role4.png)
+
+- 역할 이름을 지정하고 오른쪽 아래 역할 생성을 누른다.
+
 ![img](img/역할세부정보.png)
 
 - 왼쪽에 4단계로 눌러 넘어갑니다.
@@ -305,8 +312,9 @@ HTTP(HyperText Transfer Protocol)의 기본 포트다.
 - 이제 클라우드에 올릴 데이터베이스를 생성해보자
 
 ### 1. 환경 설정 메뉴에 들어가기
-- [환경 -> <내가 만든 호나경>]을 들어간 다음 [구성]을 눌러 환경 설정 메뉴에 들어간다.
-- 스크롤바를 내려 네트워킹 및 데이터베이스 메뉴에서 [편집]을 눌러 데이터베이스 설정을 추가한다.
+- 일래스틱빈스톡의 대시보드에서 왼쪽에[환경] 메뉴를 누르고 방금 만들어 놓은 환경이름을 클릭한다.
+- 왼쪽 메뉴에서 [구성]을 누른다.
+- 네트워킹 및 데이터베이스 메뉴에서 [편집]을 눌러 데이터베이스 설정을 추가한다.
 
 ![img](img/RDS설정1.png)
 
@@ -382,9 +390,9 @@ spring:
     password: 11111111
 ```
 1. server: port: 5000
-설명:
-애플리케이션이 실행될 때 사용할 서버 포트를 5000번으로 설정한다.
-기본적으로 Spring Boot 애플리케이션은 8080번 포트를 사용하지만, 이 설정을 통해 5000번 포트를 사용하도록 변경된다.
+- 설명:
+  - 애플리케이션이 실행될 때 사용할 서버 포트를 5000번으로 설정한다.
+  - 기본적으로 Spring Boot 애플리케이션은 8080번 포트를 사용하지만, 이 설정을 통해 5000번 포트를 사용하도록 변경된다.
 2. spring: jpa: show-sql: true
 - 설명:
    - JPA(자바 영속성 API)에서 실행되는 SQL 쿼리를 콘솔에 출력하도록 설정한다.
@@ -415,6 +423,13 @@ spring:
 - 설명:
    - MySQL 데이터베이스에 접근할 때 사용할 비밀번호를 지정한다.
    - 비밀번호는 11111111로 설정되어 있다.
+
+### 6. MySQL 드라이버 설치하기
+- build.gradle에 MySQL을 사용하기 위한 드라이버 의존성을 추가한다.
+```groovy
+// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+implementation 'mysql:mysql-connector-java:8.0.33'
+```
 
 - 백엔드 서버와 프론트엔드 서버를 모두 열고 잘 작동을 하는지 확인해보자
 
@@ -458,7 +473,7 @@ testCompileOnly 'org.projectlombok:lombok:1.18.24'
 testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 
 ※테스트 관련 에러가 일어날 때
-- src/test/main의 DemoApplicationTests클래스의 메서드를 어노테이션과 함께 주석처리 해본다.
+- src/test/main의 DemoApplicationTests클래스를 전부 주석처리 해본다.
 ```
 
 ![img](img/빌드.png)
@@ -466,6 +481,34 @@ testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 - build/libs 폴더에 빌드된 파일이 들어있습니다.
 
 ![img](img/빌드파일.png)
+
+
+#### 스프링부트 프로젝트를 Gradle로 빌드하면 `build/libs` 폴더에 두 개의 JAR 파일이 생성된다.
+
+- `demo-0.0.1-SNAPSHOT.jar`
+- `demo-0.0.1-SNAPSHOT-plain.jar`
+
+#### 1. `demo-0.0.1-SNAPSHOT.jar`
+
+**실행 가능한(executable) Spring Boot 애플리케이션 JAR**
+
+- **용도**: 실제 서비스 배포 및 실행 시 사용하는 JAR
+- **특징**:
+  - 내장 톰캣(Tomcat) 포함
+  - 모든 의존성 라이브러리 포함
+  - 자체 실행 가능 (`java -jar` 명령어로 실행)
+
+#### 2. `demo-0.0.1-SNAPSHOT-plain.jar`
+
+**실행 불가능한 일반 JAR (의존성 없음)**
+
+- **용도**: 순수 Java 클래스만 포함된 JAR로, 외부에서 classpath 설정 후 사용하는 경우
+- **특징**:
+  - 내장 서버 미포함
+  - 외부 라이브러리 미포함
+  - 실행하려면 classpath 설정 필요
+
+
 
 - 우리가 만든 일래스틱 빈스톡 환경에 들어가 업로드및배포를 누른다.
 
@@ -494,7 +537,7 @@ let backendHost;
 const hostname = window && window.location && window.location.hostname;
 
 if(hostname === "localhost"){
-    backendHost = "Springboot-developer2-env.eba-xnuiauxn.ap-northeast-2.elasticbeanstalk.com";
+    backendHost = "일래스틱빈스톡도메인";
 }
 
 export const API_BASE_URL = `${backendHost}`
@@ -519,7 +562,7 @@ const hostname = window && window.location && window.location.hostname;
 if(hostname === "localhost"){
     backendHost = "http://localhost:5000";
 } else {
-    backendHost = "Springboot-developer2-env.eba-xnuiauxn.ap-northeast-2.elasticbeanstalk.com";
+    backendHost = "일래스틱빈스톡도메인";
 }
 
 export const API_BASE_URL = `${backendHost}`
@@ -536,29 +579,78 @@ npm run build
 - 플랫폼 : Node.js
 - 플랫폼 브랜치 : Node.js 18
 
+#### 다른것들은 설정할 필요가 없다.
+
 ### 3. 업로드 및 배포
-- Pocfile
+#### Pocfile
 ```
 web: node index.js
 ```
-- index.js
+#### index.js
 ```js
-for (;;) {}
-```
--.platform\nginx\conf.d\elasticbeanstalk\00_application.conf
-```
-root /var/app/current;
+//React 정적 웹사이트를 ElasticBeanStalk같은 Node.js 환경에서 배포하기 위한 서버코드
+const express = require('express'); //Express모듈을 불러와서 express라는 이름으로 사용하겠다.
+const path = require('path');//파일 경로나 디렉토리 경로를 OS에 맞게 안전하게 조합할 수 있게 해준다.
 
-location ~* \.(js|css|html)$ {
-    add_header Cache-Control "no-cache, no-store, must-revalidate";
+const app = express(); //express 객체 생성하기 get(), use(), listen()메서드를 사용할 수 있게 해준다.
+const port = process.env.PORT || 8080; //설정한 포트가 있으면 사용하고 아니면 8080을 사용해라
+
+app.use(express.static(path.join(__dirname, 'build')));
+//build/ 폴더안의 정적파일들을 자동으로 서빙
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+//사용자가 어떤 경로로 들어와도 index.html을 리턴
+//React Router같은 SPA(Single Page Application)는 브라우저 URL로 라우팅을 해야하기 때문에, 서버는 항상
+//index.html을 리턴해야한다.
+
+app.listen(port, () => {
+    console.log(`Server running at http://127.0.0.1:${port}/`);
+});
+//실제 서버를 지정한 포트에서 실행
+```
+#### package.json
+```json
+{
+  "name": "react-eb-app",
+  "version": "1.0.0",
+  "description": "React app with Express for Elastic Beanstalk",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
 
-location / {
-    index index.html;
-    try_files $uri $uri/ /index.html;
+- "start" 스크립트는 npm start로 실행됨
+- express 의존성은 EB가 npm install 해서 설치
+```
+#### .platform\nginx\conf.d\elasticbeanstalk\00_application.conf
+- build 폴더 안에 .platform\nginx\conf.d\elasticbeanstalk\폴더를 만든다.
+- 00_application.conf파일에는 다음과 같은 코드를 작성한다.
+
+```conf
+server {
+    listen 80;
+    root /var/app/current;
+
+    location / {
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(js|css|html)$ {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
 }
 ```
-- 3개의 폴더와 파일을 build폴더에 넣고 압축한 파일을 업로드한다.
+
+![img](img/리액트빌드폴더.png)
+
+- 3개의 파일과 폴더를 압축하여 업로드 한다.
 
 ![img](img/리액트배포.png)
 
@@ -685,6 +777,7 @@ ssh-keygen -t rsa -C "github메일주소"
 
 - 우리가 작업한 프로젝트에서 git bash here로 연다
 - git init으로 폴더를 git저장소로 만든다.
+
 ![img](img/gitbash.png)
 
 ```
@@ -714,29 +807,29 @@ $ git push origin main
 ### 1. 프로젝트의 root폴더에 .github디렉터리만들기
 - 그 안에 workflows 디렉터리를 다시 만들고 ci.yml파일을 생성해 다음 스크립트를 작성한다.
 ```yml
-#1. 워크플로우의 이름 지정
+# 워크플로우의 이름을 CI로 설정
 name: CI
 
 #2. 워크플로가 시작될 조건 지정
+# # main 브랜치에 push 될 때 워크플로우가 실행됨
 on:
   push:
     branches: [ main ]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest # 실행 환경 지정
+jobs:  # 워크플로우에서 수행할 작업(Job) 목록의 시작
+  build:  # 작업(Job)의 이름. 여기서는 'build'라는 이름의 작업을 정의함
+    runs-on: ubuntu-latest # 이 작업을 실행할 OS 환경. GitHub에서 제공하는 최신 Ubuntu 가상 머신 사용
 
     # 4. 실행 스템 지정
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-java@v3
+    steps: # 작업 안에서 실제로 실행할 명령어(단계)들의 목록
+      - uses: actions/checkout@v3 # 첫 번째 단계: 코드를 GitHub 리포지토리에서 가상 환경으로 가져옴
+      - uses: actions/setup-java@v3 # 두 번째 단계: Java 개발 환경 설정
         with:
-          distribution: 'corretto'
-          java-version: '17'
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+          distribution: 'corretto' # 사용할 JDK 배포판으로 Amazon Corretto 선택
+          java-version: '17' # 사용할 자바 버전은 17
+          
+      - name: Grant execute permission for gradlew  # 세 번째 단계: gradlew 파일에 실행 권한 부여 # 리눅스/유닉스 계열 시스템에서는 실행 파일도 실행 권한이 있어야 실행 가능함 # chmod +x gradlew 명령어는 gradlew 스크립트에 실행 권한을 부여함
+        run: chmod +x gradlew # gradlew 파일을 실행 가능한 상태로 변경
 
       - name: Build with Gradle
         run: ./gradlew clean build
